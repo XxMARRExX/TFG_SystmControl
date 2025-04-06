@@ -1,34 +1,23 @@
 function analyzePieceOrientation(image, edges)
-    % Filtrar bordes más o menos horizontales
-    cond = abs(edges.ny) > 0.95;
-    edgesC = subsetEdges(edges, cond);
-    
-    % Visualizar los bordes filtrados
-    figure;
-    clf;
-    visEdges(edgesC);
-    title('Bordes horizontales detectados');
 
-    % Calcular la recta de regresión sin outliers
-    line = filteredOutliers(edgesC.x, edgesC.y, true);
+    % Calcular la recta de regresión
+    line = filteredOutliers(edges.x, edges.y, true);
 
-    % Dibujar la recta de regresión
-    x = [0, size(image, 2)]; % Extremos de la imagen en X
-    y = polyval(line, x);
-    
-    % Superponer la recta en la imagen de bordes filtrados
-    figure;
-    hold on;
-    visEdges(edgesC);
-    plot(x, y, 'g-', 'LineWidth', 2);
-    title('Recta de regresión sobre bordes horizontales');
-    hold off;
+    % Dibujar la recta
+    x_range = [0, size(image, 2)];
+    y_range = polyval(line, x_range);
 
-    % Superponer la recta en la imagen original
+    % Dibujar la recta sobre la imagen original
     figure;
     imshow(image);
     hold on;
-    plot(x, y, 'g-', 'LineWidth', 2);
-    title('Imagen original con recta de regresión');
+    plot(x_range, y_range, 'g-', 'LineWidth', 0.75);
+    title('Imagen original con orientación estimada de la pieza');
     hold off;
+
+    % Mostrar pendiente y ángulo en consola
+    pendiente = line(1);
+    angulo_deg = atan(pendiente) * (180 / pi);
+    fprintf('Pendiente de la recta ajustada: %.6f\n', pendiente);
+    fprintf('Ángulo de inclinación respecto al eje horizontal: %.2f grados\n', angulo_deg);
 end

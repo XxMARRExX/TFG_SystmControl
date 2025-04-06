@@ -1,38 +1,25 @@
 %% Mostrar bordes detectados con ROI dinámica
 clear; clc; close all;
 
-% Cargar la imagen
+%% Cargar la imagen
 image = imread("pictures\Imagen2.png");
 grayImage = convertToGrayScale(image);
 
-% Detección de bordes subpíxel
+%% Detección de bordes subpíxel
 threshold = 10;  % Ajusta el umbral según la calidad de la imagen
 edges = subpixelEdges(grayImage, threshold, 'SmoothingIter', 1);
 
-% Filtrar outliers y obtener los índices válidos
-[line, x_filtrado, y_filtrado, idx_valido] = filteredOutliers(edges.x, edges.y, true);
+%% Filtrado basado en la normal de los puntos
+newEdges = filterByNormalThreshold(edges);
 
-% Aplicar la misma filtración a los otros vectores de 'edges'
-edges.x = x_filtrado;
-edges.y = y_filtrado;
-edges.nx = edges.nx(idx_valido);
-edges.ny = edges.ny(idx_valido);
-edges.curv = edges.curv(idx_valido);
-edges.i0 = edges.i0(idx_valido);
-edges.i1 = edges.i1(idx_valido);
+%% Filtrado basado en la densidad de puntos sobre un intervalo horizontal
+newEdges = filterByHorizontalDensity(newEdges, 450, 1000);
 
-[x_filtrado, y_filtrado, idx_valido] = filteredOutliers_2(edges.x, edges.y, true);
+%% Reconstrucción de los bordes de la pieza
+edgesPiece = generateVerticalRegionFromEdges(edges, newEdges,0.1,0.05);
 
-edges.x = x_filtrado;
-edges.y = y_filtrado;
-edges.nx = edges.nx(idx_valido);
-edges.ny = edges.ny(idx_valido);
-edges.curv = edges.curv(idx_valido);
-edges.i0 = edges.i0(idx_valido);
-edges.i1 = edges.i1(idx_valido);
+regressionLine = computeLinearRegression(edgesPiece);
 
-pointsPlotX(edges);
-pointsPlotY(edges);
-%showImageWithEdges(grayImage, edges);
-analyzePieceOrientation(grayImage, edges);
-drawBoundingBox(grayImage, edges);
+%% Se muestra el análisis de la imagen
+showImageWithEdges(grayImage, edgesPiece, regressionLine);
+visEdges(edgesPiece);
