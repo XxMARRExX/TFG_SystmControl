@@ -2,30 +2,40 @@
 clear; clc; close all;
 
 %% Cargar la imagen
-image = imread("pictures/Imagen2.png");
+image = imread("pictures/Imagen1.png");
 grayImage = convertToGrayScale(image);
+%imshow(grayImage);
 
-%% Detección de bordes subpíxel
+%% Detección de bordes subpíxe
 threshold = 10;  % Ajusta el umbral según la calidad de la imagen
 edges = subpixelEdges(grayImage, threshold, 'SmoothingIter', 1);
+%visEdges(edges)
 
 %% Filtrado basado en la normal de los puntos
 newEdges = filterByNormalThreshold(edges);
+%visEdges(newEdges)
 
 %% Filtrado basado en la densidad de puntos sobre un intervalo horizontal
-newEdges = filterByHorizontalDensity(newEdges, 450, 1000);
+newEdges = filterByHorizontalDensity(newEdges, 450, 200, 0.05);
+%visEdges(newEdges)
 
 %% Reconstrucción de los bordes de la pieza
 edgesPiece = generateVerticalRegionFromEdges(edges, newEdges,0.1,0.05);
 
-regressionLine = computeLinearRegression(edgesPiece);
+%% Extracción de clusterés
+[clusters, noise] = analyzeSubstructuresWithDBSCAN(edgesPiece, 6, 4);
+%visClusters(grayImage, clusters);
 
-% main.m (añadir después del cálculo de regressionLine)
-[clusters, noise] = analyzeSubstructuresWithDBSCAN(edgesPiece, 3, 4);  % epsilon = 3 px, MinPts = 4
+% Clasificación cluster, contorno de pieza
+[pieceClusters, pieceEdges, numPieces] = findPieceClusters(clusters);
 
 % Visualización (opcional)
-visClusters(grayImage, clusters, noise);
+%visClusters(grayImage, pieceClusters);
 
-%% Se muestra el análisis de la imagen
-showImageWithEdges(grayImage, edgesPiece, regressionLine);
-visEdges(edgesPiece);
+%% Análisis de la pieza/s
+
+% Calcular geometría para cada pieza detectada
+resultados = analyzePieceGeometry(pieceClusters);
+
+% Mostrar cada pieza con su análisis
+showImageWithEdges(grayImage, resultados);
