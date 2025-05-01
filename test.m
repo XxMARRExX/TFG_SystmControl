@@ -1,13 +1,9 @@
 clear; clc; close all;
-totalStart = tic;
 
 %% Cargar la imagen
 %stepStart = tic;
 image = imread("pictures/Imagen2.png");
 grayImage = convertToGrayScale(image);
-imshow(grayImage);
-grayImageTest = normalizeIllumination(grayImage);
-imshow(grayImageTest);
 disp("1 -- Imagen pasada a gris --")
 %disp(['Tiempo: ' num2str(toc(stepStart)) ' segundos'])
 
@@ -17,9 +13,8 @@ disp("1 -- Imagen pasada a gris --")
 
 %% Detección de bordes subpíxel
 threshold = 10;  % Ajusta el umbral según la calidad de la imagen
-edges = subpixelEdges(grayImageTest, threshold, 'SmoothingIter', 1);
+edges = subpixelEdges(grayImage, threshold, 'SmoothingIter', 1);
 disp("2 -- Bordes detectados --")
-visEdges(edges);
 
 
 %% Filtrado de puntos
@@ -31,7 +26,7 @@ disp("3 -- Filtro de la normal --")
 % (rotado o no)
 filteredEdges = filterByHorizontalDensity(filteredEdges, 450, 200, 0.05);
 disp("4 -- Filtro bordes horizontales --")
-
+visEdges(filteredEdges);
 
 %% Reconstrucción de los bordes verticales de la pieza
 edgesPiece = generateVerticalRegionFromEdges(edges, filteredEdges, 0.1, 0.05);
@@ -64,28 +59,4 @@ regionMap = classifyPixelRegions(grayImage, maskPieza);
 disp("10 -- Clasificación de las regiones --")
 disp(['Tiempo: ' num2str(toc(stepStart)) ' segundos'])
 
-%{
-imagesc(regionMap);
-colormap([0 0 0; 0.5 0.5 0.5; 1 0 0]); % fondo, pieza, agujero
-axis equal tight;
-title('Mapa de regiones (0: fondo, 1: pieza, 2: agujero)');
-%}
-
-% Detección de los contornos interiores de cada pieza
-pieceClusters  = findInnerContours(regionMap, remainingClusters, pieceClusters, ...
-                                  'RingRadius',20,'MinPointsRing',5);
-disp("11 -- Búsqueda de contornos internos --")
-
-
-%% Análisis de la pieza/s
-
-% Calcular geometría para cada pieza detectada
-results = analyzePieceGeometry(pieceClusters);
-disp("12 -- Cálculo de la geometría --")
-
-% Mostrar cada pieza con su análisis
-showImageWithEdges(grayImage, results);
-disp("13 -- Visualización de los resultados --")
-
-%% Tiempo total
-disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
+imshow(regionMap)

@@ -3,7 +3,7 @@ function [edgesC] = filterByHorizontalDensity(edges, altura_franja, umbral_densi
     % y realiza un barrido en franjas paralelas a dicha orientación.
 
     if nargin < 4
-        tolerancia_angular = 0.1 * pi;  % ±5% por defecto
+        tolerancia_angular = 0.1 * pi;  % ±10% por defecto
     end
 
     %% 1. Estimar orientación dominante a partir de normales
@@ -49,9 +49,10 @@ function [edgesC] = filterByHorizontalDensity(edges, altura_franja, umbral_densi
     edgesC.curv = edgesF.curv(idx_valido);
     edgesC.i0 = edgesF.i0(idx_valido);
     edgesC.i1 = edgesF.i1(idx_valido);
-
+    
+    %{
     fprintf("Total puntos antes del filtro angular: %d\n", numel(edges.x));
     fprintf("Orientación dominante: %.2f rad\n", theta);
     fprintf("Puntos que cumplen el ángulo: %d\n", sum(idx_orientacion_valida));
-
+    %}
 end
