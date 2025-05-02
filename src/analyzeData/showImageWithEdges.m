@@ -1,10 +1,6 @@
-function showImageWithEdges(grayImage, resultados, innerContours)
+function showImageWithEdges(grayImage, resultados)
 % SHOWIMAGEWITHEDGES Muestra las piezas con sus contornos exteriores e interiores
 % usando el mismo color por pieza, claramente visible sobre fondo gris.
-
-    if nargin < 3
-        innerContours = {};
-    end
 
     figure;
     imshow(grayImage, 'InitialMagnification', 'fit');
@@ -27,9 +23,9 @@ function showImageWithEdges(grayImage, resultados, innerContours)
         plot(xLine, yLine, '-', 'Color', color, 'LineWidth', 1.5);
 
         % --- Contornos interiores ---
-        if i <= numel(innerContours)
-            for j = 1:numel(innerContours{i}.contornos)
-                c = innerContours{i}.contornos{j};
+        if isfield(resultados(i).edges, 'innerContours') && ~isempty(resultados(i).edges.innerContours)
+            for j = 1:numel(resultados(i).edges.innerContours)
+                c = resultados(i).edges.innerContours{j};
                 plot(c.x, c.y, '.', 'Color', color, 'MarkerSize', 6); % mismo color
             end
         end

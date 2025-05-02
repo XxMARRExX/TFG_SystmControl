@@ -5,7 +5,7 @@ configParams = config();
 
 %% Cargar la imagen
 disp("1 -- Paso de la imagen a gris --")
-image = imread("pictures/Imagen1.png");
+image = imread("pictures/Imagen7.png");
 grayImage = convertToGrayScale(image);
 
 
@@ -42,25 +42,34 @@ disp("6 -- Agrupamiento mediante clusters --")
     configParams.analyzeSubstructures.minPts);
 
 
-%% Búsqueda de clusters que sean piezas
+%% Generación de la pieza
 disp("7 -- Búsqueda de piezas --")
 [pieceClusters, pieceEdges, numPieces, remainingClusters] = findPieceClusters(clusters);
 %visClusters(grayImage, remainingClusters)
 
 % Crear la máscara binaria de las piezas
 disp("8 -- Extracción máscara de la pieza/s --")
-maskPieza = createPieceMask_2(grayImage, pieceClusters);
+maskPieza = createPieceMask(grayImage, pieceClusters);
 
 % Filtrar los clusters internos candidatos
 disp("9 -- Filtrado de clusters dentro de la pieza --")
 filteredClusters = filterClustersInsideMask(remainingClusters, maskPieza);
-visClusters(grayImage, filteredClusters)
 
-disp("10 -- Limpieza morfológica de clusters restantes --")
-cleanClusters = findInnerContours_2(filteredClusters, size(grayImage), ...
-    configParams.findInnerContours_2.refImgSize, ...
-    configParams.findInnerContours_2.maxMeanDist);
-visClusters(grayImage, cleanClusters);
+disp("10 -- Búsqueda de contornos internos --")
+piecesInnerContours = findInnerContours(filteredClusters, size(grayImage), ...
+    configParams.findInnerContours.refImgSize, ...
+    configParams.findInnerContours.maxMeanDist);
+
+disp("11 -- Asociación de contornos internos a pieza/s --")
+pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContours, maskPieza);
+
+
+%% Análisis de la pieza/s
+disp("12 -- Cálculo de la geometría --")
+results = analyzePieceGeometry(pieceClusters);
+
+disp("13 -- Visualización de los resultados --")
+showImageWithEdges(grayImage, results);
 
 
 %% Tiempo total

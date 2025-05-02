@@ -27,8 +27,8 @@ function configParams = config()
     configParams.analyzeSubstructures.minPts = 4;
     
     %% findInnerContours_2
-    configParams.findInnerContours_2.maxMeanDist = 20;
-    configParams.findInnerContours_2.refImgSize = [7000 9344];
+    configParams.findInnerContours.maxMeanDist = 20;
+    configParams.findInnerContours.refImgSize = [7000 9344];
     
     disp('Variables de entorno listo');
     disp('Entorno listo.');
