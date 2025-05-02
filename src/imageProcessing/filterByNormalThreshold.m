@@ -1,7 +1,7 @@
-function [edgesC] = filterByNormalThreshold(edges)
+function [edgesC] = filterByNormalThreshold(edges, maxNormalDeviation)
 
     %% Filtrar puntos cuya normal está orientada verticalmente (bordes horizontales)
-    idx_valido = abs(edges.ny) > 0.90;
+    idx_valido = abs(edges.ny) > maxNormalDeviation;
 
     %% Asignar directamente los campos filtrados
     edgesC.x = edges.x(idx_valido);

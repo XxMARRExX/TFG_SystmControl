@@ -1,0 +1,87 @@
+clear; clc; close all;
+totalStart = tic;
+
+configParams = config();
+
+%% Cargar la imagen
+disp("1 -- Paso de la imagen a gris --")
+image = imread("pictures/Imagen4.png");
+grayImage = convertToGrayScale(image);
+
+
+%% Detección de bordes subpíxel
+disp("2 -- Detección de bordes --")
+edges = subpixelEdges(grayImage, configParams.subpixelEdges.threshold, ...
+    'SmoothingIter', configParams.subpixelEdges.smoothingIter);
+
+
+%% Filtrado de puntos
+disp("3 -- Filtrado por la normal del punto --")
+newEdges = filterByNormalThreshold(edges, ...
+    configParams.filterByNormal.normalThreshold);
+
+disp("4 -- Filtro por franjas horizontales --")
+newEdges = filterByHorizontalDensity(newEdges, ...
+    configParams.filterByHorizontalDensity.minPoints, ...
+    configParams.filterByHorizontalDensity.range, ...
+    confconfigParamsig.filterByHorizontalDensity.tolerance);
+
+
+%% Reconstrucción de la pieza
+disp("5 -- Generación de bordes verticales --")
+edgesPiece = generateVerticalRegionFromEdges(edges, newEdges, ...
+    configParams.generateVerticalRegionFromEdges.expansionX , ...
+    configParams.generateVerticalRegionFromEdges.expansionY);
+%showFilteredPoints(edges,edgesPiece);
+
+
+%% Extracción de clusterés
+disp("6 -- Agrupamiento mediante clusters --")
+[clusters, noise] = analyzeSubstructuresWithDBSCAN(edgesPiece, ...
+    configParams.analyzeSubstructures.eps, ...
+    configParams.analyzeSubstructures.minPts);
+
+
+%% Búsqueda de clusters que sean piezas
+disp("7 -- Búsqueda de piezas --")
+[pieceClusters, pieceEdges, numPieces, remainingClusters] = findPieceClusters(clusters);
+
+
+% Crear la máscara binaria de las piezas
+maskPieza = createPieceMask_2(grayImage, pieceClusters);
+disp("8 -- Máscara de la pieza --")
+
+% Filtrar los clusters internos candidatos
+filteredClusters = filterClustersInsideMask(remainingClusters, maskPieza);
+disp("9 -- Filtrado de clusters dentro de la pieza --")
+
+
+filteredClusters = filterClustersBySizeDistribution(filteredClusters, ...
+                        'HomogeneityThreshold', 20, 'Verbose', true);
+visClusters(grayImage, filteredClusters)
+disp("9.1 -- Filtrado de clusters por distribución --")
+
+
+% Clasificación: Pieza, Fondo, Agujero y transición
+regionMap = classifyPixelRegions_2(grayImage, maskPieza, numPieces, true);
+disp("10 -- Clasificación de las regiones --")
+
+% Detección de los contornos interiores de cada pieza
+innerContours = findInnerContours_2(regionMap, maskPieza, filteredClusters, pieceClusters, ...
+                                  'RingRadius', 20, 'MinPointsRing', 5, 'Verbose', true);
+disp("11 -- Búsqueda de contornos internos --")
+
+
+%% Análisis de la pieza/s
+
+% Calcular geometría para cada pieza detectada
+results = analyzePieceGeometry(pieceClusters);
+disp("12 -- Cálculo de la geometría --")
+
+% Mostrar cada pieza con su análisis
+showImageWithEdges(grayImage, results, innerContours);
+disp("13 -- Visualización de los resultados --")
+
+
+%% Tiempo total
+disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])

@@ -1,9 +1,5 @@
 function edgesC = generateVerticalRegionFromEdges(edges, edgesSubset, expansionX, expansionY, image)
 
-    %% Valores por defecto: expansión del 10% en X y 5% en Y
-    if nargin < 3, expansionX = 0.10; end
-    if nargin < 4, expansionY = 0.05; end
-
     %% Filtrado de outliers por percentiles
     x_low = prctile(edgesSubset.x, 0.5);
     x_high = prctile(edgesSubset.x, 99.5);
