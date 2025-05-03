@@ -68,9 +68,39 @@ pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContour
 disp("12 -- Cálculo de la geometría --")
 results = analyzePieceGeometry(pieceClusters);
 
-disp("13 -- Visualización de los resultados --")
-showImageWithEdges(grayImage, results);
 
+%% Proceso de encaje
+disp("13 -- Carga del modelo .svg --")
+svgFile = 'data/models/Pieza-patron.svg';
+svgPaths = importSVG(svgFile);
+[bboxSVG, centerSVG] = getSVGDimensions(svgFile);
+exteriorCountour = getLargestSVGPath(svgPaths);
+
+
+disp("14 -- BoundingBox de la pieza --")
+pieza = results.edges;
+points2D = [pieza.x(:), pieza.y(:)];
+model = fitrect2D(points2D);
+center = model.Center;          
+dims = model.Dimensions;       
+angle = model.Angle;         
+
+
+disp("15 -- Cambio de S.R. de los puntos detectados --")
+[pointsTransformed, transform] = transformPointsToSVG(points2D, bboxSVG, dims, angle, center, centerSVG);
+
+
+disp("16 -- Resampleo de puntos del .svg --")
+numDetected = size(pointsTransformed, 1);
+contornoExteriorResampled = resamplePath(exteriorCountour, numDetected);
+
+disp("17 -- Optimización del encaje --")
+[pointsAligned, tform, errors] = ICP2D(contornoExteriorResampled, pointsTransformed, ...
+    'MaxIterations', 500, 'Tolerance', 1e-6, 'Verbose', false);
+
+disp("18 -- Visualización encaje --")
+visualizarAjusteICP(pointsAligned, svgPaths);
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
+

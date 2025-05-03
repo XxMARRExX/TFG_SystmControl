@@ -5,7 +5,7 @@ configParams = config();
 
 %% Cargar la imagen
 disp("1 -- Paso de la imagen a gris --")
-image = imread("pictures/Imagen4.png");
+image = imread("pictures/Imagen7.png");
 grayImage = convertToGrayScale(image);
 
 
@@ -24,7 +24,7 @@ disp("4 -- Filtro por franjas horizontales --")
 newEdges = filterByHorizontalDensity(newEdges, ...
     configParams.filterByHorizontalDensity.minPoints, ...
     configParams.filterByHorizontalDensity.range, ...
-    confconfigParamsig.filterByHorizontalDensity.tolerance);
+    configParams.filterByHorizontalDensity.tolerance);
 
 
 %% Reconstrucción de la pieza
@@ -42,46 +42,80 @@ disp("6 -- Agrupamiento mediante clusters --")
     configParams.analyzeSubstructures.minPts);
 
 
-%% Búsqueda de clusters que sean piezas
+%% Generación de la pieza
 disp("7 -- Búsqueda de piezas --")
 [pieceClusters, pieceEdges, numPieces, remainingClusters] = findPieceClusters(clusters);
-
+%visClusters(grayImage, remainingClusters)
 
 % Crear la máscara binaria de las piezas
-maskPieza = createPieceMask_2(grayImage, pieceClusters);
-disp("8 -- Máscara de la pieza --")
+disp("8 -- Extracción máscara de la pieza/s --")
+maskPieza = createPieceMask(grayImage, pieceClusters);
 
 % Filtrar los clusters internos candidatos
-filteredClusters = filterClustersInsideMask(remainingClusters, maskPieza);
 disp("9 -- Filtrado de clusters dentro de la pieza --")
+filteredClusters = filterClustersInsideMask(remainingClusters, maskPieza);
 
+disp("10 -- Búsqueda de contornos internos --")
+piecesInnerContours = findInnerContours(filteredClusters, size(grayImage), ...
+    configParams.findInnerContours.refImgSize, ...
+    configParams.findInnerContours.maxMeanDist);
 
-filteredClusters = filterClustersBySizeDistribution(filteredClusters, ...
-                        'HomogeneityThreshold', 20, 'Verbose', true);
-visClusters(grayImage, filteredClusters)
-disp("9.1 -- Filtrado de clusters por distribución --")
-
-
-% Clasificación: Pieza, Fondo, Agujero y transición
-regionMap = classifyPixelRegions_2(grayImage, maskPieza, numPieces, true);
-disp("10 -- Clasificación de las regiones --")
-
-% Detección de los contornos interiores de cada pieza
-innerContours = findInnerContours_2(regionMap, maskPieza, filteredClusters, pieceClusters, ...
-                                  'RingRadius', 20, 'MinPointsRing', 5, 'Verbose', true);
-disp("11 -- Búsqueda de contornos internos --")
+disp("11 -- Asociación de contornos internos a pieza/s --")
+pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContours, maskPieza);
 
 
 %% Análisis de la pieza/s
-
-% Calcular geometría para cada pieza detectada
-results = analyzePieceGeometry(pieceClusters);
 disp("12 -- Cálculo de la geometría --")
+results = analyzePieceGeometry(pieceClusters);
 
-% Mostrar cada pieza con su análisis
-showImageWithEdges(grayImage, results, innerContours);
-disp("13 -- Visualización de los resultados --")
+
+disp("13 -- Carga del modelo .svg --")
+svgPaths = importSVG('data/models/Pieza-patron.svg');
+
+
+[bboxSVG, centerSVG] = getSVGDimensions(svgFile);
+
+% Unificar todos los paths en un solo conjunto de puntos (para visualización y referencia)
+modelo_svg = getLargestSVGPath(svgPaths);
+
+% ==== Obtener los puntos detectados ====
+pieza = results.edges;
+points2D = [pieza.x(:), pieza.y(:)];
+
+% Ajustar bounding box orientado a la pieza detectada
+model = fitrect2D(points2D);
+
+center = model.Center;          % Centro del bounding box detectado
+dims = model.Dimensions;       % Dimensiones del bounding box detectado
+angle = model.Angle;         % Rotación del bounding box detectado (2x2)
+
+% ==== Aplicar transformación para llevar al sistema SVG ====
+
+[pointsTransformed, transform] = transformPointsToSVG(points2D, bboxSVG, dims, angle, center, centerSVG);
+
+% Número de puntos del contorno detectado
+numDetected = size(pointsTransformed, 1);
+
+% Resamplear el contorno SVG para que tenga el mismo número de puntos
+contornoExteriorResampled = resamplePath(modelo_svg, numDetected);
+
+[pointsAligned, tform, errors] = ICP2D(contornoExteriorResampled, pointsTransformed, ...
+    'MaxIterations', 500, 'Tolerance', 1e-6, 'Verbose', true);
+
+% Visualizar
+figure; hold on; axis equal; grid on;
+plot(pointsAligned(:,1), pointsAligned(:,2), 'r.', 'MarkerSize', 10);
+
+for i = 1:numel(svgPaths)
+    plot(svgPaths{i}(:,1), svgPaths{i}(:,2), 'b-');
+end
+
+legend('Detección ajustada fina (ICP)', 'Modelo SVG');
+xlabel('X (mm)');
+ylabel('Y (mm)');
+title('Ajuste fino mediante ICP 2D');
 
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
+
