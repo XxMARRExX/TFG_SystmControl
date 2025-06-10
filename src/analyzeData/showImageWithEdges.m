@@ -13,7 +13,8 @@ function showImageWithEdges(grayImage, resultados)
         color = colores(i,:);
 
         % --- Contorno exterior ---
-        plot(resultados(i).edges.x, resultados(i).edges.y, '.', ...
+        exterior = resultados(i).edges.exterior;
+        plot(exterior.x, exterior.y, '.', ...
              'Color', color, 'MarkerSize', 8);
 
         % --- Línea de orientación de la pieza ---

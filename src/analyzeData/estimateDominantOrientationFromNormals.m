@@ -4,7 +4,7 @@ function theta_dominante = estimateDominantOrientationFromNormals(edges)
     %% Ángulo de cada normal, en rango [-pi, pi]
     theta = atan2(edges.ny, edges.nx);
 
-    %% Eliminar el signo: pasar a rango [0, pi)
+    %% Eliminar el signo: pasar a rango [0, pi]
     theta_folded = mod(theta, pi);
 
     %% Histograma de direcciones

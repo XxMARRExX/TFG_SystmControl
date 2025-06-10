@@ -2,21 +2,23 @@ function pieceClusters = associateInnerContoursToPieces(pieceClusters, innerClus
 % ASSOCIATEINNERCONTOURSTOPIECES Asocia contornos interiores a las piezas correspondientes
 %
 % Entrada:
-%   - pieceClusters: celda de clusters exteriores (estructuras)
+%   - pieceClusters: celda de clusters exteriores (estructuras con campos x, y)
 %   - innerClusters: celda de contornos interiores
 %   - maskLabel: máscara etiquetada (1, 2, 3, ...) con ID de cada pieza
 %
 % Salida:
-%   - pieceClusters: igual que entrada, pero cada pieza tiene un campo adicional .innerContours
+%   - pieceClusters: estructuras reorganizadas con:
+%       - edges.exterior: contorno exterior
+%       - edges.innerContours: celdas de contornos interiores
 
     numPieces = numel(pieceClusters);
     
-    % Inicializar campo innerContours vacío
+    % Inicializar campo .edges.innerContours vacío
     for i = 1:numPieces
-        pieceClusters{i}.innerContours = {};
+        pieceClusters{i}.edges.innerContours = {};
     end
 
-    % Asociar cada contorno interior
+    % Asociar cada contorno interior a la pieza correspondiente
     for i = 1:numel(innerClusters)
         cluster = innerClusters{i};
         x = round(cluster.x(:));
@@ -41,6 +43,20 @@ function pieceClusters = associateInnerContoursToPieces(pieceClusters, innerClus
         end
         
         % Añadir el contorno interior a la pieza correspondiente
-        pieceClusters{piezaId}.innerContours{end+1} = cluster;
+        pieceClusters{piezaId}.edges.innerContours{end+1} = cluster;
+    end
+
+    % Reorganizar contornos exteriores dentro de .edges.exterior
+    for i = 1:numPieces
+        piece = pieceClusters{i};
+
+        % Mover x, y al nuevo subcampo exterior
+        pieceClusters{i}.edges.exterior = struct( ...
+            'x', piece.x(:), ...
+            'y', piece.y(:) ...
+        );
+        
+        % Eliminar campos antiguos innecesarios
+        pieceClusters{i} = rmfield(pieceClusters{i}, {'x', 'y'});
     end
 end

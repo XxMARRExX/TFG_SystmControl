@@ -5,7 +5,7 @@ configParams = config();
 
 %% Cargar la imagen
 disp("1 -- Paso de la imagen a gris --")
-image = imread("pictures/Imagen7.png");
+image = imread("pictures/Imagen6.png");
 grayImage = convertToGrayScale(image);
 
 
@@ -68,8 +68,45 @@ pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContour
 disp("12 -- Cálculo de la geometría --")
 results = analyzePieceGeometry(pieceClusters);
 
-disp("13 -- Visualización de los resultados --")
-showImageWithEdges(grayImage, results);
+
+%% Proceso de encaje
+disp("13 -- Carga del modelo .svg --")
+svgFile = 'data/models/Pieza-patron.svg';
+svgPaths = importSVG(svgFile);
+[bboxSVG, centerSVG] = getSVGDimensions(svgFile);
+exteriorCountour = getLargestSVGPath(svgPaths);
+
+
+disp("14 -- BoundingBox de la pieza --")
+pieza = results.edges.exterior;
+points2D = [pieza.x(:), pieza.y(:)];
+model = fitrect2D(points2D);
+center = model.Center;          
+dims = model.Dimensions;       
+angle = model.Angle;         
+
+
+disp("15 -- Cambio de S.R. de los puntos detectados --")
+[pointsTransformed, transform] = transformPointsToSVG(points2D, bboxSVG, dims, angle, center, centerSVG);
+
+
+disp("16 -- Resampleo de puntos del .svg --")
+numDetected = size(pointsTransformed, 1);
+contornoExteriorResampled = resamplePath(exteriorCountour, numDetected);
+
+disp("17 -- Optimización del encaje contorno exterior --")
+[pointsAligned, tform, errors] = ICP2D(contornoExteriorResampled, pointsTransformed, ...
+    'MaxIterations', 500, 'Tolerance', 1e-6, 'Verbose', false);
+
+% Aplicar transformación final a los contornos internos ya pasados a SVG
+disp("17.1 -- Transformación de contornos internos --")
+contornosInternos = results.edges.innerContours;
+contornosInternosAlineados = transformInnerContours(contornosInternos, ...
+    bboxSVG, dims, angle, center, centerSVG, tform);
+
+
+disp("18 -- Visualización encaje --")
+visualizarAjusteICP(pointsAligned, svgPaths, contornosInternosAlineados);
 
 
 %% Tiempo total
