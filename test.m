@@ -5,7 +5,7 @@ configParams = config();
 
 %% Cargar la imagen
 disp("1 -- Paso de la imagen a gris --")
-image = imread("pictures/Imagen6.png");
+image = imread("pictures/Imagen5.png");
 grayImage = convertToGrayScale(image);
 
 
@@ -20,6 +20,7 @@ disp("3 -- Filtrado por la normal del punto --")
 newEdges = filterByNormalThreshold(edges, ...
     configParams.filterByNormal.normalThreshold);
 
+
 disp("4 -- Filtro por franjas horizontales --")
 newEdges = filterByHorizontalDensity(newEdges, ...
     configParams.filterByHorizontalDensity.minPoints, ...
@@ -32,7 +33,6 @@ disp("5 -- Generación de bordes verticales --")
 edgesPiece = generateVerticalRegionFromEdges(edges, newEdges, ...
     configParams.generateVerticalRegionFromEdges.expansionX , ...
     configParams.generateVerticalRegionFromEdges.expansionY);
-%showFilteredPoints(edges,edgesPiece);
 
 
 %% Extracción de clusterés
@@ -69,6 +69,7 @@ disp("12 -- Cálculo de la geometría --")
 results = analyzePieceGeometry(pieceClusters);
 
 
+
 %% Proceso de encaje
 disp("13 -- Carga del modelo .svg --")
 svgFile = 'data/models/Pieza-patron.svg';
@@ -80,14 +81,32 @@ exteriorCountour = getLargestSVGPath(svgPaths);
 disp("14 -- BoundingBox de la pieza --")
 pieza = results.edges.exterior;
 points2D = [pieza.x(:), pieza.y(:)];
+linea = results.linea;
+pointsRectified = rectifyOrientationByRegression(points2D, linea);
+plotRectificationComparison(points2D, pointsRectified)
+
+% Nuevo centro (media de los puntos rotados)
+center = mean(pointsRectified);
+
+% Dimensiones: ancho y alto del bounding box no rotado
+xrange = max(pointsRectified(:,1)) - min(pointsRectified(:,1));
+yrange = max(pointsRectified(:,2)) - min(pointsRectified(:,2));
+dims = [xrange, yrange];
+
+% El ángulo ya está corregido, así que es 0
+angle = 0;
+
+
+%{
 model = fitrect2D(points2D);
 center = model.Center;          
 dims = model.Dimensions;       
-angle = model.Angle;         
+angle = model.Angle;
+%}
 
 
 disp("15 -- Cambio de S.R. de los puntos detectados --")
-[pointsTransformed, transform] = transformPointsToSVG(points2D, bboxSVG, dims, angle, center, centerSVG);
+[pointsTransformed, transform] = transformPointsToSVG(pointsRectified, bboxSVG, dims, angle, center, centerSVG);
 
 
 disp("16 -- Resampleo de puntos del .svg --")
