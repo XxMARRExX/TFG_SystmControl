@@ -1,12 +1,11 @@
 clear; clc; close all;
-
 totalStart = tic;
 
 configParams = config();
 
 %% Cargar la imagen
 disp("1 -- Paso de la imagen a gris --")
-image = imread("pictures/Imagen1.png");
+image = imread("pictures/Imagen4.png");
 grayImage = convertToGrayScale(image);
 
 
@@ -25,7 +24,7 @@ disp("4 -- Filtro por franjas horizontales --")
 newEdges = filterByHorizontalDensity(newEdges, ...
     configParams.filterByHorizontalDensity.minPoints, ...
     configParams.filterByHorizontalDensity.range, ...
-    configParams.filterByHorizontalDensity.tolerance);
+    confconfigParamsig.filterByHorizontalDensity.tolerance);
 
 
 %% Reconstrucción de la pieza
@@ -46,24 +45,43 @@ disp("6 -- Agrupamiento mediante clusters --")
 %% Búsqueda de clusters que sean piezas
 disp("7 -- Búsqueda de piezas --")
 [pieceClusters, pieceEdges, numPieces, remainingClusters] = findPieceClusters(clusters);
-%visClusters(grayImage, remainingClusters)
+
 
 % Crear la máscara binaria de las piezas
-disp("8 -- Extracción máscara de la pieza/s --")
 maskPieza = createPieceMask_2(grayImage, pieceClusters);
+disp("8 -- Máscara de la pieza --")
 
 % Filtrar los clusters internos candidatos
-disp("9 -- Filtrado de clusters dentro de la pieza --")
 filteredClusters = filterClustersInsideMask(remainingClusters, maskPieza);
-visClusters(grayImage, filteredClusters)
+disp("9 -- Filtrado de clusters dentro de la pieza --")
 
-disp("10 -- Limpieza morfológica de clusters restantes --")
-cleanClusters = findInnerContours_2(filteredClusters, size(grayImage), ...
-    configParams.findInnerContours_2.refImgSize, ...
-    configParams.findInnerContours_2.maxMeanDist);
-visClusters(grayImage, cleanClusters);
+
+filteredClusters = filterClustersBySizeDistribution(filteredClusters, ...
+                        'HomogeneityThreshold', 20, 'Verbose', true);
+visClusters(grayImage, filteredClusters)
+disp("9.1 -- Filtrado de clusters por distribución --")
+
+
+% Clasificación: Pieza, Fondo, Agujero y transición
+regionMap = classifyPixelRegions_2(grayImage, maskPieza, numPieces, true);
+disp("10 -- Clasificación de las regiones --")
+
+% Detección de los contornos interiores de cada pieza
+innerContours = findInnerContours_2(regionMap, maskPieza, filteredClusters, pieceClusters, ...
+                                  'RingRadius', 20, 'MinPointsRing', 5, 'Verbose', true);
+disp("11 -- Búsqueda de contornos internos --")
+
+
+%% Análisis de la pieza/s
+
+% Calcular geometría para cada pieza detectada
+results = analyzePieceGeometry(pieceClusters);
+disp("12 -- Cálculo de la geometría --")
+
+% Mostrar cada pieza con su análisis
+showImageWithEdges(grayImage, results, innerContours);
+disp("13 -- Visualización de los resultados --")
 
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
-

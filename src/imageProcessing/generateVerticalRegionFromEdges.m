@@ -1,11 +1,11 @@
 function edgesC = generateRotatedRegionFromEdges(edges, edgesSubset, expansionX, expansionY, image)
 
-    %% Valores por defecto
-    if nargin < 3, expansionX = 0.15; end
-    if nargin < 4, expansionY = 0.05; end
+    %% Filtrado de outliers por percentiles
+    x_low = prctile(edgesSubset.x, 0.5);
+    x_high = prctile(edgesSubset.x, 99.5);
+    y_low = prctile(edgesSubset.y, 0.5);
+    y_high = prctile(edgesSubset.y, 99.5);
 
-    %% 1. Estimar orientación dominante (basada en normales)
-    theta = estimateDominantOrientationFromNormals(edgesSubset);
 
     %% 2. Sistema de referencia local
     u = [cos(theta); sin(theta)];           % dirección dominante (longitudinal)

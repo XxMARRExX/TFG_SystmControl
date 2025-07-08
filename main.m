@@ -2,14 +2,9 @@ clear; clc; close all;
 totalStart = tic;
 
 %% Cargar la imagen
-%stepStart = tic;
-image = imread("pictures/Imagen1.png");
+image = imread("pictures/Imagen5.png");
 grayImage = convertToGrayScale(image);
 disp("1 -- Imagen pasada a gris --")
-%disp(['Tiempo: ' num2str(toc(stepStart)) ' segundos'])
-
-% muestra 1 de cada 5 píxeles
-%showPixelIntensities(grayImage); 
 
 
 %% Detección de bordes subpíxel
@@ -20,18 +15,18 @@ disp("2 -- Bordes detectados --")
 
 %% Filtrado de puntos
 % Filtrado basado en la normal de los puntos
-filteredEdges = filterByNormalThreshold(edges);
+newEdges = filterByNormalThreshold(edges);
 disp("3 -- Filtro de la normal --")
 
 % Filtrado basado en la densidad de puntos sobre un intervalo horizontal 
 % (rotado o no)
-filteredEdges = filterByHorizontalDensity(filteredEdges, 450, 200, 0.05);
+newEdges = filterByHorizontalDensity(newEdges, 450, 200, 0.05);
 disp("4 -- Filtro bordes horizontales --")
 
-%% Reconstrucción de los bordes verticales de la pieza
-edgesPiece = generateVerticalRegionFromEdges(edges, filteredEdges, 0.1, 0.05);
-%showFilteredPoints(edges, edgesPiece);
-%visEdges(edgesPiece)
+
+%% Reconstrucción de la pieza
+edgesPiece = generateVerticalRegionFromEdges(edges, newEdges,0.1,0.05);
+%showFilteredPoints(edges,edgesPiece);
 disp("5 -- Generación de bordes verticales --")
 
 
@@ -39,6 +34,7 @@ disp("5 -- Generación de bordes verticales --")
 [clusters, noise] = analyzeSubstructuresWithDBSCAN(edgesPiece, 6, 4);
 disp("6 -- Agrupamiento mediante clusters --")
 visClusters(grayImage, clusters);
+
 
 % Búsqueda de clusters que sean piezas
 [pieceClusters, pieceEdges, numPieces, remainingClusters] = findPieceClusters(clusters);
@@ -54,10 +50,9 @@ filteredClusters = filterClustersInsideMask(remainingClusters, maskPieza);
 disp("9 -- Filtrado de clusters dentro de la pieza --")
 
 % Clasificación: Pieza, Fondo, Agujero y transición
-stepStart = tic;
-regionMap = classifyPixelRegions(grayImage, maskPieza);
+regionMap = classifyPixelRegions(grayImage, maskPieza, true);
 disp("10 -- Clasificación de las regiones --")
-disp(['Tiempo: ' num2str(toc(stepStart)) ' segundos'])
+
 
 %{
 imagesc(regionMap);
@@ -71,7 +66,6 @@ pieceClusters  = findInnerContours(regionMap, remainingClusters, pieceClusters, 
                                   'RingRadius',20,'MinPointsRing',5);
 disp("11 -- Búsqueda de contornos internos --")
 
-
 %% Análisis de la pieza/s
 
 % Calcular geometría para cada pieza detectada
@@ -84,3 +78,4 @@ disp("13 -- Visualización de los resultados --")
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
+

@@ -1,93 +1,56 @@
-function regionMap = classifyPixelRegions(grayImage, maskPieza)
-% CLASSIFYPIXELREGIONS Clasifica píxeles basándose en muestreo estructurado y clasificación localizada
+function regionMap = classifyPixelRegions(grayImage, maskPieza, verbose)
+% CLASSIFYPIXELREGIONS Clasifica cada píxel según su intensidad y pertenencia a la pieza
+%
+%   regionMap(i,j) = 0  → exterior (fuera de la pieza o transición)
+%                 = 1  → interior brillante (estructura sólida)
+%                 = 2  → interior oscuro (posible agujero)
+%
+%   Entradas:
+%       grayImage  - Imagen en escala de grises (uint8 o double)
+%       maskPieza  - Máscara lógica donde es verdadera la zona de la pieza
+%       verbose    - (opcional) true para mostrar información y visualizar resultado
+%
+%   Salida:
+%       regionMap  - Mapa de regiones clasificado
 
-    I = double(grayImage);
-    [h, w] = size(I);
-    regionMap = zeros(h, w);
-
-    % --- Bounding box de la pieza ---
-    stats = regionprops(maskPieza, 'BoundingBox');
-    if isempty(stats)
-        return;
-    end
-    bbox = round(stats(1).BoundingBox);
-    xStart = max(bbox(1), 1);
-    yStart = max(bbox(2), 1);
-    xEnd = min(xStart + bbox(3) - 1, w);
-    yEnd = min(yStart + bbox(4) - 1, h);
-
-    % --- Recortar la imagen y la máscara ---
-    maskCrop = maskPieza(yStart:yEnd, xStart:xEnd);
-    ICrop = I(yStart:yEnd, xStart:xEnd);
-
-    % --- Dividir la región en 12 bloques verticales ---
-    [hCrop, wCrop] = size(ICrop);
-    numRegions = 24;
-    nSamplesPerRegion = 100;
-
-    regionWidth = round(wCrop / numRegions);
-
-    pieceSamples = [];
-    backgroundSamples = [];
-
-    rng(1); % Semilla fija
-
-    for i = 1:numRegions
-        xRegionStart = (i-1)*regionWidth + 1;
-        xRegionEnd = min(i*regionWidth, wCrop);
-
-        pieceMaskRegion = maskCrop(:, xRegionStart:xRegionEnd);
-        backgroundMaskRegion = ~maskCrop(:, xRegionStart:xRegionEnd);
-
-        pieceRegion = ICrop(:, xRegionStart:xRegionEnd);
-        backgroundRegion = ICrop(:, xRegionStart:xRegionEnd);
-
-        % Extraer píxeles válidos
-        piecePixels = pieceRegion(pieceMaskRegion);
-        backgroundPixels = backgroundRegion(backgroundMaskRegion);
-
-        % Muestreo aleatorio dentro de cada región
-        if ~isempty(piecePixels)
-            idxPiece = randperm(length(piecePixels), min(nSamplesPerRegion, length(piecePixels)));
-            pieceSamples = [pieceSamples; piecePixels(idxPiece)];
-        end
-        if ~isempty(backgroundPixels)
-            idxBackground = randperm(length(backgroundPixels), min(nSamplesPerRegion, length(backgroundPixels)));
-            backgroundSamples = [backgroundSamples; backgroundPixels(idxBackground)];
-        end
+    if nargin < 3
+        verbose = false;
     end
 
-    % --- Filtrado de outliers ---
-    if isempty(pieceSamples) || isempty(backgroundSamples)
-        return; % Si no hay muestras suficientes, salir
+    % Convertir imagen a tipo double para procesamiento
+    grayImage = double(grayImage);
+
+    % Inicializar mapa con ceros (exterior por defecto)
+    regionMap = zeros(size(grayImage));
+
+    % Obtener índices de los píxeles dentro de la pieza
+    insideIdx = find(maskPieza);
+    intensities = grayImage(insideIdx);
+
+    % Definir umbrales de clasificación
+    darkThreshold = 80;     % Intensidad menor → agujero
+    brightThreshold = 160;  % Intensidad mayor o igual → zona sólida
+
+    % Clasificar píxeles dentro de la pieza
+    darkPixels = intensities < darkThreshold;
+    brightPixels = intensities >= brightThreshold;
+
+    regionMap(insideIdx(darkPixels)) = 2;   % Interior oscuro (agujero)
+    regionMap(insideIdx(brightPixels)) = 1; % Interior brillante (pieza sólida)
+
+    % Opcional: información de depuración
+    if verbose
+        fprintf("Total de píxeles dentro de la pieza: %d\n", numel(intensities));
+        fprintf("Clasificados como agujero: %d\n", sum(darkPixels));
+        fprintf("Clasificados como sólidos: %d\n", sum(brightPixels));
+        fprintf("En transición (entre umbrales): %d\n", sum(~darkPixels & ~brightPixels));
+
+        % Visualización rápida
+        figure;
+        imagesc(regionMap);
+        colormap([0 0 0; 1 1 1; 1 0 0]); % 0: negro (exterior/transición), 1: blanco (sólido), 2: rojo (agujero)
+        colorbar;
+        title('Mapa de regiones');
+        axis image;
     end
-
-    pieceLow = prctile(pieceSamples, 5);
-    pieceHigh = prctile(pieceSamples, 95);
-    pieceSamplesFiltered = pieceSamples(pieceSamples >= pieceLow & pieceSamples <= pieceHigh);
-
-    backgroundLow = prctile(backgroundSamples, 5);
-    backgroundHigh = prctile(backgroundSamples, 95);
-    backgroundSamplesFiltered = backgroundSamples(backgroundSamples >= backgroundLow & backgroundSamples <= backgroundHigh);
-
-    % --- Estadísticas ---
-    meanPiece = mean(pieceSamplesFiltered);
-    stdPiece = std(pieceSamplesFiltered);
-
-    meanBackground = mean(backgroundSamplesFiltered);
-    stdBackground = std(backgroundSamplesFiltered);
-
-    % --- Umbrales dinámicos ---
-    darkThreshold = meanBackground + stdBackground;
-    brightThreshold = meanPiece - stdPiece;
-
-    % --- Clasificación solo dentro del recorte ---
-    regionMapCrop = zeros(hCrop, wCrop);
-
-    regionMapCrop(maskCrop & (ICrop < darkThreshold)) = 2; % Agujero
-    regionMapCrop(maskCrop & (ICrop >= brightThreshold)) = 1; % Pieza sólida
-    % Zona intermedia se queda como 0
-
-    % --- Copiar de vuelta en el mapa global ---
-    regionMap(yStart:yEnd, xStart:xEnd) = regionMapCrop;
 end
