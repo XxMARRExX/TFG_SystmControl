@@ -1,30 +1,22 @@
-function mask = createPieceMask(grayImage, pieceClusters)
-    % Crea una máscara binaria de la pieza principal usando los clusters exteriores
-    
-    % Inicializar máscara vacía
-    [H, W] = size(grayImage);
-    mask = false(H, W);
+function maskPieza = createPieceMask(grayImage, pieceClusters)
+    % Crea una máscara etiquetada de las piezas detectadas (1,2,3,...)
 
-    % Recorrer cada pieza detectada
+    [H, W] = size(grayImage);
+    maskPieza = zeros(H, W);
+
     for i = 1:length(pieceClusters)
         cluster = pieceClusters{i};
-        
-        % Obtener contorno aproximado (por convex hull o boundary cerrado)
         x = cluster.x(:);
         y = cluster.y(:);
-        
-        % Asegurarse de que hay puntos suficientes
+
         if length(x) < 3
             continue;
         end
-        
-        % Crear un contorno cerrado de la pieza
-        k = convhull(x, y); % Usa boundary si quieres algo más ajustado
-        
-        % Rellenar el contorno en una máscara
+
+        k = convhull(x, y);
         pieceMask = poly2mask(x(k), y(k), H, W);
-        
-        % Acumularlo en la máscara global
-        mask = mask | pieceMask;
+
+        % Asignar valor de etiqueta
+        maskPieza(pieceMask) = i;
     end
 end
