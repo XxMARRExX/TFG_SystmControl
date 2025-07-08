@@ -1,4 +1,5 @@
 clear; clc; close all;
+
 totalStart = tic;
 
 configParams = config();
@@ -65,3 +66,4 @@ visClusters(grayImage, cleanClusters);
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
+

@@ -77,11 +77,13 @@ function innerContours = findInnerContours(regionMap, clusters, pieceClusters, v
             idx = sub2ind([H W], coords(:,2), coords(:,1));  % (y, x)
             ptsInRing = sum(ringMask(idx));
 
+
             if ptsInRing > bestCnt
                 bestCnt = ptsInRing;
                 bestClIdx = k;
             end
         end
+
         fprintf('[DEBUG] -> Selección de cluster: %.3f s (Mejor: %d puntos)\n', toc(t2), bestCnt);
 
         % ¿Cluster válido?
@@ -122,4 +124,5 @@ function innerContours = findInnerContours(regionMap, clusters, pieceClusters, v
     end
 
     fprintf('\n[INFO] Detección de agujeros COMPLETADA en %.3f s.\n', toc(t0));
+
 end
