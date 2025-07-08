@@ -1,37 +1,31 @@
-function showImageWithEdges(grayImage, resultados, innerContours)
-% SHOWIMAGEWITHEDGES Muestra las piezas con sus contornos exteriores e interiores
-% usando el mismo color por pieza, claramente visible sobre fondo gris.
+function showImageWithEdges(grayImage, resultados)
+%SHOWIMAGEWITHEDGES Muestra cada pieza con su contorno exterior e interiores
+%
+%   resultados(i).edges           → puntos del contorno exterior
+%   resultados(i).linea           → estructura con pendiente e intersección
+%   resultados(i).interiores{j}   → cada agujero con campos x, y
 
-    if nargin < 3
-        innerContours = {};
-    end
+    figure;  imshow(grayImage, 'InitialMagnification','fit');  hold on;
 
-    figure;
-    imshow(grayImage, 'InitialMagnification', 'fit');
-    hold on;
-
-    % Colores suficientemente vivos para fondo gris
     colores = lines(numel(resultados));
 
     for i = 1:numel(resultados)
-        color = colores(i,:);
+        col = colores(i,:);
 
-        % --- Contorno exterior ---
+        % --- exterior ---
         plot(resultados(i).edges.x, resultados(i).edges.y, '.', ...
-             'Color', color, 'MarkerSize', 8);
+             'Color',col,'MarkerSize',8);
 
-        % --- Línea de orientación de la pieza ---
-        [~, width] = size(grayImage);
-        xLine = [1, width];
+        % --- eje de la pieza ---
+        [~,W] = size(grayImage);
+        xLine = [1 W];
         yLine = resultados(i).linea.m * xLine + resultados(i).linea.b;
-        plot(xLine, yLine, '-', 'Color', color, 'LineWidth', 1.5);
+        plot(xLine, yLine, '-', 'Color',col,'LineWidth',1.5);
 
-        % --- Contornos interiores ---
-        if i <= numel(innerContours)
-            for j = 1:numel(innerContours{i}.contornos)
-                c = innerContours{i}.contornos{j};
-                plot(c.x, c.y, '.', 'Color', color, 'MarkerSize', 6); % mismo color
-            end
+        % --- interiores (si existen) ---
+        for j = 1:numel(resultados(i).interiores)
+            c = resultados(i).interiores{j};
+            plot(c.x, c.y, '.', 'Color',col,'MarkerSize',6);
         end
     end
 
