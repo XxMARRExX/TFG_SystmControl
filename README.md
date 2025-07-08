@@ -1,2 +1,4 @@
-# Flujo de la Filosfía actual
-![image](https://github.com/user-attachments/assets/f1e82583-4064-4593-ba5d-dd091168d92e)
+# Filosofía v18042025
+
+![image](https://github.com/user-attachments/assets/d7b25395-14fc-4e96-b7fe-f56d01864bbb)
+

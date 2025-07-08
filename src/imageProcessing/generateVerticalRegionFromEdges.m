@@ -5,10 +5,10 @@ function edgesC = generateVerticalRegionFromEdges(edges, edgesSubset, expansionX
     if nargin < 4, expansionY = 0.05; end
 
     %% Filtrado de outliers por percentiles
-    x_low = prctile(edgesSubset.x, 2);
-    x_high = prctile(edgesSubset.x, 98);
-    y_low = prctile(edgesSubset.y, 2);
-    y_high = prctile(edgesSubset.y, 98);
+    x_low = prctile(edgesSubset.x, 0.5);
+    x_high = prctile(edgesSubset.x, 99.5);
+    y_low = prctile(edgesSubset.y, 0.5);
+    y_high = prctile(edgesSubset.y, 99.5);
 
     idx_central = (edgesSubset.x >= x_low) & (edgesSubset.x <= x_high) & ...
                   (edgesSubset.y >= y_low) & (edgesSubset.y <= y_high);

@@ -1,4 +1,4 @@
-function [pieceClusters, pieceEdges, numPieces] = findPieceClusters(clusters)
+function [pieceClusters, pieceEdges, numPieces, remainingClusters] = findPieceClusters(clusters)
 % FINDPIECECLUSTERS Identifica los clusters que probablemente corresponden a piezas completas.
 %
 %   Entrada:
@@ -8,6 +8,7 @@ function [pieceClusters, pieceEdges, numPieces] = findPieceClusters(clusters)
 %     - pieceClusters: subset de clusters considerados piezas
 %     - pieceEdges: estructura 'edges' con todos los puntos combinados
 %     - numPieces: número de clusters considerados como piezas
+%     - remainingClusters: clusters no considerados como piezas (potenciales interiores, ruido, etc.)
 
     numPoints = cellfun(@(e) numel(e.x), clusters);
     [sortedPoints, idx] = sort(numPoints, 'descend');
@@ -15,6 +16,7 @@ function [pieceClusters, pieceEdges, numPieces] = findPieceClusters(clusters)
     % Cluster con más puntos
     maxPoints = sortedPoints(1);
     pieceClusters = {};
+    usedIndices = [];  % ← para registrar los índices de clusters usados
 
     all_x = [];
     all_y = [];
@@ -26,8 +28,13 @@ function [pieceClusters, pieceEdges, numPieces] = findPieceClusters(clusters)
 
     for i = 1:numel(clusters)
         if sortedPoints(i) >= maxPoints - 100
-            c = clusters{idx(i)};
+            originalIdx = idx(i);
+            c = clusters{originalIdx};
+            if isfield(clusters{originalIdx}, 'indices')
+                c.indices = clusters{originalIdx}.indices;
+            end
             pieceClusters{end+1} = c; %#ok<AGROW>
+            usedIndices(end+1) = originalIdx; %#ok<AGROW>
 
             all_x = [all_x; c.x(:)];
             all_y = [all_y; c.y(:)];
@@ -52,4 +59,9 @@ function [pieceClusters, pieceEdges, numPieces] = findPieceClusters(clusters)
     );
 
     numPieces = numel(pieceClusters);
+
+    % Eliminar los clusters usados (piezas) y devolver los restantes
+    mask = true(1, numel(clusters));
+    mask(usedIndices) = false;
+    remainingClusters = clusters(mask);
 end

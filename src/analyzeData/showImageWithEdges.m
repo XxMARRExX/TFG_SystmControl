@@ -1,27 +1,40 @@
-function showImageWithEdges(grayImage, resultados)
-% SHOWIMAGEWITHEDGES Muestra múltiples piezas con sus bordes, rectas y cajas en una sola figura
+function showImageWithEdges(grayImage, resultados, innerContours)
+% SHOWIMAGEWITHEDGES Muestra las piezas con sus contornos exteriores e interiores
+% usando el mismo color por pieza, claramente visible sobre fondo gris.
 
-    fig = figure;
-    movegui(fig, 'center');
+    if nargin < 3
+        innerContours = {};
+    end
+
+    figure;
     imshow(grayImage, 'InitialMagnification', 'fit');
     hold on;
 
-    colores = lines(numel(resultados));  % Color único por pieza
+    % Colores suficientemente vivos para fondo gris
+    colores = lines(numel(resultados));
 
     for i = 1:numel(resultados)
-        color = colores(i,:);  % ✅ Asignar color a esta pieza
+        color = colores(i,:);
 
-        % Dibujar bordes
-        plot(resultados(i).edges.x, resultados(i).edges.y, '.', 'Color', color);
+        % --- Contorno exterior ---
+        plot(resultados(i).edges.x, resultados(i).edges.y, '.', ...
+             'Color', color, 'MarkerSize', 8);
 
-        % Dibujar recta
-        [height, width] = size(grayImage);
+        % --- Línea de orientación de la pieza ---
+        [~, width] = size(grayImage);
         xLine = [1, width];
         yLine = resultados(i).linea.m * xLine + resultados(i).linea.b;
-        
-        plot(xLine, yLine, '-', 'Color', color, 'LineWidth', 1.25);
+        plot(xLine, yLine, '-', 'Color', color, 'LineWidth', 1.5);
+
+        % --- Contornos interiores ---
+        if i <= numel(innerContours)
+            for j = 1:numel(innerContours{i}.contornos)
+                c = innerContours{i}.contornos{j};
+                plot(c.x, c.y, '.', 'Color', color, 'MarkerSize', 6); % mismo color
+            end
+        end
     end
 
-    title('Imagen original con detección de piezas, rectas y cajas');
+    title('Piezas y contornos interiores (color por pieza)');
     hold off;
 end
