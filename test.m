@@ -1,4 +1,5 @@
 clear; clc; close all;
+
 totalStart = tic;
 
 configParams = config();
@@ -74,3 +75,4 @@ showImageWithEdges(grayImage, results);
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
+

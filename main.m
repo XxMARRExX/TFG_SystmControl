@@ -8,7 +8,7 @@ disp("1 -- Imagen pasada a gris --")
 
 
 %% Detección de bordes subpíxel
-threshold = 10;  % Ajusta el umbral según la calidad de la imagen
+threshold = 20;  % Ajusta el umbral según la calidad de la imagen
 edges = subpixelEdges(grayImage, threshold, 'SmoothingIter', 1);
 disp("2 -- Bordes detectados --")
 
@@ -33,6 +33,8 @@ disp("5 -- Generación de bordes verticales --")
 %% Extracción de clusterés
 [clusters, noise] = analyzeSubstructuresWithDBSCAN(edgesPiece, 6, 4);
 disp("6 -- Agrupamiento mediante clusters --")
+visClusters(grayImage, clusters);
+
 
 % Búsqueda de clusters que sean piezas
 [pieceClusters, pieceEdges, numPieces, remainingClusters] = findPieceClusters(clusters);
@@ -40,6 +42,7 @@ disp("7 -- Búsqueda de piezas --")
 
 % Crear la máscara binaria de las piezas
 maskPieza = createPieceMask(grayImage, pieceClusters);
+%imshow(maskPieza);
 disp("8 -- Máscara de la pieza --")
 
 % Filtrar los clusters internos candidatos
@@ -50,6 +53,7 @@ disp("9 -- Filtrado de clusters dentro de la pieza --")
 regionMap = classifyPixelRegions(grayImage, maskPieza, true);
 disp("10 -- Clasificación de las regiones --")
 
+
 %{
 imagesc(regionMap);
 colormap([0 0 0; 0.5 0.5 0.5; 1 0 0]); % fondo, pieza, agujero
@@ -58,7 +62,7 @@ title('Mapa de regiones (0: fondo, 1: pieza, 2: agujero)');
 %}
 
 % Detección de los contornos interiores de cada pieza
-innerContours = findInnerContours(regionMap, remainingClusters, pieceClusters, ...
+pieceClusters  = findInnerContours(regionMap, remainingClusters, pieceClusters, ...
                                   'RingRadius',20,'MinPointsRing',5);
 disp("11 -- Búsqueda de contornos internos --")
 
@@ -69,9 +73,9 @@ results = analyzePieceGeometry(pieceClusters);
 disp("12 -- Cálculo de la geometría --")
 
 % Mostrar cada pieza con su análisis
-showImageWithEdges(grayImage, results, innerContours);
+showImageWithEdges(grayImage, results);
 disp("13 -- Visualización de los resultados --")
-
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
+
