@@ -1,9 +1,9 @@
-function visualizarAjusteICP(pointsAligned, svgPaths, varargin)
+function visualizarAjusteICP(pointsAligned, svgPaths, innerContours, varargin)
 % VISUALIZARAJUSTEICP - Visualiza el ajuste de puntos alineados frente al modelo SVG,
 % incluyendo los contornos internos si se proporcionan.
 %
-%   visualizarAjusteICP_2(pointsAligned, svgPaths, innerContours)
-%   visualizarAjusteICP_2(..., 'Title', 'Título personalizado')
+%   visualizarAjusteICP(pointsAligned, svgPaths, innerContours)
+%   visualizarAjusteICP(..., 'Title', 'Título personalizado')
 %
 % Entradas:
 %   - pointsAligned: Nx2 puntos alineados (salida de ICP)
