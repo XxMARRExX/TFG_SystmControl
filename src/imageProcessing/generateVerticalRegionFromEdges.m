@@ -1,10 +1,10 @@
 function edgesC = generateRotatedRegionFromEdges(edges, edgesSubset, expansionX, expansionY, image)
 
     %% Filtrado de outliers por percentiles
-    x_low = prctile(edgesSubset.x, 0.5);
-    x_high = prctile(edgesSubset.x, 99.5);
-    y_low = prctile(edgesSubset.y, 0.5);
-    y_high = prctile(edgesSubset.y, 99.5);
+    x_low = prctile(edgesSubset.x, 0.25);
+    x_high = prctile(edgesSubset.x, 99.75);
+    y_low = prctile(edgesSubset.y, 0.25);
+    y_high = prctile(edgesSubset.y, 99.75);
 
 
     %% 2. Sistema de referencia local
