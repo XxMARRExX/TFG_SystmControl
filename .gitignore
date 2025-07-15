@@ -5,7 +5,6 @@
 
 *.svg
 *.png
-
 ./data/
 
 data/calibration_*.json
