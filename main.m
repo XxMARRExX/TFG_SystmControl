@@ -3,9 +3,9 @@ totalStart = tic;
 configParams = config();
 
 
-nombreImagen = "Imagen8_29062025";
+nombreImagen = "Imagen4_29062025";
 disp("1 -- Paso de la imagen a gris --")
-image = imread("pictures/Imagen4.png");
+image = imread("pictures/Pieza1/OLD/Imagen2_recortada_OLD.png");
 
 
 disp("2 -- Rescalado de la imagen --")
@@ -139,7 +139,7 @@ results = analyzePieceGeometry(pieceClusters);
 
 %% Proceso de encaje
 disp("13 -- Carga del modelo .svg --")
-svgFile = 'data/models/Pieza-patron.svg';
+svgFile = 'data/models/REF2.svg';
 svgPaths = importSVG(svgFile);
 
 % plotSVGModel(svgPaths)
@@ -179,7 +179,7 @@ cornersPieza = reorderCorners(cornersPieza);
 disp("16 -- Superposición de ambos Bboxes --")
 [d, Z, transform] = procrustes(cornersSVG, cornersPieza, 'Scaling', true, 'Reflection', false);
 
-% drawBoundingBoxesAlignment(cornersSVG, Z);
+drawBoundingBoxesAlignment(cornersSVG, Z);
 % fig = gcf;
 % title("Capa 13: Superposición de ambos Bboxes");
 % grupo = "07_Encaje";
@@ -199,12 +199,12 @@ fprintf('Orientación final %d°, RMSE %.4f\n', oriDeg, err);
 
 disp("18 -- Visualización de puntos alineados sobre SVG --")
 drawPieceOnSVG(edgesOk, svgPaths, transform);
-fig = gcf;
-title("Capa 15: Resultados encaje");
-grupo = "07_Encaje";
-subgrupo = "07_5-ResultadoEncaje";  
-saveImage(fig, nombreImagen, grupo, subgrupo);
 
+% fig = gcf;
+% title("Capa 15: Resultados encaje");
+% grupo = "07_Encaje";
+% subgrupo = "07_5-ResultadoEncaje";  
+%saveImage(fig, nombreImagen, grupo, subgrupo);
 
 disp("19 -- Extracción máscara binaria .svg --")
 visualizeBinaryMask(svgFile);
