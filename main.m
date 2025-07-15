@@ -3,9 +3,9 @@ totalStart = tic;
 configParams = config();
 
 
-nombreImagen = "Imagen4_28062025";
+nombreImagen = "Imagen8_29062025";
 disp("1 -- Paso de la imagen a gris --")
-image = imread("pictures/Imagen6.png");
+image = imread("pictures/Imagen4.png");
 
 
 disp("2 -- Rescalado de la imagen --")
@@ -15,47 +15,42 @@ grayImageRescaled = convertToGrayScale(rescaledImage);
 
 
 disp("3 -- Detección de bordes para Bbox --")
-edges = subpixelEdges(grayImageRescaled, configParams.subpixelEdges.threshold, ...
+edges = subpixelEdges(grayImageRescaled, configParams.subpixelEdges.threshold_Phase1, ...
     'SmoothingIter', configParams.subpixelEdges.smoothingIter);
 
-%{
-imshow(grayImageRescaled);
-visEdges(edges);
-fig = gcf;
-title("Capa 1: Cálculo del Bbox pieza");
-grupo = "01_Bordes_Detectados";
-subgrupo = "01_1-BordersForBbox";
-saveImage(fig, nombreImagen, grupo, subgrupo);
-%}
+% imshow(grayImageRescaled);
+% visEdges(edges);
+% fig = gcf;
+% title("Capa 1: Cálculo del Bbox pieza");
+% grupo = "01_Bordes_Detectados";
+% subgrupo = "01_1-BordersForBbox";
+% saveImage(fig, nombreImagen, grupo, subgrupo);
 
 
 disp("4 -- Cálculo del Bbox de la pieza --")
 BboxPiece = calculateExpandedBoundingBox(edges, ...
-    configParams.subpixelEdges.scale, 10);
+    configParams.subpixelEdges.scale, configParams.BboxPiece.margin);
 
-%{
-drawBoundingBoxOnImage(grayImage, BboxPiece);
-fig = gcf;
-title("Capa 2: FindPieceCluster");
-grupo = "03_Heuristicas";
-subgrupo = "03_5-RescaledBbox";
-saveImage(fig, nombreImagen, grupo, subgrupo);
-%}
+% drawBoundingBoxOnImage(grayImage, BboxPiece);
+% fig = gcf;
+% title("Capa 2: FindPieceCluster");
+% grupo = "03_Heuristicas";
+% subgrupo = "03_5-RescaledBbox";
+% saveImage(fig, nombreImagen, grupo, subgrupo);
+
 
 
 disp("5 -- Detección de bordes para contornos internos --")
-edges = subpixelEdges(grayImage, 20, ...
+edges = subpixelEdges(grayImage, configParams.subpixelEdges.threshold_Phase2, ...
     'SmoothingIter', configParams.subpixelEdges.smoothingIter);
 edgesFiltered = filterEdgesByBoundingBox(edges, BboxPiece);
 
-%{
-showFilteredPoints(edges, edgesFiltered);
-fig = gcf;
-title("Capa 3: PointsInsidePiece");
-grupo = "02_Filtros";
-subgrupo = "02_9-FilterPointsInsidePiece";
-saveImage(fig, nombreImagen, grupo, subgrupo);
-%}
+% showFilteredPoints(edges, edgesFiltered);
+% fig = gcf;
+% title("Capa 3: PointsInsidePiece");
+% grupo = "02_Filtros";
+% subgrupo = "02_9-FilterPointsInsidePiece";
+% saveImage(fig, nombreImagen, grupo, subgrupo);
 
 
 
@@ -64,65 +59,63 @@ disp("6 -- Agrupamiento mediante clusters --")
 [clusters, noise] = analyzeSubstructuresWithDBSCAN(edgesFiltered, ...
     configParams.analyzeSubstructures.eps, ...
     configParams.analyzeSubstructures.minPts);
-%{
-visClusters(grayImage, clusters);
-fig = gcf;
-title("Capa 4: PointsInsidePiece");
-grupo = "03_Heuristicas";
-subgrupo = "03_6-FoundedClusters";
-saveImage(fig, nombreImagen, grupo, subgrupo);
-%}
+
+% visClusters(grayImage, clusters);
+% fig = gcf;
+% title("Capa 4: PointsInsidePiece");
+% grupo = "03_Heuristicas";
+% subgrupo = "03_6-FoundedClusters";
+% saveImage(fig, nombreImagen, grupo, subgrupo);
 
 
 disp("7 -- Búsqueda de piezas --")
 [pieceClusters, pieceEdges, numPieces, remainingClusters] = findPieceClusters(clusters);
-%{
-visClusters(grayImage, pieceClusters);
-fig = gcf;
-title("Capa 5: FindPieceCluster");
-grupo = "02_Filtros";
-subgrupo = "02_6-Filter_FindPieceCluster";
-saveImage(fig, nombreImagen, grupo, subgrupo);
-%}
+
+% visClusters(grayImage, pieceClusters);
+% fig = gcf;
+% title("Capa 5: FindPieceCluster");
+% grupo = "02_Filtros";
+% subgrupo = "02_6-Filter_FindPieceCluster";
+% saveImage(fig, nombreImagen, grupo, subgrupo);
+
 
 
 disp("8 -- Extracción máscara de la pieza/s --")
 maskPieza = createPieceMask(grayImage, pieceClusters);
 
-%{
-imshow(maskPieza);
-fig = gcf;
-title("Capa 6: CreatePieceMask");
-grupo = "03_Heuristicas";
-subgrupo = "03_3-PieceMask";
-saveImage(fig, nombreImagen, grupo, subgrupo);
-%}
+% imshow(maskPieza);
+% fig = gcf;
+% title("Capa 6: CreatePieceMask");
+% grupo = "03_Heuristicas";
+% subgrupo = "03_3-PieceMask";
+% saveImage(fig, nombreImagen, grupo, subgrupo);
+
 
 
 disp("9 -- Filtrado de clusters dentro de la pieza --")
 filteredClusters = filterClustersInsideMask(remainingClusters, maskPieza);
-%{
-visClusters(grayImage, filteredClusters);
-fig = gcf;
-title("Capa 7: FindInnerContoursPiece");
-grupo = "02_Filtros";
-subgrupo = "02_7-InnerCountoursPieceFound";
-saveImage(fig, nombreImagen, grupo, subgrupo);
-%}
+
+% visClusters(grayImage, filteredClusters);
+% fig = gcf;
+% title("Capa 7: FindInnerContoursPiece");
+% grupo = "02_Filtros";
+% subgrupo = "02_7-InnerCountoursPieceFound";
+% saveImage(fig, nombreImagen, grupo, subgrupo);
+
 
 
 disp("10 -- Búsqueda de contornos internos --")
 piecesInnerContours = findInnerContours(filteredClusters, size(grayImage), ...
     configParams.findInnerContours.refImgSize, ...
     configParams.findInnerContours.maxMeanDist);
-%{
-visClusters(grayImage, piecesInnerContours);
-fig = gcf;
-title("Capa 8: DetectedInnerContours");
-grupo = "02_Filtros";
-subgrupo = "02_8-RealInnerCountoursPiece";
-saveImage(fig, nombreImagen, grupo, subgrupo);
-%}
+
+% visClusters(grayImage, piecesInnerContours);
+% fig = gcf;
+% title("Capa 8: DetectedInnerContours");
+% grupo = "02_Filtros";
+% subgrupo = "02_8-RealInnerCountoursPiece";
+% saveImage(fig, nombreImagen, grupo, subgrupo);
+
 
 
 disp("11 -- Asociación de contornos internos a pieza/s --")
@@ -134,14 +127,13 @@ pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContour
 disp("12 -- Cálculo de la geometría --")
 results = analyzePieceGeometry(pieceClusters);
 
-%{
-showImageWithEdges(grayImage, results);
-fig = gcf;
-title("Capa 9: Results");
-grupo = "04_Resultados";
-subgrupo = "TFG - ResultadosDeteccion_v14062025";
-saveImage(fig, nombreImagen, grupo, subgrupo);
-%}
+% showImageWithEdges(grayImage, results);
+% fig = gcf;
+% title("Capa 9: Results");
+% grupo = "04_Resultados";
+% subgrupo = "TFG - ResultadosDeteccion_v14062025";
+% saveImage(fig, nombreImagen, grupo, subgrupo);
+
 
 
 
@@ -150,12 +142,12 @@ disp("13 -- Carga del modelo .svg --")
 svgFile = 'data/models/Pieza-patron.svg';
 svgPaths = importSVG(svgFile);
 
-%plotSVGModel(svgPaths)
+% plotSVGModel(svgPaths)
 % fig = gcf;
 % title("Capa 10: LoadSVG");
 % grupo = "07_Encaje";
 % subgrupo = "07_1-CargaSVG";
-%saveImage(fig, nombreImagen, grupo, subgrupo);
+% saveImage(fig, nombreImagen, grupo, subgrupo);
 
 
 disp("14 -- BoundingBox de la pieza --")
@@ -176,7 +168,7 @@ modelPieza = fitDetectedPieceBoundingBox(results.edges);
 cornersPieza = computeBoundingBox(modelPieza.Center, modelPieza.Dimensions, modelPieza.Orientation);
 cornersPieza = reorderCorners(cornersPieza);
 
-%drawPieceBoundingBox(results.edges, cornersPieza, 'r');
+% drawPieceBoundingBox(results.edges, cornersPieza, 'r');
 % fig = gcf;
 % title("Capa 12: Bbox Pieza");
 % grupo = "07_Encaje";
@@ -207,11 +199,15 @@ fprintf('Orientación final %d°, RMSE %.4f\n', oriDeg, err);
 
 disp("18 -- Visualización de puntos alineados sobre SVG --")
 drawPieceOnSVG(edgesOk, svgPaths, transform);
-% fig = gcf;
-% title("Capa 15: Resultados encaje");
-% grupo = "07_Encaje";
-% subgrupo = "07_5-ResultadoEncaje";  
-% saveImage(fig, nombreImagen, grupo, subgrupo);
+fig = gcf;
+title("Capa 15: Resultados encaje");
+grupo = "07_Encaje";
+subgrupo = "07_5-ResultadoEncaje";  
+saveImage(fig, nombreImagen, grupo, subgrupo);
+
+
+disp("19 -- Extracción máscara binaria .svg --")
+visualizeBinaryMask(svgFile);
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
