@@ -6,7 +6,7 @@ configParams = config();
 
 nombreImagen = "Imagen8_29062025";
 disp("1 -- Paso de la imagen a gris --")
-image = imread("pictures/Imagen8.png");
+image = imread("pictures/Imagen7.png");
 
 
 disp("2 -- Rescalado de la imagen --")
@@ -197,12 +197,37 @@ fprintf('Orientación final %d°, RMSE %.4f\n', oriDeg, err);
 
 
 disp("18 -- Visualización de puntos alineados sobre SVG --")
-drawPieceOnSVG(edgesOk, svgPaths, transform);
-fig = gcf;
-title("Capa 15: Resultados encaje");
-grupo = "07_Encaje";
-subgrupo = "07_5-ResultadoEncaje";  
-saveImage(fig, nombreImagen, grupo, subgrupo);
+% drawPieceOnSVG(edgesOk, svgPaths, transform);
+% fig = gcf;
+% title("Capa 15: Resultados encaje");
+% grupo = "07_Encaje";
+% subgrupo = "07_5-ResultadoEncaje";  
+% saveImage(fig, nombreImagen, grupo, subgrupo);
+
+
+disp("19 -- Extracción máscara binaria .svg --")
+[BW, XLim, YLim] = svgBinaryMask(svgFile);
+visualizeBinaryMask(svgFile);
+
+
+disp("20 -- Clasificación puntos borde --")
+[okPts, errPts, isBorder] = classifyBorderPoints(edgesOk, transform, BW, XLim, YLim);
+
+% Pintar sobre el SVG ya mostrado
+hold on
+scatter(okPts(:,1),  okPts(:,2), 25, 'g', 'filled');   % aciertos
+scatter(errPts(:,1), errPts(:,2), 25, 'r', 'filled');  % errores
+legend({'Modelo','Aciertos','Errores'}, 'Location','best');
+title("Capa 15: Resultados encaje (clasif. borde)");
+hold off
+
+fprintf("Visualizando %d aciertos y %d fallos\n", size(okPts,1), size(errPts,1));
+disp("Rango X fallos:"); disp([min(errPts(:,1)), max(errPts(:,1))]);
+disp("Rango Y fallos:"); disp([min(errPts(:,2)), max(errPts(:,2))]);
+
+
+disp("21 -- Visualización final sobre el SVG --")
+% drawBorderResultsOnMask(BW, XLim, YLim, okPts, errPts, 5);
 
 
 %% Tiempo total
