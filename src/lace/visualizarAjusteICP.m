@@ -1,37 +1,47 @@
 function visualizarAjusteICP(pointsAligned, svgPaths, varargin)
-% VISUALIZARAJUSTEICP - Visualiza el ajuste de puntos alineados frente al modelo SVG
+% VISUALIZARAJUSTEICP - Visualiza el ajuste de puntos alineados frente al modelo SVG,
+% incluyendo los contornos internos si se proporcionan.
 %
-%   visualizarAjusteICP(pointsAligned, svgPaths)
-%   visualizarAjusteICP(pointsAligned, svgPaths, 'Title', 'Título personalizado')
+%   visualizarAjusteICP_2(pointsAligned, svgPaths, innerContours)
+%   visualizarAjusteICP_2(..., 'Title', 'Título personalizado')
 %
 % Entradas:
-%   - pointsAligned: Nx2 puntos alineados (ejemplo: salida de ICP)
+%   - pointsAligned: Nx2 puntos alineados (salida de ICP)
 %   - svgPaths: celda de paths del modelo SVG (output de importSVG)
+%   - innerContours: celda de structs con campos .x y .y (contornos internos alineados)
 %
 % Opcional:
-%   - 'Title': título de la gráfica (por defecto 'Ajuste fino mediante ICP 2D')
+%   - 'Title': título de la gráfica (por defecto 'Ajuste ICP con contornos internos')
 
-% Parámetros opcionales
-p = inputParser;
-addParameter(p, 'Title', 'Ajuste fino mediante ICP 2D');
-parse(p, varargin{:});
-plotTitle = p.Results.Title;
+    % Parámetros opcionales
+    p = inputParser;
+    addParameter(p, 'Title', 'Ajuste ICP con contornos internos');
+    parse(p, varargin{:});
+    plotTitle = p.Results.Title;
 
-% Visualización
-figure; hold on; axis equal; grid on;
+    % Visualización
+    figure; hold on; axis equal; grid on;
 
-% Puntos alineados
-plot(pointsAligned(:,1), pointsAligned(:,2), 'r.', 'MarkerSize', 10);
+    % Puntos alineados (contorno exterior)
+    plot(pointsAligned(:,1), pointsAligned(:,2), 'r.', 'MarkerSize', 10);
 
-% Paths del SVG
-for i = 1:numel(svgPaths)
-    plot(svgPaths{i}(:,1), svgPaths{i}(:,2), 'b-');
-end
+    % Paths del SVG
+    for i = 1:numel(svgPaths)
+        plot(svgPaths{i}(:,1), svgPaths{i}(:,2), 'b-');
+    end
 
-% Leyenda y etiquetas
-legend('Detección ajustada fina (ICP)', 'Modelo SVG');
-xlabel('X (mm)');
-ylabel('Y (mm)');
-title(plotTitle);
+    % Contornos internos, si se proporcionan
+    if ~isempty(innerContours)
+        for i = 1:numel(innerContours)
+            c = innerContours{i};
+            plot(c.x, c.y, 'r.', 'MarkerSize', 6);
+        end
+    end
 
+    % Leyenda y etiquetas
+    legend({'Contorno exterior alineado', 'Modelo SVG', 'Contornos internos'}, ...
+           'Location', 'Best');
+    xlabel('X (mm)');
+    ylabel('Y (mm)');
+    title(plotTitle);
 end

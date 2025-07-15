@@ -6,7 +6,7 @@ configParams = config();
 
 %% Cargar la imagen
 disp("1 -- Paso de la imagen a gris --")
-image = imread("pictures/Imagen7.png");
+image = imread("pictures/Imagen6.png");
 grayImage = convertToGrayScale(image);
 
 
@@ -79,7 +79,7 @@ exteriorCountour = getLargestSVGPath(svgPaths);
 
 
 disp("14 -- BoundingBox de la pieza --")
-pieza = results.edges;
+pieza = results.edges.exterior;
 points2D = [pieza.x(:), pieza.y(:)];
 model = fitrect2D(points2D);
 center = model.Center;          
@@ -95,13 +95,20 @@ disp("16 -- Resampleo de puntos del .svg --")
 numDetected = size(pointsTransformed, 1);
 contornoExteriorResampled = resamplePath(exteriorCountour, numDetected);
 
-disp("17 -- Optimización del encaje --")
+disp("17 -- Optimización del encaje contorno exterior --")
 [pointsAligned, tform, errors] = ICP2D(contornoExteriorResampled, pointsTransformed, ...
     'MaxIterations', 500, 'Tolerance', 1e-6, 'Verbose', false);
 
+% Aplicar transformación final a los contornos internos ya pasados a SVG
+disp("17.1 -- Transformación de contornos internos --")
+contornosInternos = results.edges.innerContours;
+contornosInternosAlineados = transformInnerContours(contornosInternos, ...
+    bboxSVG, dims, angle, center, centerSVG, tform);
+
+
 disp("18 -- Visualización encaje --")
-visualizarAjusteICP(pointsAligned, svgPaths);
+visualizarAjusteICP(pointsAligned, svgPaths, contornosInternosAlineados);
+
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
-

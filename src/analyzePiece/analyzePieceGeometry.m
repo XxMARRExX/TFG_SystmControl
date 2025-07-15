@@ -2,24 +2,32 @@ function resultados = analyzePieceGeometry(pieceClusters)
 % ANALYZEPIECEGEOMETRY Calcula la regresión y el bounding box para cada pieza detectada.
 %
 % Entrada:
-%   - pieceClusters: celda de estructuras con campos x, y, nx, ny, curv, i0, i1
+%   - pieceClusters: celda de estructuras con campo .edges
+%       - .edges.exterior: struct con campos x, y, ...
+%       - .edges.innerContours: celda de contornos interiores (opcional)
 %
 % Salida:
-%   - resultados: array de structs con .edges, .linea, .boundingBox por pieza
+%   - resultados: array de structs con campos:
+%       - .edges: toda la estructura original (exterior + interiores)
+%       - .linea: regresión sobre el contorno exterior
+%       - .boundingBox: bounding box rotado sobre el contorno exterior
 
     numPiezas = numel(pieceClusters);
     resultados = struct('edges', {}, 'linea', {}, 'boundingBox', {});
 
     for i = 1:numPiezas
         pieza = pieceClusters{i};
-        
-        % Calcular regresión lineal
-        linea = computeLinearRegression(pieza);
 
-        % Calcular bounding box rotado
-        box = computeRotatedBoundingBox(pieza, linea);
+        % Obtener solo el contorno exterior para análisis geométrico
+        exterior = pieza.edges.exterior;
 
-        resultados(i).edges = pieza;
+        % Calcular regresión lineal sobre el exterior
+        linea = computeLinearRegression(exterior);
+
+        % Calcular bounding box rotado sobre el exterior
+        box = computeRotatedBoundingBox(exterior, linea);
+
+        resultados(i).edges = pieza.edges;     % Guardar toda la información (exterior + interiores)
         resultados(i).linea = linea;
         resultados(i).boundingBox = box;
 
