@@ -48,5 +48,5 @@ function model = fitrect2D(points2D)
     model.Orientation = bestR';
     
     % NUEVO → calcular ángulo global
-    model.Angle = rad2deg(bestTheta);  % Ángulo en grados respecto al eje X
+    model.Angle = bestTheta;  % Ángulo en grados respecto al eje X
 end
