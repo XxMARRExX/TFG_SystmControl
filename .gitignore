@@ -3,4 +3,10 @@
 ./src/imageProcessing/drawBoundingBox.m
 ./src/analyzeData/analyzePieceOrientation.m
 
+*.svg
+*.png
 
+./data/
+
+data/calibration_*.json
+data/changeImageName.py
