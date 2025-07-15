@@ -43,4 +43,6 @@ function cleanClusters = findInnerContours(clusters, imgSize, refImgSize, minMea
         % Disperso -> probablemente contorno interior -> conservar
         cleanClusters{end+1} = cluster;
     end
+
 end
+
