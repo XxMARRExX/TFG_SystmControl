@@ -7,7 +7,7 @@ function configParams = config()
     disp('Configurando variables de entorno...');
     
     %% SubpixelEdges
-    configParams.subpixelEdges.threshold = 10;
+    configParams.subpixelEdges.threshold = 20;
     configParams.subpixelEdges.smoothingIter = 1;
     
     %% FilterByNormalThreshold
