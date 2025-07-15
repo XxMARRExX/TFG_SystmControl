@@ -1,0 +1,14 @@
+<svg width="800" height="600" viewBox="-400 -300 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Contorno exterior con muescas -->
+  <path d="M -300 -150 L 300 -150 L 300 -100 L 250 -100 L 250 -50 L 300 -50 L 300 150 L -300 150 L -300 100 L -250 100 L -250 50 L -300 50 Z" fill="black"/>
+
+  <!-- Agujero circular grande -->
+  <circle cx="-150" cy="0" r="40" fill="white"/>
+  <circle cx="150" cy="0" r="40" fill="white"/>
+
+  <!-- Agujero cuadrado -->
+  <path d="M -30 -30 L 30 -30 L 30 30 L -30 30 Z" fill="white"/>
+
+  <!-- Agujero triangular -->
+  <path d="M 0 80 L 40 120 L -40 120 Z" fill="white"/>
+</svg>

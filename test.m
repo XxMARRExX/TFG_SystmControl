@@ -1,4 +1,5 @@
 clear; clc; close all;
+
 totalStart = tic;
 configParams = config();
 
@@ -197,6 +198,7 @@ fprintf('Orientación final %d°, RMSE %.4f\n', oriDeg, err);
 
 disp("18 -- Visualización de puntos alineados sobre SVG --")
 drawPieceOnSVG(edgesOk, svgPaths, transform);
+
 % fig = gcf;
 % title("Capa 15: Resultados encaje");
 % grupo = "07_Encaje";

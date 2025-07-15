@@ -122,6 +122,8 @@ disp("11 -- Asociación de contornos internos a pieza/s --")
 pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContours, maskPieza);
 
 
+
+%% Análisis de la pieza/s
 disp("12 -- Cálculo de la geometría --")
 results = analyzePieceGeometry(pieceClusters);
 
@@ -197,12 +199,15 @@ fprintf('Orientación final %d°, RMSE %.4f\n', oriDeg, err);
 
 disp("18 -- Visualización de puntos alineados sobre SVG --")
 drawPieceOnSVG(edgesOk, svgPaths, transform);
+
 % fig = gcf;
 % title("Capa 15: Resultados encaje");
 % grupo = "07_Encaje";
 % subgrupo = "07_5-ResultadoEncaje";  
 %saveImage(fig, nombreImagen, grupo, subgrupo);
 
+disp("19 -- Extracción máscara binaria .svg --")
+visualizeBinaryMask(svgFile);
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
