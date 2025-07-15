@@ -1,3 +1,4 @@
+
 function insideClusters = filterClustersInsideMask(clusters, mask, minInclusionRatio)
 % FILTRO DE CLUSTERS -> Devuelve solo los clusters suficientemente contenidos en la máscara
 %
@@ -34,11 +35,13 @@ function insideClusters = filterClustersInsideMask(clusters, mask, minInclusionR
         y = y(valid);
         
         % Calcular ratio dentro de la máscara
+
         idx = sub2ind(size(mask), y, x);
         numInside = sum(mask(idx));
         ratio = numInside / length(x);
         
         if ratio >= minInclusionRatio
+
             % Crear cluster limpio
             filteredCluster = struct();
             fields = fieldnames(c);
@@ -56,6 +59,7 @@ function insideClusters = filterClustersInsideMask(clusters, mask, minInclusionR
             end
             
             insideClusters{end+1} = filteredCluster;
+
         end
     end
 end

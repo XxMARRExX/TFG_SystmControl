@@ -88,6 +88,7 @@ saveImage(fig, nombreImagen, grupo, subgrupo);
 
 disp("8 -- Extracción máscara de la pieza/s --")
 maskPieza = createPieceMask(grayImage, pieceClusters);
+
 %{
 imshow(maskPieza);
 fig = gcf;
@@ -128,6 +129,8 @@ disp("11 -- Asociación de contornos internos a pieza/s --")
 pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContours, maskPieza);
 
 
+
+%% Análisis de la pieza/s
 disp("12 -- Cálculo de la geometría --")
 results = analyzePieceGeometry(pieceClusters);
 
@@ -209,7 +212,6 @@ drawPieceOnSVG(edgesOk, svgPaths, transform);
 % grupo = "07_Encaje";
 % subgrupo = "07_5-ResultadoEncaje";  
 % saveImage(fig, nombreImagen, grupo, subgrupo);
-
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
