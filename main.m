@@ -50,6 +50,7 @@ disp("7 -- Búsqueda de piezas --")
 % Crear la máscara binaria de las piezas
 disp("8 -- Extracción máscara de la pieza/s --")
 maskPieza = createPieceMask(grayImage, pieceClusters);
+%imshow(maskPieza);
 
 % Filtrar los clusters internos candidatos
 disp("9 -- Filtrado de clusters dentro de la pieza --")
@@ -62,6 +63,7 @@ piecesInnerContours = findInnerContours(filteredClusters, size(grayImage), ...
 
 disp("11 -- Asociación de contornos internos a pieza/s --")
 pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContours, maskPieza);
+
 
 
 %% Análisis de la pieza/s
@@ -107,7 +109,6 @@ contornosInternosAlineados = transformInnerContours(contornosInternos, ...
 
 disp("18 -- Visualización encaje --")
 visualizarAjusteICP(pointsAligned, svgPaths, contornosInternosAlineados);
-
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
