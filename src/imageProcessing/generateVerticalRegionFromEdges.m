@@ -1,4 +1,4 @@
-function edgesC = generateVerticalRegionFromEdges(edges, edgesSubset, expansionX, expansionY, image)
+function edgesC = generateRotatedRegionFromEdges(edges, edgesSubset, expansionX, expansionY, image)
 
     %% Filtrado de outliers por percentiles
     x_low = prctile(edgesSubset.x, 0.25);
@@ -6,32 +6,39 @@ function edgesC = generateVerticalRegionFromEdges(edges, edgesSubset, expansionX
     y_low = prctile(edgesSubset.y, 0.25);
     y_high = prctile(edgesSubset.y, 99.75);
 
-    idx_central = (edgesSubset.x >= x_low) & (edgesSubset.x <= x_high) & ...
-                  (edgesSubset.y >= y_low) & (edgesSubset.y <= y_high);
 
-    x_clean = edgesSubset.x(idx_central);
-    y_clean = edgesSubset.y(idx_central);
+    %% 2. Sistema de referencia local
+    u = [cos(theta); sin(theta)];           % dirección dominante (longitudinal)
+    v = [-sin(theta); cos(theta)];          % perpendicular a la pieza (transversal)
 
-    %% Calcular extremos y expansión
-    x_min = min(x_clean);
-    x_max = max(x_clean);
-    y_min = min(y_clean);
-    y_max = max(y_clean);
+    %% 3. Proyección de puntos del subconjunto
+    puntos_subset = [edgesSubset.x(:)'; edgesSubset.y(:)'];
+    proj_u = u' * puntos_subset;
+    proj_v = v' * puntos_subset;
 
-    ancho = x_max - x_min;
-    alto  = y_max - y_min;
-    x_extra = expansionX * ancho;
-    y_extra = expansionY * alto;
+    %% 4. Filtrado de outliers y expansión
+    u_low = prctile(proj_u, 0.5);
+    u_high = prctile(proj_u, 99.5);
+    v_low = prctile(proj_v, 0.5);
+    v_high = prctile(proj_v, 99.5);
 
-    x_min = x_min - x_extra / 2;
-    x_max = x_max + x_extra / 2;
-    y_min = y_min - y_extra / 2;
-    y_max = y_max + y_extra / 2;
+    ancho = u_high - u_low;
+    alto = v_high - v_low;
 
-    %% Seleccionar puntos dentro del bounding box expandido
-    idx_bbox = (edges.x >= x_min) & (edges.x <= x_max) & ...
-               (edges.y >= y_min) & (edges.y <= y_max);
+    u_low = u_low - expansionX * ancho / 2;
+    u_high = u_high + expansionX * ancho / 2;
+    v_low = v_low - expansionY * alto / 2;
+    v_high = v_high + expansionY * alto / 2;
 
+    %% 5. Proyección de todos los bordes y selección dentro del bounding box rotado
+    puntos_all = [edges.x(:)'; edges.y(:)'];
+    proj_u_all = u' * puntos_all;
+    proj_v_all = v' * puntos_all;
+
+    idx_bbox = (proj_u_all >= u_low) & (proj_u_all <= u_high) & ...
+               (proj_v_all >= v_low) & (proj_v_all <= v_high);
+
+    %% 6. Construcción de la nueva estructura filtrada
     edgesC.x = edges.x(idx_bbox);
     edgesC.y = edges.y(idx_bbox);
     edgesC.nx = edges.nx(idx_bbox);
@@ -40,13 +47,16 @@ function edgesC = generateVerticalRegionFromEdges(edges, edgesSubset, expansionX
     edgesC.i0 = edges.i0(idx_bbox);
     edgesC.i1 = edges.i1(idx_bbox);
 
-    %% Visualizar sobre imagen si se proporciona
+    %% 7. Visualización (si se solicita)
     if nargin == 5 && ~isempty(image)
-        figure;
-        imshow(image); hold on;
-        rectangle('Position', [x_min, y_min, x_max - x_min, y_max - y_min], ...
-                  'EdgeColor', 'g', 'LineWidth', 0.75);
-        title('Bounding box expandido aplicado sobre la imagen');
+        % Reconstruir los 4 vértices del bounding box rotado
+        corners_u = [u_low u_high u_high u_low];
+        corners_v = [v_low v_low v_high v_high];
+        corners = u * corners_u + v * corners_v;
+
+        figure; imshow(image); hold on;
+        plot([corners(1,:) corners(1,1)], [corners(2,:) corners(2,1)], 'g-', 'LineWidth', 1.2);
+        title('Bounding box rotado alineado con la pieza');
         hold off;
     end
 end

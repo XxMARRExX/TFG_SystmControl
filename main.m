@@ -101,6 +101,7 @@ saveImage(fig, nombreImagen, grupo, subgrupo);
 % Crear la máscara binaria de las piezas
 disp("8 -- Extracción máscara de la pieza/s --")
 maskPieza = createPieceMask(grayImage, pieceClusters);
+
 %{
 imshow(maskPieza);
 fig = gcf;
@@ -137,6 +138,7 @@ saveImage(fig, nombreImagen, grupo, subgrupo);
 
 disp("11 -- Asociación de contornos internos a pieza/s --")
 pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContours, maskPieza);
+
 
 
 %% Análisis de la pieza/s
@@ -218,7 +220,6 @@ fig = gcf;
 grupo = "07_Encaje";
 subgrupo = "07_5-ResultadoEncaje";  
 %saveImage(fig, nombreImagen, grupo, subgrupo);
-
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
