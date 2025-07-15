@@ -7,26 +7,19 @@ function configParams = config()
     disp('Configurando variables de entorno...');
     
     %% SubpixelEdges
-    configParams.subpixelEdges.threshold = 20;
+    configParams.subpixelEdges.threshold_Phase1 = 40;
+    configParams.subpixelEdges.threshold_Phase2 = 20;
     configParams.subpixelEdges.smoothingIter = 1;
+    configParams.subpixelEdges.scale = 0.05;
     
-    %% FilterByNormalThreshold
-    configParams.filterByNormal.normalThreshold = 0.9;
-    
-    %% FilterByHorizontalDensity
-    configParams.filterByHorizontalDensity.minPoints = 450;
-    configParams.filterByHorizontalDensity.range = 200;
-    configParams.filterByHorizontalDensity.tolerance = 0.05;
-
-    %% generateVerticalRegionFromEdges
-    configParams.generateVerticalRegionFromEdges.expansionX = 0.10;
-    configParams.generateVerticalRegionFromEdges.expansionY = 0.05;
+    %% BboxPiece margin
+    configParams.BboxPiece.margin = 10;
     
     %% analyzeSubstructuresWithDBSCAN
     configParams.analyzeSubstructures.eps = 6;
     configParams.analyzeSubstructures.minPts = 4;
     
-    %% findInnerContours_2
+    %% findInnerContours
     configParams.findInnerContours.maxMeanDist = 20;
     configParams.findInnerContours.refImgSize = [7000 9344];
     
