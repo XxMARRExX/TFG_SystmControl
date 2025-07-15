@@ -30,5 +30,12 @@ function resultados = analyzePieceGeometry(pieceClusters)
         resultados(i).edges = pieza.edges;     % Guardar toda la información (exterior + interiores)
         resultados(i).linea = linea;
         resultados(i).boundingBox = box;
+
+        % Añadir los contornos interiores si existen
+        if isfield(pieza, 'interiores')
+            resultados(i).interiores = pieza.interiores;
+        else
+            resultados(i).interiores = {};
+        end
     end
 end

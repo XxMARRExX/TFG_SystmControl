@@ -122,6 +122,8 @@ disp("11 -- Asociación de contornos internos a pieza/s --")
 pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContours, maskPieza);
 
 
+
+%% Análisis de la pieza/s
 disp("12 -- Cálculo de la geometría --")
 results = analyzePieceGeometry(pieceClusters);
 
@@ -206,7 +208,6 @@ saveImage(fig, nombreImagen, grupo, subgrupo);
 
 disp("19 -- Extracción máscara binaria .svg --")
 visualizeBinaryMask(svgFile);
-
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
