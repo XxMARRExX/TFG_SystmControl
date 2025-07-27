@@ -3,23 +3,26 @@ totalStart = tic;
 configParams = config();
 
 
-nombreImagen = "Imagen4_29062025";
+
+nombreImagen = "";
 disp("1 -- Paso de la imagen a gris --")
-image = imread("pictures/Pieza1/OLD/Imagen2_recortada_OLD.png");
+image = imread("pictures/Pieza1/OLD/Imagen3_recortada_OLD.png");
+grayImage = convertToGrayScale(image);
+
 
 
 disp("2 -- Rescalado de la imagen --")
-rescaledImage = imresize(image, configParams.subpixelEdges.scale);
-grayImage = convertToGrayScale(image);
-grayImageRescaled = convertToGrayScale(rescaledImage);
+rescaledImage = imresize(grayImage, configParams.subpixelEdges.scale);
+
 
 
 disp("3 -- Detección de bordes para Bbox --")
-edges = subpixelEdges(grayImageRescaled, configParams.subpixelEdges.threshold_Phase1, ...
-    'SmoothingIter', configParams.subpixelEdges.smoothingIter);
+edges = subpixelEdges(rescaledImage, configParams.subpixelEdges.threshold_Phase1, ...
+    'SmoothingIter', configParams.subpixelEdges.smoothingIter_Phase1);
+bBoxRescaled = minBoundingBox([edges.x, edges.y]');
 
-% imshow(grayImageRescaled);
-% visEdges(edges);
+% visualizeImageWithEdges(rescaledImage, edges, "Subpixel edges (rescaled)");
+% drawBoundingBoxOnImage(rescaledImage, bBoxRescaled);
 % fig = gcf;
 % title("Capa 1: Cálculo del Bbox pieza");
 % grupo = "01_Bordes_Detectados";
@@ -27,7 +30,8 @@ edges = subpixelEdges(grayImageRescaled, configParams.subpixelEdges.threshold_Ph
 % saveImage(fig, nombreImagen, grupo, subgrupo);
 
 
-disp("4 -- Cálculo del Bbox de la pieza --")
+
+disp("4 -- Cálculo del Bbox de la posible pieza --")
 BboxPiece = calculateExpandedBoundingBox(edges, ...
     configParams.subpixelEdges.scale, configParams.BboxPiece.margin);
 
@@ -42,9 +46,10 @@ BboxPiece = calculateExpandedBoundingBox(edges, ...
 
 disp("5 -- Detección de bordes para contornos internos --")
 edges = subpixelEdges(grayImage, configParams.subpixelEdges.threshold_Phase2, ...
-    'SmoothingIter', configParams.subpixelEdges.smoothingIter);
+    'SmoothingIter', configParams.subpixelEdges.smoothingIter_Phase2);
 edgesFiltered = filterEdgesByBoundingBox(edges, BboxPiece);
 
+% visualizeImageWithEdges(grayImage, edgesFiltered, "Subpixel edges");
 % showFilteredPoints(edges, edgesFiltered);
 % fig = gcf;
 % title("Capa 3: PointsInsidePiece");
@@ -54,7 +59,6 @@ edgesFiltered = filterEdgesByBoundingBox(edges, BboxPiece);
 
 
 
-%% Extracción de clusterés
 disp("6 -- Agrupamiento mediante clusters --")
 [clusters, noise] = analyzeSubstructuresWithDBSCAN(edgesFiltered, ...
     configParams.analyzeSubstructures.eps, ...
@@ -66,6 +70,7 @@ disp("6 -- Agrupamiento mediante clusters --")
 % grupo = "03_Heuristicas";
 % subgrupo = "03_6-FoundedClusters";
 % saveImage(fig, nombreImagen, grupo, subgrupo);
+
 
 
 disp("7 -- Búsqueda de piezas --")
@@ -121,13 +126,7 @@ piecesInnerContours = findInnerContours(filteredClusters, size(grayImage), ...
 disp("11 -- Asociación de contornos internos a pieza/s --")
 pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContours, maskPieza);
 
-
-
-%% Análisis de la pieza/s
-disp("12 -- Cálculo de la geometría --")
-results = analyzePieceGeometry(pieceClusters);
-
-% showImageWithEdges(grayImage, results);
+% showImageWithEdges(grayImage, pieceClusters);
 % fig = gcf;
 % title("Capa 9: Results");
 % grupo = "04_Resultados";
@@ -138,8 +137,8 @@ results = analyzePieceGeometry(pieceClusters);
 
 
 %% Proceso de encaje
-disp("13 -- Carga del modelo .svg --")
-svgFile = 'data/models/REF2.svg';
+disp("12 -- Carga del modelo .svg --")
+svgFile = 'data/models/Pieza1.svg';
 svgPaths = importSVG(svgFile);
 
 % plotSVGModel(svgPaths)
@@ -150,10 +149,9 @@ svgPaths = importSVG(svgFile);
 % saveImage(fig, nombreImagen, grupo, subgrupo);
 
 
-disp("14 -- BoundingBox de la pieza --")
-modelSVG = fitSVGPathsBoundingBox(svgPaths);
-cornersSVG = computeBoundingBox(modelSVG.Center, modelSVG.Dimensions, modelSVG.Orientation);
-cornersSVG   = reorderCorners(cornersSVG);
+
+disp("13 -- BoundingBox del SVG --")
+cornersSVG = computeBoundingBoxSVG(svgPaths);
 
 % drawSVGBoundingBox(svgPaths, cornersSVG, 'g');
 % fig = gcf;
@@ -163,12 +161,13 @@ cornersSVG   = reorderCorners(cornersSVG);
 % saveImage(fig, nombreImagen, grupo, subgrupo);
 
 
-disp("15 -- BoundingBox de la pieza detectada --")
-modelPieza = fitDetectedPieceBoundingBox(results.edges);
-cornersPieza = computeBoundingBox(modelPieza.Center, modelPieza.Dimensions, modelPieza.Orientation);
-cornersPieza = reorderCorners(cornersPieza);
 
-% drawPieceBoundingBox(results.edges, cornersPieza, 'r');
+disp("14 -- BoundingBox de la pieza detectada --")
+points = [pieceClusters{1}.edges.exterior.x, pieceClusters{1}.edges.exterior.y];
+bBoxFinal = minBoundingBox(points');
+cornersPiece = formatCorners(bBoxFinal);
+
+% drawPieceBoundingBox(pieceClusters, cornersPiece, 'r');
 % fig = gcf;
 % title("Capa 12: Bbox Pieza");
 % grupo = "07_Encaje";
@@ -176,10 +175,11 @@ cornersPieza = reorderCorners(cornersPieza);
 % saveImage(fig, nombreImagen, grupo, subgrupo);
 
 
-disp("16 -- Superposición de ambos Bboxes --")
-[d, Z, transform] = procrustes(cornersSVG, cornersPieza, 'Scaling', true, 'Reflection', false);
 
-drawBoundingBoxesAlignment(cornersSVG, Z);
+disp("15 -- Superposición de ambos Bboxes --")
+[d, Z, transform] = procrustes(cornersSVG, cornersPiece, 'Scaling', true, 'Reflection', false);
+
+% drawBoundingBoxesAlignment(cornersSVG, Z);
 % fig = gcf;
 % title("Capa 13: Superposición de ambos Bboxes");
 % grupo = "07_Encaje";
@@ -187,8 +187,9 @@ drawBoundingBoxesAlignment(cornersSVG, Z);
 % saveImage(fig, nombreImagen, grupo, subgrupo);
 
 
-disp("17 -- Rectificación de orientación --")
-[edgesOk, oriDeg, err] = pickBestEdgeOrientation(results.edges, svgPaths);
+
+disp("16 -- Rectificación de orientación --")
+[edgesOk, oriDeg, err] = pickBestEdgeOrientation(pieceClusters, svgPaths);
 fprintf('Orientación final %d°, RMSE %.4f\n', oriDeg, err);
 % fig = gcf;
 % title("Capa 14: ");
@@ -197,7 +198,8 @@ fprintf('Orientación final %d°, RMSE %.4f\n', oriDeg, err);
 % saveImage(fig, nombreImagen, grupo, subgrupo);
 
 
-disp("18 -- Visualización de puntos alineados sobre SVG --")
+
+disp("17 -- Visualización de puntos alineados sobre SVG --")
 drawPieceOnSVG(edgesOk, svgPaths, transform);
 
 % fig = gcf;
@@ -206,8 +208,11 @@ drawPieceOnSVG(edgesOk, svgPaths, transform);
 % subgrupo = "07_5-ResultadoEncaje";  
 %saveImage(fig, nombreImagen, grupo, subgrupo);
 
-disp("19 -- Extracción máscara binaria .svg --")
+% disp("19 -- Extracción máscara binaria .svg --")
 visualizeBinaryMask(svgFile);
+
+
+
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])

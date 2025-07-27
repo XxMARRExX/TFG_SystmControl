@@ -9,7 +9,8 @@ function configParams = config()
     %% SubpixelEdges
     configParams.subpixelEdges.threshold_Phase1 = 10;
     configParams.subpixelEdges.threshold_Phase2 = 10;
-    configParams.subpixelEdges.smoothingIter = 3;
+    configParams.subpixelEdges.smoothingIter_Phase1 = 5;
+    configParams.subpixelEdges.smoothingIter_Phase2 = 3;
     configParams.subpixelEdges.scale = 0.05;
     
     %% BboxPiece margin
