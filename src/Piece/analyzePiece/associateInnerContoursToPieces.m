@@ -1,62 +1,63 @@
 function pieceClusters = associateInnerContoursToPieces(pieceClusters, innerClusters, maskLabel)
-% ASSOCIATEINNERCONTOURSTOPIECES Asocia contornos interiores a las piezas correspondientes
+%ASSOCIATEINNERCONTOURSTOPIECES Associates inner contours to the corresponding outer piece clusters.
 %
-% Entrada:
-%   - pieceClusters: celda de clusters exteriores (estructuras con campos x, y)
-%   - innerClusters: celda de contornos interiores
-%   - maskLabel: máscara etiquetada (1, 2, 3, ...) con ID de cada pieza
+%   Inputs:
+%       pieceClusters - Cell array of piece clusters (structs with fields 'x' and 'y').
+%       innerClusters - Cell array of inner contour clusters (same format as above).
+%       maskLabel     - Labeled mask (integer IDs: 1, 2, ...) where each pixel denotes a piece.
 %
-% Salida:
-%   - pieceClusters: estructuras reorganizadas con:
-%       - edges.exterior: contorno exterior
-%       - edges.innerContours: celdas de contornos interiores
+%   Output:
+%       pieceClusters - Same input with updated structure:
+%                         .edges.exterior       → outer contour
+%                         .edges.innerContours  → cell array of inner contours
 
     numPieces = numel(pieceClusters);
-    
-    % Inicializar campo .edges.innerContours vacío
+
+    % Initialize innerContours field for each piece
     for i = 1:numPieces
         pieceClusters{i}.edges.innerContours = {};
     end
 
-    % Asociar cada contorno interior a la pieza correspondiente
+    % Associate each inner contour to its corresponding labeled piece
     for i = 1:numel(innerClusters)
         cluster = innerClusters{i};
+
+        % Round and validate coordinates
         x = round(cluster.x(:));
         y = round(cluster.y(:));
-        
-        valid = x >= 1 & x <= size(maskLabel, 2) & y >= 1 & y <= size(maskLabel, 1);
+        valid = x >= 1 & x <= size(maskLabel, 2) & ...
+                y >= 1 & y <= size(maskLabel, 1);
+
         x = x(valid);
         y = y(valid);
-        
+
         if isempty(x)
             continue;
         end
-        
-        % Centroide aproximado
-        x_c = round(mean(x));
-        y_c = round(mean(y));
-        
-        piezaId = maskLabel(y_c, x_c);
-        
-        if piezaId == 0
-            continue;
+
+        % Estimate cluster centroid and get label from mask
+        centroidX = round(mean(x));
+        centroidY = round(mean(y));
+        pieceId = maskLabel(centroidY, centroidX);
+
+        if pieceId == 0 || pieceId > numPieces
+            continue;  % Outside any labeled piece
         end
-        
-        % Añadir el contorno interior a la pieza correspondiente
-        pieceClusters{piezaId}.edges.innerContours{end+1} = cluster;
+
+        % Assign inner contour to corresponding piece
+        pieceClusters{pieceId}.edges.innerContours{end+1} = cluster;
     end
 
-    % Reorganizar contornos exteriores dentro de .edges.exterior
+    % Restructure exterior edges as subfield .edges.exterior
     for i = 1:numPieces
         piece = pieceClusters{i};
 
-        % Mover x, y al nuevo subcampo exterior
         pieceClusters{i}.edges.exterior = struct( ...
             'x', piece.x(:), ...
             'y', piece.y(:) ...
         );
-        
-        % Eliminar campos antiguos innecesarios
+
+        % Remove top-level x, y fields
         pieceClusters{i} = rmfield(pieceClusters{i}, {'x', 'y'});
     end
 end
