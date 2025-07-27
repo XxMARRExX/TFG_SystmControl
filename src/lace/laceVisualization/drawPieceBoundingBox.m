@@ -1,24 +1,38 @@
-function drawPieceBoundingBox(edges, corners, color)
-% DRAWPIECEBOUNDINGBOX Dibuja los puntos de la pieza y su bounding box rotado
+function drawPieceBoundingBox(pieceClusters, corners, color)
+% DRAWPIECEBOUNDINGBOX Draws the bounding box and edges of the first detected piece.
 %
-% Entrada:
-%   - edges:   estructura con campo .exterior (con campos .x, .y)
-%   - corners: 4x2 matriz con las esquinas del bounding box
-%   - color:   color del bounding box (por ejemplo, 'r')
+% Inputs:
+%   - pieceClusters: cell array containing one piece (currently)
+%   - corners: 4x2 matrix with bounding box corners (counterclockwise)
+%   - color: optional color for the bounding box (e.g., 'r')
 
     if nargin < 3, color = 'r'; end
 
-    % Extraer puntos
-    exterior = edges.exterior;
-    pointsPieza = [exterior.x(:), exterior.y(:)];
+    % Always use the first piece
+    piece = pieceClusters{1};
+    edgeStruct = piece.edges;
 
-    % Dibujar figura
+    % Start figure
     figure; hold on; axis equal;
-    title("BoundingBox Pieza Detectada");
+    title("Bounding Box of Detected Piece");
 
-    % Dibujar puntos
-    plot(pointsPieza(:,1), pointsPieza(:,2), '.', 'Color', [0.2 0.2 0.8]);
+    % Draw exterior points
+    if isfield(edgeStruct, 'exterior')
+        x_ext = edgeStruct.exterior.x;
+        y_ext = edgeStruct.exterior.y;
+        plot(x_ext, y_ext, '.', 'Color', [0.2 0.2 0.8], 'DisplayName', 'Exterior');
+    end
 
-    % Dibujar bounding box
+    % Draw inner contours if they exist
+    if isfield(edgeStruct, 'innerContours') && ~isempty(edgeStruct.innerContours)
+        for j = 1:numel(edgeStruct.innerContours)
+            inner = edgeStruct.innerContours{j};
+            plot(inner.x, inner.y, '.', 'Color', [0.5 0.5 0.5], 'MarkerSize', 5, 'DisplayName', 'Inner');
+        end
+    end
+
+    % Draw the bounding box
     drawBoundingBox(corners, color, '--');
+
+    legend('show');
 end

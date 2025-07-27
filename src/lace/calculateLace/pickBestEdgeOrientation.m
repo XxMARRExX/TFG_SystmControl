@@ -1,37 +1,36 @@
-function [edgesBest, bestOriDeg, bestRMSE] = pickBestEdgeOrientation(edges, svgPaths, nSamples)
-% PICKBESTEDGEORIENTATION  Elige entre 0° y 180° según el RMSE con el SVG.
+function [edgesBest, bestOriDeg, bestRMSE] = pickBestEdgeOrientation(pieceClusters, svgPaths, nSamples)
+% PICKBESTEDGEORIENTATION  Chooses between 0° and 180° orientation based on RMSE with the SVG.
 %
-%   [edgesBest, bestOriDeg, bestRMSE] = pickBestEdgeOrientation(edges, svgPaths, nSamples)
+%   [edgesBest, bestOriDeg, bestRMSE] = pickBestEdgeOrientation(pieceClusters, svgPaths, nSamples)
 %
-% edges     : estructura de bordes detectados (tal y como la usas).
-% svgPaths  : cell array con los paths del modelo SVG.
-% nSamples  : nº de muestras por contorno SVG (def = 400).
+%   pieceClusters : cell array with one structure (detected piece).
+%   svgPaths      : cell array of SVG model paths.
+%   nSamples      : number of points to sample per SVG contour (default = 400).
 %
-% Devuelve
-%   edgesBest  : misma estructura, rotada 180° solo si mejora el RMSE.
-%   bestOriDeg : 0  o  180  (orientación ganadora).
-%   bestRMSE   : RMSE (sin rotación extra) con esa orientación.
-%
-% La métrica de error usa solo traslación (centroide-a-centroide) para que
-% la inversión 180° sea realmente distinguible.
-% -------------------------------------------------------------------------
+%   Output:
+%     edgesBest  : best orientation (original or rotated 180°)
+%     bestOriDeg : 0 or 180
+%     bestRMSE   : RMSE score of best orientation (based on centroid alignment)
 
     if nargin < 3, nSamples = 400; end
 
-    % —— muestrear el SVG (contorno exterior + agujeros) ————————
+    % ---- Sample the SVG model (exterior + inner contours) ----
     [Pext, Pin] = sampleSvgExIn(svgPaths, nSamples);
     PsvgAll     = [Pext ; vertcat(Pin{:})];
 
-    % —— puntos detectados (orientación 0°) ————————————————
-    Pdet0   = gatherDetPoints(edges);
-    rmse0   = rmseNoRot(Pdet0, PsvgAll);
+    % ---- Extract edge data from pieceClusters ----
+    edges = pieceClusters{1}.edges;
 
-    % —— orientación 180° ——————————————————————————————
-    edges180 = rotateDetectedEdges180(edges);           % usa tu función
+    % ---- Orientation 0° ----
+    Pdet0 = gatherDetPoints(edges);
+    rmse0 = rmseNoRot(Pdet0, PsvgAll);
+
+    % ---- Orientation 180° ----
+    edges180 = rotateDetectedEdges180(edges);
     Pdet180  = gatherDetPoints(edges180);
     rmse180  = rmseNoRot(Pdet180, PsvgAll);
 
-    % —— comparación y salida ————————————————————————————
+    % ---- Decision ----
     if rmse180 < rmse0
         edgesBest  = edges180;
         bestOriDeg = 180;
@@ -42,8 +41,9 @@ function [edgesBest, bestOriDeg, bestRMSE] = pickBestEdgeOrientation(edges, svgP
         bestRMSE   = rmse0;
     end
 
-    fprintf('→ Orientación elegida: %3d°   |   RMSE = %.4f\n', bestOriDeg, bestRMSE);
+    fprintf('→ Chosen orientation: %3d°   |   RMSE = %.4f\n', bestOriDeg, bestRMSE);
 end
+
 % ======================================================================
 %                           H E L P E R S
 % ======================================================================
