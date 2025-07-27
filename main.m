@@ -151,7 +151,7 @@ svgPaths = importSVG(svgFile);
 
 
 disp("13 -- BoundingBox del SVG --")
-cornersSVG = computeBoundingBoxSVG(svgPaths);
+cornersSVG = calculateBboxSVG(svgPaths);
 
 % drawSVGBoundingBox(svgPaths, cornersSVG, 'g');
 % fig = gcf;
@@ -209,7 +209,7 @@ drawPieceOnSVG(edgesOk, svgPaths, transform);
 %saveImage(fig, nombreImagen, grupo, subgrupo);
 
 % disp("19 -- Extracción máscara binaria .svg --")
-visualizeBinaryMask(svgFile);
+% visualizeBinaryMask(svgFile);
 
 
 
