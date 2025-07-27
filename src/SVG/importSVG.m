@@ -1,74 +1,74 @@
 function svgPaths = importSVG(filename)
-% IMPORTSVGPATHS Importa todos los paths de un fichero SVG como conjuntos de puntos 2D
+% IMPORTSVG Imports 2D point paths from an SVG file.
 %
-%   svgPaths = IMPORTSVGPATHS(filename) lee el fichero SVG especificado por
-%   filename y devuelve una celda svgPaths. Cada celda contiene una matriz Nx2
-%   con las coordenadas [x, y] de cada path.
+%   svgPaths = importSVG(filename) reads an SVG file and extracts all
+%   path elements. Each path is converted to an Nx2 matrix with [x, y] 
+%   coordinates and stored in a cell array.
 %
-%   Esta versión soporta los comandos:
-%   - 'M' y 'm': moveto absoluto / relativo (el primero solo)
-%   - 'L' y 'l': lineto absoluto / relativo
-%   Los comandos se pueden omitir si son repetidos, como permite la especificación SVG.
+%   Supported SVG path commands:
+%     - 'M', 'm': moveto (absolute/relative)
+%     - 'L', 'l': lineto (absolute/relative)
 %
-%   Nota: La función invierte la coordenada Y para que el sistema de referencia
-%   sea convencional (positivo hacia arriba).
+%   Repeated commands may be omitted, as allowed in the SVG specification.
+%
+%   Note: The Y axis is inverted to follow a standard Cartesian reference
+%   (positive Y going upwards).
 
     xml = xmlread(filename);
-    paths = xml.getElementsByTagName('path');
-    nPaths = paths.getLength;
+    pathNodes = xml.getElementsByTagName('path');
+    nPaths = pathNodes.getLength;
 
     svgPaths = cell(1, nPaths);
 
     for i = 0:nPaths-1
-        pathNode = paths.item(i);
-        d = char(pathNode.getAttribute('d'));
+        pathNode = pathNodes.item(i);
+        dAttr = char(pathNode.getAttribute('d'));
 
-        % Tokenizar la cadena en comandos y números
-        raw = regexp(d, '([MLml])|(-?[\d.]+(?:e[-+]?\d+)?)', 'match');
+        tokens = regexp(dAttr, '([MLml])|(-?[\d.]+(?:e[-+]?\d+)?)', 'match');
 
-        if isempty(raw)
-            warning('Path %d vacío o no interpretable.', i+1);
+        if isempty(tokens)
+            warning('Empty or unrecognized path in element %d.', i+1);
             continue;
         end
 
         points = [];
-        idx = 1;
         current = [0, 0];
-        cmd = '';  % Comando activo
+        idx = 1;
+        command = '';
 
-        while idx <= numel(raw)
-            token = raw{idx};
+        while idx <= numel(tokens)
+            token = tokens{idx};
 
             if ismember(token, {'M','m','L','l'})
-                cmd = token;
+                command = token;
                 idx = idx + 1;
             end
 
-            % Determinar si hay al menos dos números más
-            if idx+1 <= numel(raw)
-                x = str2double(raw{idx});
-                y = str2double(raw{idx+1});
+            % Parse next two values as coordinates
+            if idx + 1 <= numel(tokens)
+                x = str2double(tokens{idx});
+                y = str2double(tokens{idx + 1});
 
-                switch cmd
+                switch command
                     case {'M', 'L'}
                         pt = [x, y];
                     case {'m', 'l'}
                         pt = current + [x, y];
                     otherwise
-                        warning('Comando desconocido: %s', cmd);
+                        warning('Unknown command: %s', command);
                         break;
                 end
 
                 current = pt;
-                points(end+1, :) = pt; %#ok<AGROW>
+                points(end+1, :) = pt;
                 idx = idx + 2;
             else
-                break; % fin de datos
+                break;
             end
         end
 
-        % Invertir eje Y
-        points(:,2) = -points(:,2);
+        % Invert Y axis to match Cartesian convention
+        points(:, 2) = -points(:, 2);
         svgPaths{i+1} = points;
     end
 end
