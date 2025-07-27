@@ -1,81 +1,77 @@
-# Filosofía v18042025
+# 🧩 Análisis de imagen para control de calidad industrial en la fabricación de planchas de acero
 
-![image](https://github.com/user-attachments/assets/d7b25395-14fc-4e96-b7fe-f56d01864bbb)
+Este repositorio contiene el desarrollo del Trabajo de Fin de Grado centrado en la detección, análisis y encaje geométrico de piezas mediante visión por computador. 
 
-## Flujo de las funciones:
+## 📁 Estructura del Proyecto
 
-## 📁 Estructura del proyecto
-
-El proyecto sigue una organización modular basada en componentes funcionales (pieza, modelo SVG, encaje, etc.) y separa claramente las funciones por su propósito.
-
-/src
+```
+src/
+├── Piece/
+│   ├── analyze/
+│   │   ├── findPieceClusters.m
+│   │   ├── findInnerContours.m
+│   │   ├── filterClustersInsideMask.m
+│   │   ├── createPieceMask.m
+│   │   └── associateInnerContoursToPieces.m
+│   │
+│   ├── boundingBox/
+│   │   ├── minBoundingBox.m
+│   │   ├── expandBoundingBox.m
+│   │   ├── drawBoundingBoxOnImage.m
+│   │   └── calculateExpandedBoundingBox.m
+│   │
+│   └── filters/
+│       ├── filterEdgesByBoundingBox.m
+│       └── filterClustersInsideMask.m
 │
-├── Piece/ ← Análisis y procesamiento de la pieza detectada
-│ ├── analyzePieceGeometry.m
-│ ├── analyzePiece.m
-│ ├── computeLinearRegression.m
-│ ├── computeRotatedBoundingBox.m
-│ ├── createPieceMask.m
-│ ├── classifyPixelRegions.m
-│ ├── findInnerContours.m
-│ └── associateInnerContours.m
 │
-├── Piece/BboxPiece/ ← Operaciones con cajas delimitadoras de la pieza
-│ ├── minBoundingBox.m
-│ ├── expandBoundingBox.m
-│ ├── drawBoundingBoxOnly.m
-│ └── calculateExpandedBox.m
+├── svg/
+│   ├── importSVG.m
+│   ├── getSVGViewBox.m
+│   ├── computeBoundingBoxSVG.m
+│   └── plotSVGModel.m
 │
-├── svg/ ← Gestión del modelo SVG y su conversión a binario
-│ ├── importSVG.m
-│ ├── getSVGViewBox.m
-│ ├── svgBinaryMask.m
-│ ├── plotSVGModel.m
-│ ├── fitSVGPathsBoundingBox.m
-│ └── visualizeBinaryMask.m
 │
-├── lace/ ← Cálculo del encaje geométrico entre pieza y SVG
-│ ├── calculateLace.m
-│ ├── rotateDetectedEdges.m
-│ ├── reorderCorners.m
-│ ├── pickBestEdgeOrientation.m
-│ ├── fitrect2D.m
-│ ├── fitDetectedPieceBoundingBox.m
-│ └── computeBoundingBoxCorners.m
+├── lace/
+│	├── analyze/
+│   │	├── pickBestEdgeOrientation.m
+│   │	├── rotateDetectedEdges180.m
+│   │	├── formatCorners.m
+│   │	└── fitrect2D.m
+│   │
+│ 	└── visualization/
+│   	├── drawSVGBoundingBox.m
+│   	├── drawBoundingBoxesAlignment.m
+│   	├── drawPieceOnSVG.m
+│   	└── drawPieceBoundingBox.m
 │
-├── lace/laceVisualization/ ← Visualización personalizada para encaje
-│ ├── drawSVGBoundingBox.m
-│ ├── drawPieceOnSVG.m
-│ ├── drawPieceBoundingBox.m
-│ ├── drawBoundingBoxesAll.m
-│ └── drawBoundingBox.m
 │
-├── imageProcessing/ ← Preprocesamiento de imagen (intensidad, bordes)
-│ ├── convertToGrayScale.m
-│ └── filterByNormalThreshold.m
+├── imageProcessing/
+│   ├── convertToGrayScale.m
+│   ├── analyzeSubstructuresWithDBSCAN.m
+│   ├── visClusters.m
+│   └── visualizeImageWithEdges.m
 │
-├── analyzeCluster/ ← Agrupamiento y filtrado de clústeres
-│ ├── findPieceClusters.m
-│ ├── filterClustersInsideMask.m
-│ ├── analyzeSubstructuresWithDBSCAN.m
-│ └── visClusters.m
 │
-├── analyzeData/ ← Visualización y análisis de datos auxiliares
-│ ├── estimateDominantOrientation.m
-│ ├── showPixelIntensities.m
-│ ├── showImageWithEdges.m
-│ └── showFilteredPoints.m
+├── analyzeData/
+│   ├── showImageWithEdges.m
+│   └── showFilteredPoints.m
 │
-├── DocFunctions/ ← Funciones de documentación y generación de figuras
-│ ├── createDocPicturesLace.m
-│ ├── createDocPicturesDetected.m
-│ ├── bestSubpixelParams.m
-│ ├── saveImage.m
-│ └── plotPercentiles.m
+```
 
+## 🚀 Flujo General
 
-> 🧭 Cada carpeta agrupa funciones que operan sobre el mismo contexto, y mantiene la trazabilidad del flujo: desde la lectura del modelo hasta la visualización del encaje.
+1. **Preprocesamiento de la imagen**
+2. **Detección de bordes y agrupamiento**
+3. **Filtrado y extracción de pieza**
+4. **Cálculo del bounding box**
+5. **Carga del modelo SVG**
+6. **Encaje geométrico (Procrustes + mejor orientación [0 || 180])**
+7. **Visualización y evaluación**
 
+[Hacer el diagrama de flujo]
 
+## 🧰 Requisitos
 
-
+- MATLAB R2022a o superior
+- Toolboxes necesarios: *Image Processing Toolbox*, *Statistics and Machine Learning Toolbox*
