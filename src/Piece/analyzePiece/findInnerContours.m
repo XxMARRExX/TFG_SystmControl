@@ -1,48 +1,43 @@
 function cleanClusters = findInnerContours(clusters, imgSize, refImgSize, minMeanDistBase)
-% CLEANCLUSTERSBYMORPHOLOGY Filtra clusters dispersos con umbral adaptativo
+%FINDINNERCONTOURS Filters clusters based on spatial dispersion to detect inner contours.
 %
-%   cleanClusters = cleanClustersByMorphology(clusters, imgSize, refImgSize, minMeanDistBase)
+%   cleanClusters = findInnerContours(clusters, imgSize, refImgSize, minMeanDistBase)
 %
-%   Entrada:
-%       - clusters: celda de clusters con campos .x y .y
-%       - imgSize: tamaño de la imagen actual [alto, ancho]
-%       - refImgSize: tamaño de la imagen de referencia [alto, ancho]
-%       - minMeanDistBase: umbral base para la imagen de referencia
+%   Inputs:
+%       clusters         - Cell array of clusters (structs with fields 'x' and 'y').
+%       imgSize          - Size of current image [height, width].
+%       refImgSize       - Reference image size used to define the base threshold.
+%       minMeanDistBase  - Base threshold of mean distance between points (in pixels).
 %
-%   Salida:
-%       - cleanClusters: celda con clusters dispersos (posibles contornos interiores)
+%   Output:
+%       cleanClusters    - Cell array of clusters that are sufficiently dispersed
+%                          (likely to represent inner contours rather than dense noise).
 
-    % Calcular escalado basado en diagonal
-    diagRef = norm(refImgSize);
-    diagImg = norm(imgSize);
-    scale = diagImg / diagRef;
-    
-    % Umbral adaptado
-    minMeanDist = minMeanDistBase * scale;
+    % Compute adaptive threshold based on image scale
+    refDiag = norm(refImgSize);
+    imgDiag = norm(imgSize);
+    scaleFactor = imgDiag / refDiag;
+    minMeanDist = minMeanDistBase * scaleFactor;
 
     cleanClusters = {};
-    
+
+    % Loop through clusters and filter based on mean pairwise distance
     for i = 1:numel(clusters)
         cluster = clusters{i};
         x = cluster.x(:);
         y = cluster.y(:);
-        
+
         if numel(x) < 3
-            continue;
+            continue;  % Not enough points to define shape
         end
-        
-        % Calcular dispersión
-        D = pdist([x y]);
-        meanDist = mean(D);
-        
-        if meanDist < minMeanDist
-            % Muy denso -> probablemente ruido -> eliminar
-            continue;
+
+        % Compute average distance between all point pairs
+        distances = pdist([x y]);
+        meanDist = mean(distances);
+
+        % Keep only clusters that are spatially dispersed
+        if meanDist >= minMeanDist
+            cleanClusters{end+1} = cluster;
         end
-        
-        % Disperso -> probablemente contorno interior -> conservar
-        cleanClusters{end+1} = cluster;
     end
-
 end
-
