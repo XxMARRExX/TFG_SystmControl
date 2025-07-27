@@ -1,22 +1,34 @@
-function maskPieza = createPieceMask(grayImage, pieceClusters)
-    % Crea una máscara etiquetada de las piezas detectadas (1,2,3,...)
+function pieceMask = createPieceMask(grayImage, pieceClusters)
+%CREATEPIECEMASK Generates a labeled mask (1, 2, ...) for detected piece clusters.
+%
+%   Inputs:
+%       grayImage     - Grayscale image used to determine mask size.
+%       pieceClusters - Cell array of clusters, each with fields 'x' and 'y'.
+%
+%   Output:
+%       pieceMask - 2D matrix (same size as image) with integer labels:
+%                   0 = background, 1...N = detected pieces.
 
-    [H, W] = size(grayImage);
-    maskPieza = zeros(H, W);
+    
+    [height, width] = size(grayImage);
+    pieceMask = zeros(height, width);
 
-    for i = 1:length(pieceClusters)
+    % Loop over each piece cluster
+    for i = 1:numel(pieceClusters)
         cluster = pieceClusters{i};
         x = cluster.x(:);
         y = cluster.y(:);
 
-        if length(x) < 3
+        % Skip degenerate clusters
+        if numel(x) < 3
             continue;
         end
 
-        k = convhull(x, y);
-        pieceMask = poly2mask(x(k), y(k), H, W);
+        % Compute convex hull to form a closed contour
+        hullIndices = convhull(x, y);
+        binaryMask = poly2mask(x(hullIndices), y(hullIndices), height, width);
 
-        % Asignar valor de etiqueta
-        maskPieza(pieceMask) = i;
+        % Assign unique label to this region
+        pieceMask(binaryMask) = i;
     end
 end
