@@ -1,25 +1,30 @@
-function showFilteredPoints(struct_grande, struct_seleccionados)
-    % Muestra visualmente qué puntos del conjunto grande se han mantenido
+function showFilteredPoints(allPoints, selectedPoints)
+%SHOWFILTEREDPOINTS Displays a 2D comparison between original and filtered points.
+%
+%   Inputs:
+%       allPoints      - Struct with fields 'x' and 'y' (original/unfiltered set).
+%       selectedPoints - Struct with fields 'x' and 'y' (filtered subset).
+%
+%   This function opens a new figure showing both point sets with different colors.
 
-    % Extraer coordenadas de cada conjunto
-    x_grande = struct_grande.x;
-    y_grande = struct_grande.y;
+    xAll = allPoints.x;
+    yAll = allPoints.y;
 
-    x_sel = struct_seleccionados.x;
-    y_sel = struct_seleccionados.y;
+    xSel = selectedPoints.x;
+    ySel = selectedPoints.y;
 
-    % Mostrar en una figura
+    % Create figure and plot points
     figure;
     hold on;
-    grid on;
     axis equal;
+    grid on;
 
-    scatter(x_grande, y_grande, 10, 'r.', 'DisplayName', 'Todos los puntos');
-    scatter(x_sel, y_sel, 10, 'b.', 'DisplayName', 'Puntos seleccionados');
+    scatter(xAll, yAll, 10, 'r.', 'DisplayName', 'All points');
+    scatter(xSel, ySel, 10, 'b.', 'DisplayName', 'Selected points');
 
-    xlabel('Coordenada X');
-    ylabel('Coordenada Y');
-    legend;
-    title('Visualización de puntos seleccionados respecto al conjunto original');
+    % Axis labels and title
+    xlabel('X coordinate');
+    ylabel('Y coordinate');
+    legend('Location', 'best');
+    title('Filtered points from original set');
 end
-

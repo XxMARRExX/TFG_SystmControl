@@ -1,38 +1,49 @@
-function showImageWithEdges(grayImage, resultados)
-
-% SHOWIMAGEWITHEDGES Muestra las piezas con sus contornos exteriores e interiores
-% usando el mismo color por pieza, claramente visible sobre fondo gris.
+function showImageWithEdges(grayImage, pieceClusters)
+% SHOWIMAGEWITHEDGES Displays detected pieces with exterior and interior contours.
+%
+%   Inputs:
+%       - grayImage: grayscale input image
+%       - pieceClusters: cell array of structures, each with:
+%           - edges.exterior: struct with x and y fields
+%           - edges.innerContours: cell array of interior contours (optional)
+%
+%   This function uses a different color for each piece, and the same color
+%   for its corresponding inner contours.
 
     figure;
     imshow(grayImage, 'InitialMagnification', 'fit');
     hold on;
 
-    colores = lines(numel(resultados));
+    colors = lines(numel(pieceClusters));
 
-    for i = 1:numel(resultados)
-        col = colores(i,:);
+    for i = 1:numel(pieceClusters)
+        edgeStruct = pieceClusters{i}.edges;
+        color = colors(i, :);
 
-        % --- exterior ---
-        plot(resultados(i).edges.x, resultados(i).edges.y, '.', ...
-             'Color',col,'MarkerSize',8);
+        % --- Exterior contour ---
+        if isfield(edgeStruct, 'exterior')
+            x_ext = edgeStruct.exterior.x;
+            y_ext = edgeStruct.exterior.y;
 
-        % --- eje de la pieza ---
-        [~,W] = size(grayImage);
-        xLine = [1 W];
-        yLine = resultados(i).linea.m * xLine + resultados(i).linea.b;
-        plot(xLine, yLine, '-', 'Color',col,'LineWidth',1.5);
+            plot(x_ext, y_ext, '.', ...
+                'Color', color, ...
+                'MarkerSize', 8, ...
+                'DisplayName', sprintf('Piece %d', i));
+        end
 
+        % --- Inner contours ---
+        if isfield(edgeStruct, 'innerContours') && ~isempty(edgeStruct.innerContours)
+            for j = 1:numel(edgeStruct.innerContours)
+                inner = edgeStruct.innerContours{j};
 
-        % --- Contornos interiores ---
-        if isfield(resultados(i).edges, 'innerContours') && ~isempty(resultados(i).edges.innerContours)
-            for j = 1:numel(resultados(i).edges.innerContours)
-                c = resultados(i).edges.innerContours{j};
-                plot(c.x, c.y, '.', 'Color', color, 'MarkerSize', 6); % mismo color
+                plot(inner.x, inner.y, '.', ...
+                    'Color', color, ...
+                    'MarkerSize', 6);
             end
-
         end
     end
 
-    title('Piezas y contornos interiores (color por pieza)');
+    title('Detected pieces with exterior and interior contours');
+    legend('show');
     hold off;
 end

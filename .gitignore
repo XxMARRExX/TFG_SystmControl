@@ -1,11 +1,9 @@
-./src/imageProcessing/plotPieceProfile.m
-./src/imageProcessing/filteredOutliers.m
-./src/imageProcessing/drawBoundingBox.m
-./src/analyzeData/analyzePieceOrientation.m
+./test.m
+./config.m
 
-*.svg
-*.png
 ./data/
+./src/DocFunctions
+./src/TestFunctions
 
-data/calibration_*.json
-data/changeImageName.py
+*.asv
+*.m~
