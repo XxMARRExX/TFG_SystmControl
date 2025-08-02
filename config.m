@@ -7,10 +7,10 @@ function configParams = config()
     disp('Configurando variables de entorno...');
     
     %% SubpixelEdges
-    configParams.subpixelEdges.threshold_Phase1 = 10;
-    configParams.subpixelEdges.threshold_Phase2 = 10;
-    configParams.subpixelEdges.smoothingIter_Phase1 = 5;
-    configParams.subpixelEdges.smoothingIter_Phase2 = 3;
+    configParams.subpixelEdges.threshold_Phase1 = 40;
+    configParams.subpixelEdges.threshold_Phase2 = 20;
+    configParams.subpixelEdges.smoothingIter_Phase1 = 3;
+    configParams.subpixelEdges.smoothingIter_Phase2 = 1;
     configParams.subpixelEdges.scale = 0.05;
     
     %% BboxPiece margin

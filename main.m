@@ -6,7 +6,7 @@ configParams = config();
 
 nombreImagen = "";
 disp("1 -- Paso de la imagen a gris --")
-image = imread("pictures/Pieza1/OLD/Imagen3_recortada_OLD.png");
+image = imread("pictures/Pieza2/OLD/Imagen4.png");
 grayImage = convertToGrayScale(image);
 
 
@@ -138,7 +138,7 @@ pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContour
 
 %% Proceso de encaje
 disp("12 -- Carga del modelo .svg --")
-svgFile = 'data/models/Pieza1.svg';
+svgFile = 'data/models/Pieza2.svg';
 svgPaths = importSVG(svgFile);
 
 % plotSVGModel(svgPaths)
