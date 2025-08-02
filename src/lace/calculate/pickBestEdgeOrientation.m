@@ -1,4 +1,4 @@
-function [edgesBest, bestOriDeg, bestRMSE] = pickBestEdgeOrientation(pieceClusters, svgPaths, nSamples)
+function [edgesBest, bestOriDeg, bestRMSE] = pickBestEdgeOrientation(cornersPiece, pieceClusters, svgPaths, nSamples)
 % PICKBESTEDGEORIENTATION Selects 0° or 180° orientation based on RMSE with the SVG model.
 %
 %   [edgesBest, bestOriDeg, bestRMSE] = pickBestEdgeOrientation(pieceClusters, svgPaths, nSamples)
@@ -13,7 +13,7 @@ function [edgesBest, bestOriDeg, bestRMSE] = pickBestEdgeOrientation(pieceCluste
 %   - bestOriDeg : 0 or 180
 %   - bestRMSE   : RMSE between the detected piece and the SVG model
 
-    if nargin < 3, nSamples = 400; end
+    if nargin < 4, nSamples = 400; end
 
     % 1. Sample the SVG model (outer + inner contours)
     [Pext, Pin] = sampleSvgExIn(svgPaths, nSamples);
@@ -27,7 +27,7 @@ function [edgesBest, bestOriDeg, bestRMSE] = pickBestEdgeOrientation(pieceCluste
     rmse0 = rmseNoRotation(Pdet0, PsvgAll);
 
     % 4. Orientation 180°
-    edges180 = rotatePiece180(edges);
+    edges180 = rotatePiece180(edges, cornersPiece);
     Pdet180  = gatherDetPoints(edges180);
     rmse180  = rmseNoRotation(Pdet180, PsvgAll);
 
