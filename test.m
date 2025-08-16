@@ -4,7 +4,8 @@ configParams = config();
 
 
 
-pathImagen = "pictures/Pieza2/OLD/Imagen5.png";
+pathImagen = "pictures/Pieza2/OLD/Imagen3.png";
+% pathImagen = "pictures/Pieza5/Imagen1_test.png";
 [~, nombreImagen, extension] = fileparts(pathImagen);
 nombreImagen = strcat(nombreImagen, extension);
 
@@ -67,7 +68,7 @@ disp("6 -- Detección de bordes para contornos internos --")
 edges = subpixelEdges(cropImage, configParams.subpixelEdges.threshold_Phase2, ...
     'SmoothingIter', configParams.subpixelEdges.smoothingIter_Phase2);
 
-visualizeImageWithEdges(cropImage, edges, "edges sobre imagen recortada");
+% visualizeImageWithEdges(cropImage, edges, "edges sobre imagen recortada");
 % fig = gcf;
 % title("");
 % grupo = "";
@@ -208,6 +209,20 @@ cornersPiece = formatCorners(bBoxFinal);
 
 
 disp("17 -- Superposición de ambos Bboxes --")
+% Ajustar correspondencia de esquinas antes de Procrustes
+X = cornersSVG;      % 4x2 (objetivo)
+Y = cornersPiece;    % 4x2 (a alinear)
+
+best = inf; bestY = Y;
+for s = 0:3
+    Ys = circshift(Y, s, 1);  % permuta filas
+    d_try = sum(vecnorm(X - Ys, 2, 2).^2); % SSE previo
+    if d_try < best
+        best = d_try;
+        bestY = Ys;
+    end
+end
+
 [d, Z, transform] = procrustes(cornersSVG, cornersPiece, 'Scaling', true, ...
     'Reflection', false);
 
@@ -220,8 +235,13 @@ disp("17 -- Superposición de ambos Bboxes --")
 
 
 
+disp("NEW -- Aplicar transformación --")
+[pieceClustersTransformed, cornersPieceTransformed] = applyProcrustesTransform(pieceClusters, cornersPiece, transform);
+
+
+
 disp("18 -- Rectificación de orientación --")
-[edgesOk, oriDeg, err] = pickBestEdgeOrientation(cornersPiece, pieceClusters, svgPaths);
+[edgesOk, oriDeg, err] = pickBestEdgeOrientation(cornersPieceTransformed, pieceClustersTransformed, svgPaths);
 fprintf('Orientación final %d°, RMSE %.4f\n', oriDeg, err);
 % fig = gcf;
 % title("Capa 14: ");
@@ -232,7 +252,7 @@ fprintf('Orientación final %d°, RMSE %.4f\n', oriDeg, err);
 
 
 disp("19 -- Visualización de puntos alineados sobre SVG --")
-drawPieceOnSVG(edgesOk, svgPaths, transform);
+% drawPieceOnSVG(edgesOk, svgPaths, transform);
 
 % fig = gcf;
 % title("Capa 15: Resultados encaje");
@@ -240,10 +260,19 @@ drawPieceOnSVG(edgesOk, svgPaths, transform);
 % subgrupo = "07_5-ResultadoEncaje";  
 %saveImage(fig, nombreImagen, grupo, subgrupo);
 
-% disp("19 -- Extracción máscara binaria .svg --")
-% visualizeBinaryMask(svgFile);
 
 
+disp("20 -- Extracción máscara binaria del SVG --")
+svgMaskParameters = svgBinaryMask(svgPaths, configParams.svgBinaryMask.pxlTomm);
+
+% visualizeSVGBinaryMask(svgMaskParameters.mask);
+
+
+
+disp("21 -- Cálculo del error de los puntos --")
+edgesWithError = pointsError(edgesOk, svgMaskParameters);
+
+plotErrorOnSVG(svgPaths, edgesWithError, configParams.errorTolerancemm);
 
 
 %% Tiempo total

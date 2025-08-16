@@ -23,6 +23,12 @@ function configParams = config()
     %% findInnerContours
     configParams.findInnerContours.maxMeanDist = 20;
     configParams.findInnerContours.refImgSize = [7000 9344];
+
+    %% Relacion mm a px
+    configParams.svgBinaryMask.pxlTomm = 15;
+
+    %% Tolerancia de error
+    configParams.errorTolerancemm = 0.3;
     
     disp('Variables de entorno listo');
     disp('Entorno listo.');

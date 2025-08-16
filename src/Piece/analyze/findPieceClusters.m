@@ -19,9 +19,6 @@ function [pieceClusters, pieceEdges, numPieces, remainingClusters] = findPieceCl
     usedIndices = [];
 
     all_x = []; all_y = [];
-    all_nx = []; all_ny = [];
-    all_curv = [];
-    all_i0 = []; all_i1 = [];
 
     % Heuristic threshold: accept clusters close to the largest one
     maxPoints = sortedCounts(1);
@@ -43,11 +40,6 @@ function [pieceClusters, pieceEdges, numPieces, remainingClusters] = findPieceCl
             % Accumulate edge data
             all_x    = [all_x;  currentCluster.x(:)];
             all_y    = [all_y;  currentCluster.y(:)];
-            all_nx   = [all_nx; currentCluster.nx(:)];
-            all_ny   = [all_ny; currentCluster.ny(:)];
-            all_curv = [all_curv; currentCluster.curv(:)];
-            all_i0   = [all_i0; currentCluster.i0(:)];
-            all_i1   = [all_i1; currentCluster.i1(:)];
         else
             break;  % Stop once we pass the threshold
         end
@@ -56,12 +48,7 @@ function [pieceClusters, pieceEdges, numPieces, remainingClusters] = findPieceCl
     % Create unified edge structure for the selected clusters
     pieceEdges = struct( ...
         'x',    all_x, ...
-        'y',    all_y, ...
-        'nx',   all_nx, ...
-        'ny',   all_ny, ...
-        'curv', all_curv, ...
-        'i0',   all_i0, ...
-        'i1',   all_i1 ...
+        'y',    all_y ...
     );
 
     numPieces = numel(pieceClusters);
