@@ -6,6 +6,19 @@ function configParams = config()
     savepath;
     disp('Configurando variables de entorno...');
     
+    %% Parámetros de documentación del proyecto
+    configParams.nombreActualFlujo = "Flujo_20250816";
+
+    %% Imagen
+    configParams.pathImagen = "pictures/Pieza2/OLD/Imagen1.png";
+
+    % Doc imagenes
+    [pathBase, nombreImagen, ~] = fileparts(configParams.pathImagen);
+    relPath = extractAfter(pathBase, "pictures/");
+    relPath = strrep(relPath, "/", "_");
+    configParams.nombreImagen = nombreImagen;
+    configParams.nombreImagenDoc = relPath + "_" + nombreImagen;
+
     %% SubpixelEdges
     configParams.subpixelEdges.threshold_Phase1 = 40;
     configParams.subpixelEdges.threshold_Phase2 = 20;
