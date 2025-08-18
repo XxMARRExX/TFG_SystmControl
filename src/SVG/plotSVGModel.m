@@ -30,6 +30,7 @@ function plotSVGModel(svgPaths)
     % Add legend for the first valid path
     idxFirst = find(hPaths ~= 0, 1, 'first');
     if ~isempty(idxFirst)
-        legend(hPaths(idxFirst), {'SVG Paths'}, 'Location', 'best');
+        lgd = legend(hPaths(idxFirst), {'SVG Paths'}, 'Location', 'northeast');
+        set(lgd, 'Interpreter','none', 'Box','on');
     end
 end

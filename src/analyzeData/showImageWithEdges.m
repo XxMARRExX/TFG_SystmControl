@@ -7,14 +7,16 @@ function showImageWithEdges(grayImage, pieceClusters)
 %           - edges.exterior: struct with x and y fields
 %           - edges.innerContours: cell array of interior contours (optional)
 %
-%   This function uses a different color for each piece, and the same color
-%   for its corresponding inner contours.
+%   Each piece is shown in a different color, and its inner contours share
+%   the same color. The legend labels them as "Contours (Piece i)".
 
     figure;
     imshow(grayImage, 'InitialMagnification', 'fit');
+    axis on;
     hold on;
 
     colors = lines(numel(pieceClusters));
+    hPlots = gobjects(numel(pieceClusters), 1);  % handles for legend
 
     for i = 1:numel(pieceClusters)
         edgeStruct = pieceClusters{i}.edges;
@@ -25,17 +27,15 @@ function showImageWithEdges(grayImage, pieceClusters)
             x_ext = edgeStruct.exterior.x;
             y_ext = edgeStruct.exterior.y;
 
-            plot(x_ext, y_ext, '.', ...
+            hPlots(i) = plot(x_ext, y_ext, '.', ...
                 'Color', color, ...
-                'MarkerSize', 8, ...
-                'DisplayName', sprintf('Piece %d', i));
+                'MarkerSize', 8);
         end
 
         % --- Inner contours ---
         if isfield(edgeStruct, 'innerContours') && ~isempty(edgeStruct.innerContours)
             for j = 1:numel(edgeStruct.innerContours)
                 inner = edgeStruct.innerContours{j};
-
                 plot(inner.x, inner.y, '.', ...
                     'Color', color, ...
                     'MarkerSize', 6);
@@ -43,7 +43,11 @@ function showImageWithEdges(grayImage, pieceClusters)
         end
     end
 
-    title('Detected pieces with exterior and interior contours');
-    legend('show');
+    % Legend (inside axes, estilo como en drawBoundingBoxOnImage)
+    labels = arrayfun(@(i) sprintf('Contours (Piece %d)', i), 1:numel(pieceClusters), 'UniformOutput', false);
+    lgd = legend(hPlots, labels, 'Location', "northeast");
+    set(lgd, 'Interpreter','none', 'Box','on');
+
+    title('Detected pieces with contours');
     hold off;
 end
