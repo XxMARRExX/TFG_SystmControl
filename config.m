@@ -7,10 +7,13 @@ function configParams = config()
     disp('Configurando variables de entorno...');
     
     %% Parámetros de documentación del proyecto
-    configParams.nombreActualFlujo = "Flujo_20250816";
+    configParams.nombreActualFlujo = "Flujo_20250818";
 
     %% Imagen
-    configParams.pathImagen = "pictures/Pieza2/OLD/Imagen1.png";
+    configParams.pathImagen = "pictures/Pieza5/Imagen1_test.png";
+
+    %% SVG
+    configParams.pathSVG = "data/models/Pieza5.svg";
 
     % Doc imagenes
     [pathBase, nombreImagen, ~] = fileparts(configParams.pathImagen);
@@ -20,10 +23,10 @@ function configParams = config()
     configParams.nombreImagenDoc = relPath + "_" + nombreImagen;
 
     %% SubpixelEdges
-    configParams.subpixelEdges.threshold_Phase1 = 40;
-    configParams.subpixelEdges.threshold_Phase2 = 20;
-    configParams.subpixelEdges.smoothingIter_Phase1 = 3;
-    configParams.subpixelEdges.smoothingIter_Phase2 = 1;
+    configParams.subpixelEdges.threshold_Phase1 = 15;
+    configParams.subpixelEdges.threshold_Phase2 = 10;
+    configParams.subpixelEdges.smoothingIter_Phase1 = 5;
+    configParams.subpixelEdges.smoothingIter_Phase2 = 3;
     configParams.subpixelEdges.scale = 0.05;
     
     %% BboxPiece margin
