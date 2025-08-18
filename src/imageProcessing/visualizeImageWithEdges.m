@@ -10,7 +10,7 @@ function visualizeImageWithEdges(image, edges, figTitle)
 
     figure;
     imshow(image);
-    
+    axis on;
     hold on;
     visEdges(edges);
     if nargin >= 3

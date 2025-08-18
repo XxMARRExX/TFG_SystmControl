@@ -59,18 +59,21 @@ function plotErrorOnSVG(svgPaths, edgesWithError, threshold)
     dcm.UpdateFcn = @(obj, event_obj) customTooltip(event_obj, h);
 
 
-    % 6. Leyenda
-    scatter(NaN, NaN, 20, cmap(1,:), 'filled');
-    scatter(NaN, NaN, 20, cmap(2,:), 'filled');
-    scatter(NaN, NaN, 20, cmap(3,:), 'filled');
-    scatter(NaN, NaN, 20, cmap(4,:), 'filled');
-    legend({ ...
+    % 6. Leyenda con colores definidos
+    hModel = plot(NaN,NaN,'-','Color',[0 0 0],'LineWidth',0.5); % modelo SVG
+
+    hGreen  = scatter(NaN, NaN, 20, cmap(1,:), 'filled');
+    hYellow = scatter(NaN, NaN, 20, cmap(2,:), 'filled');
+    hOrange = scatter(NaN, NaN, 20, cmap(3,:), 'filled');
+    hRed    = scatter(NaN, NaN, 20, cmap(4,:), 'filled');
+
+    legend([hModel, hGreen, hYellow, hOrange, hRed], { ...
         'Modelo SVG', ...
-        sprintf('e ≤ %.1f mm', threshold), ...
+        sprintf('e ≤ %.1f mm (Dentro tolerancia)', threshold), ...
         sprintf('%.1f < e ≤ %.1f mm', threshold, 2*threshold), ...
         sprintf('%.1f < e ≤ %.1f mm', 2*threshold, 3*threshold), ...
         sprintf('e > %.1f mm', 3*threshold) ...
-    }, 'Location', 'northeastoutside');
+    }, 'Location', 'northeast');
 end
 
 
