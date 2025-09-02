@@ -157,9 +157,10 @@ pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContour
 
 %% Proceso de encaje
 disp("16 -- Carga del plano SVG --")
+configParams = config();
 svgPaths = importSVG(configParams.pathSVG);
 
-% plotSVGModel(svgPaths)
+plotSVGModel(svgPaths)
 % fig = gcf;
 % title("Capa 16: Carga del plano SVG");
 % capa = "16_Carga_SVG";
@@ -245,5 +246,5 @@ plotErrorOnSVG(svgPaths, edgesWithError, configParams.errorTolerancemm);
 % saveImage(fig, configParams.nombreImagenDoc, configParams.nombreActualFlujo, capa);
 
 
-% Tiempo total
+%% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])
