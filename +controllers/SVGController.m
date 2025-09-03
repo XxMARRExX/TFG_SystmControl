@@ -1,38 +1,45 @@
 classdef SVGController
+    
+    properties (Access = private)
+        svgModel;
+        previewSVG;
+        viewWrapper;
+    end
 
-    methods (Static)
+    methods (Access = public)
         
-        function svgData = loadSVGFromDialog(previewLoadedSVG, canvas)
-        % loadSVGFromDialog() Opens a file dialog to load an svg and displays it on a canvas.
-        %
-        %   Inputs:
-        %       - previewLoadedSVG: UI component (Image) to show a thumbnail
-        %       - canvas: UIAxes to display the full image
-            svgData = struct( ...
-                'fileName','', ...
-                'fullPath','', ...
-                'contours', {{}}); 
+        function self = SVGController(svgModel, svgPreview, viewWrapper)
+            self.svgModel = svgModel;
+            self.previewSVG = svgPreview;
+            self.viewWrapper = viewWrapper;
+        end
 
-            % Allowed files
-            [file, path] = uigetfile({'*.svg', 'Archivos SVG (*.svg)'}, ...
-                                                 'Selecciona un archivo SVG');
-            % Not selected file
-            if isequal(file, 0)
+
+        function loadSVGFromDialog(self, path, file)
+
+            self.svgModel.setFileName(file);
+            self.svgModel.setFullPath(path, file);
+            
+            self.svgModel.setContours( ...
+                models.SVGModel.readSVG( ...
+                self.svgModel.getFullPath()));
+
+            self.viewWrapper.setPreviewSVG( ...
+                models.SVGModel.rasterizeSVGPaths( ...
+                self.svgModel.getContours()));
+            
+            self.viewWrapper.showSVG( ...
+                self.svgModel.getContours());
+        end
+
+        
+        function previewSVGOnCanva(self)
+            if isempty(self.viewWrapper.getPreviewSVG())
                 return;
             end
-            
-            % Process model
-            svgData.fileName = file;
-            
-            svgPath = fullfile(path, file);
-            svgData.fullPath = svgPath;
-            svgData.contours = services.svg.readSVG(svgPath);
 
-            svgImage = services.svg.rasterizeSVGPaths(svgData.contours, [400, 400]);
-            
-            % Update view
-            previewLoadedSVG.ImageSource = svgImage;
-            gui.canvas.showSVG(canvas, svgData.contours);
+            self.viewWrapper.showSVG( ...
+                self.svgModel.getContours());
         end
 
     end

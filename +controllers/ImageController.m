@@ -1,36 +1,46 @@
 classdef ImageController
+    
+    properties (Access = private)
+        imageModel;
+        previewImage;
+        viewWrapper;
+    end
 
-    methods (Static)
+    methods (Access = public)
 
-        function imageData = loadImageFromDialog(previewLoadedImage, canvas)
-        % loadImageFromDialog() Opens a file dialog to load an image and displays it on a canvas.
+        function self = ImageController(imageModel, imagePreview, viewWrapper)
+            self.imageModel = imageModel;
+            self.previewImage = imagePreview;
+            self.viewWrapper = viewWrapper;
+        end
+        
+
+        function loadImageFromDialog(self, path, file)
+        % loadImageFromDialog() Opens a file dialog to load an image and 
+        % displays it on a canvas.
         %
         %   Inputs:
-        %       - previewLoadedImage: UI component (Image) to show a thumbnail
-        %       - canvas: UIAxes to display the full image
+        %       - path: 
+        %       - file: 
 
-            % Allowed files
-            [file, path] = uigetfile({'*.png;*.jpg;*.jpeg;', ...
-                'Imágenes (*.png, *.jpg, *.jpeg)'}, ...
-                'Selecciona una imagen');
-
-            % Not selected file
-            if isequal(file, 0)
-                imageData = struct('fileName','', 'fullPath','', 'matrix',[]);
-                previewLoadedImage.ImageSource = '';                                 
-                return;
-            end
+            self.imageModel.setFileName(file);
+            self.imageModel.setFullPath(file, path);
+            self.imageModel.readImage(self.imageModel.getFullPath());
             
-            filePath  = fullfile(path, file);
+            self.viewWrapper.setPreviewImage(self.imageModel.getFullPath());
+            self.viewWrapper.showImage(self.imageModel.getImage());
 
-            % Process model
-            imageData = services.image.readImage(filePath);
-            
-            % Update view
-            previewLoadedImage.ImageSource = imageData.fullPath;
-            gui.canvas.showPicture(canvas, imageData.matrix);
         end
 
+
+        function previewImageOnCanva(self)
+            % Not loaded file
+            if isempty(self.viewWrapper.getPreviewImage())
+                return;
+            end
+
+            self.viewWrapper.showImage(self.imageModel.getImage());
+        end
     end
 
 end
