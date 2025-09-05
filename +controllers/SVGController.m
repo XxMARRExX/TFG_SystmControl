@@ -2,16 +2,16 @@ classdef SVGController
     
     properties (Access = private)
         svgModel;
-        previewSVG;
-        viewWrapper;
+        previewSVGWrapper;
+        canvasWrapper;
     end
 
     methods (Access = public)
         
-        function self = SVGController(svgModel, svgPreview, viewWrapper)
+        function self = SVGController(svgModel, previewSVGWrapper, canvasWrapper)
             self.svgModel = svgModel;
-            self.previewSVG = svgPreview;
-            self.viewWrapper = viewWrapper;
+            self.previewSVGWrapper = previewSVGWrapper;
+            self.canvasWrapper = canvasWrapper;
         end
 
 
@@ -21,24 +21,24 @@ classdef SVGController
             self.svgModel.setFullPath(path, file);
             
             self.svgModel.setContours( ...
-                models.SVGModel.readSVG( ...
+                models.SVG.readSVG( ...
                 self.svgModel.getFullPath()));
 
-            self.viewWrapper.setPreviewSVG( ...
-                models.SVGModel.rasterizeSVGPaths( ...
+            self.previewSVGWrapper.setPreviewSVG( ...
+                models.SVG.rasterizeSVGPaths( ...
                 self.svgModel.getContours()));
             
-            self.viewWrapper.showSVG( ...
+            self.canvasWrapper.showSVG( ...
                 self.svgModel.getContours());
         end
 
         
         function previewSVGOnCanva(self)
-            if isempty(self.viewWrapper.getPreviewSVG())
+            if isempty(self.previewSVGWrapper.getPreviewSVG())
                 return;
             end
 
-            self.viewWrapper.showSVG( ...
+            self.canvasWrapper.showSVG( ...
                 self.svgModel.getContours());
         end
 

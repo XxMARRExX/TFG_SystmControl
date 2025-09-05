@@ -1,4 +1,4 @@
-classdef ImageModel < handle
+classdef Image < handle
     
     properties (Access = private)
         fileName string;

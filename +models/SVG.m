@@ -1,4 +1,4 @@
-classdef SVGModel < handle
+classdef SVG < handle
     
     properties (Access = private)
         fileName string = "";

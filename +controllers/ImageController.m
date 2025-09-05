@@ -2,16 +2,16 @@ classdef ImageController
     
     properties (Access = private)
         imageModel;
-        previewImage;
-        viewWrapper;
+        wrapperPreviewImage;
+        canvasWrapper;
     end
 
     methods (Access = public)
 
-        function self = ImageController(imageModel, imagePreview, viewWrapper)
+        function self = ImageController(imageModel, wrapperPreviewImage, canvasWrapper)
             self.imageModel = imageModel;
-            self.previewImage = imagePreview;
-            self.viewWrapper = viewWrapper;
+            self.wrapperPreviewImage = wrapperPreviewImage;
+            self.canvasWrapper = canvasWrapper;
         end
         
 
@@ -27,19 +27,19 @@ classdef ImageController
             self.imageModel.setFullPath(file, path);
             self.imageModel.readImage(self.imageModel.getFullPath());
             
-            self.viewWrapper.setPreviewImage(self.imageModel.getFullPath());
-            self.viewWrapper.showImage(self.imageModel.getImage());
+            self.wrapperPreviewImage.setPreviewImage(self.imageModel.getFullPath());
+            self.canvasWrapper.showImage(self.imageModel.getImage());
 
         end
 
 
         function previewImageOnCanva(self)
             % Not loaded file
-            if isempty(self.viewWrapper.getPreviewImage())
+            if isempty(self.wrapperPreviewImage.getPreviewImage())
                 return;
             end
 
-            self.viewWrapper.showImage(self.imageModel.getImage());
+            self.canvasWrapper.showImage(self.imageModel.getImage());
         end
     end
 

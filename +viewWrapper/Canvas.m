@@ -1,39 +1,16 @@
-classdef ViewWrapper < handle
+classdef Canvas < handle
 
     properties (Access = private)
-        canvas       matlab.ui.control.UIAxes = matlab.ui.control.UIAxes.empty
-        previewImage matlab.ui.control.Image  = matlab.ui.control.Image.empty
-        previewSVG   matlab.ui.control.Image  = matlab.ui.control.Image.empty
-    end
-    
-    methods (Access = public)
-
-        function self = ViewWrapper(canvas, previewImage, previewSVG)
-            self.canvas = canvas;
-            self.previewImage = previewImage;
-            self.previewSVG = previewSVG;
-        end
-
-
-        function setPreviewImage(self, path)
-            self.previewImage.ImageSource = path;
-        end
-
-
-        function path = getPreviewImage(self)
-            path = self.previewImage.ImageSource;
-        end
-
-
-        function setPreviewSVG(self, path)
-            self.previewSVG.ImageSource = path;
-        end
-
-
-        function path = getPreviewSVG(self)
-            path = self.previewSVG.ImageSource;
-        end
+        canvas matlab.ui.control.UIAxes
         
+    end
+
+    methods
+
+        function self = Canvas(uiCanvasComponent)
+            self.canvas = uiCanvasComponent;
+        end
+
 
         function showImage(self, matrix)
         % showPicture() Display an image matrix on a UIAxes canvas.
@@ -107,6 +84,8 @@ classdef ViewWrapper < handle
             hold(self.canvas, 'off');
         end
 
+
+        
+
     end
 end
-
