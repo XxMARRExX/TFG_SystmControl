@@ -2,7 +2,6 @@ classdef Canvas < handle
 
     properties (Access = private)
         canvas matlab.ui.control.UIAxes
-        
     end
 
     methods
@@ -21,7 +20,9 @@ classdef Canvas < handle
             
             % print picture
             cla(self.canvas);
-            imagesc(self.canvas, matrix);
+            img = imagesc(self.canvas, matrix);
+            set(img, 'HitTest', 'off');  % ← esto permite que el click pase al UIAxes
+
             
             % adjust limits for lace
             axis(self.canvas, 'image');
@@ -85,7 +86,29 @@ classdef Canvas < handle
         end
 
 
-        
+        function showImageWithEdges(self, image, edges)
+        % showImageWithEdges() Displays an image and overlays subpixel edges on the canvas axes.
+        %
+        %   Inputs:
+        %       - image: image matrix
+        %       - edges: subpixel edge structure (with fields x, y, ...)
+    
+             ax = self.canvas;
 
+            cla(ax);
+            img = imagesc(ax, image);
+            set(img, 'HitTest', 'off');
+        
+            axis(ax, 'image');
+            colormap(ax, gray);
+            ax.XLim = [0.5, size(image,2)+0.5];
+            ax.YLim = [0.5, size(image,1)+0.5];
+        
+            hold(ax, 'on');
+            visEdgesModified(edges, ax);
+            hold(ax, 'off');   
+        end
+    
+    
     end
 end
