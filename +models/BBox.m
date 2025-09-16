@@ -3,74 +3,54 @@ classdef BBox < handle
     
     properties (Access = private)
         id string;
-        position (1,4) double;   % [x y w h]
         label string;
-        rectHandle images.roi.Rectangle = images.roi.Rectangle.empty;
+        roi images.roi.Rectangle;
+        croppedImage uint8;
+        detectedEdges;
     end
 
     methods (Access = public)
 
-        function self = BBox(position, label)
-            self.id = BBox.generateRandomId();
-            self.position = position;
+        function self = BBox(roi)
+            self.id = models.BBox.generateRandomId();
+            self.roi = roi;
+        end
+
+
+        function roi = getRoi(self)
+            roi = self.roi;
+        end
+
+
+        function setLabel(self, label)
             self.label = label;
         end
 
 
-        function draw(obj, ax)
-            % Crea (o reusa) el ROI en el axes dado.
-            if isempty(obj.rectHandle) || ~isvalid(obj.rectHandle)
-                obj.rectHandle = drawrectangle(ax, ...
-                    'Position', obj.position, ...
-                    'Label', char(obj.label), ...
-                    'FaceAlpha', 0, 'Color', 'r', 'LineWidth', 1.5);
-                % Mantener position sincronizada cuando el usuario edite
-                addlistener(obj.rectHandle, 'MovingROI',  @(~,~) obj.syncFromHandle());
-                addlistener(obj.rectHandle, 'ROIMoved',   @(~,~) obj.syncFromHandle());
-            else
-                obj.rectHandle.Parent = ax;                % reubicar si cambia el axes
-                obj.rectHandle.Position = obj.position;    % asegurar posición
-            end
+        function label = getLabel(self)
+            label = self.label;
         end
 
-        function updatePosition(obj, newPos)
-            % Actualiza datos y handle (si existe)
-            obj.position = newPos;
-            if ~isempty(obj.rectHandle) && isvalid(obj.rectHandle)
-                obj.rectHandle.Position = newPos;
-            end
+
+        function setCroppedImage(self, croppedImage)
+            self.croppedImage = croppedImage;
         end
 
-        function setVisible(obj, tf)
-            if ~isempty(obj.rectHandle) && isvalid(obj.rectHandle)
-                obj.rectHandle.Visible = matlab.lang.OnOffSwitchState(tf);
-            end
+
+        function croppedImage = getCroppedImage(self)
+            croppedImage = self.croppedImage;
         end
 
-        function delete(obj)
-            if ~isempty(obj.rectHandle) && isvalid(obj.rectHandle)
-                delete(obj.rectHandle);
-            end
+
+        function setDetectedEdges(self, detectedEdges)
+            self.detectedEdges = detectedEdges;
         end
 
-        % Getters útiles
-        function s = getId(obj), s = obj.id; end
-        function p = getPosition(obj), p = obj.position; end
-        function setLabel(obj, s)
-            obj.label = s;
-            if ~isempty(obj.rectHandle) && isvalid(obj.rectHandle)
-                obj.rectHandle.Label = char(s);
-            end
-        end
-    end
 
-    methods (Access = private)
-        function syncFromHandle(obj)
-            % Sincroniza la posición a partir del ROI cuando el usuario arrastra.
-            if ~isempty(obj.rectHandle) && isvalid(obj.rectHandle)
-                obj.position = obj.rectHandle.Position;
-            end
+        function detectedEdges = getDetectedEdges(self)
+            detectedEdges = self.detectedEdges;
         end
+        
     end
 
 
