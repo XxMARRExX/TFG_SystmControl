@@ -1,6 +1,7 @@
 classdef PipeController
 
     properties (Access = private)
+        stateApp;
         imageModel;
         svgModel;
         canvasWrapper;
@@ -9,11 +10,15 @@ classdef PipeController
     
     methods (Access = public)
         
-        function self = PipeController(imageModel, svgModel, canvasWrapper, resultsConsoleWrapper)
+        function self = PipeController(stateApp, imageModel, svgModel, ...
+                canvasWrapper, resultsConsoleWrapper)
+
+            self.stateApp = stateApp;
             self.imageModel = imageModel;
             self.svgModel = svgModel;
             self.canvasWrapper = canvasWrapper;
             self.resultsConsoleWrapper = resultsConsoleWrapper;
+            
         end
         
 

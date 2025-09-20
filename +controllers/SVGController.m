@@ -1,6 +1,7 @@
 classdef SVGController
     
     properties (Access = private)
+        stateApp;
         svgModel;
         previewSVGWrapper;
         canvasWrapper;
@@ -8,7 +9,8 @@ classdef SVGController
 
     methods (Access = public)
         
-        function self = SVGController(svgModel, previewSVGWrapper, canvasWrapper)
+        function self = SVGController(stateApp, svgModel, previewSVGWrapper, canvasWrapper)
+            self.stateApp = stateApp;
             self.svgModel = svgModel;
             self.previewSVGWrapper = previewSVGWrapper;
             self.canvasWrapper = canvasWrapper;
@@ -30,6 +32,8 @@ classdef SVGController
             
             self.canvasWrapper.showSVG( ...
                 self.svgModel.getContours());
+
+            self.stateApp.setImageDisplayed(false);
         end
 
         
@@ -40,6 +44,8 @@ classdef SVGController
 
             self.canvasWrapper.showSVG( ...
                 self.svgModel.getContours());
+
+            self.stateApp.setImageDisplayed(false);
         end
 
     end

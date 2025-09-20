@@ -1,6 +1,7 @@
 classdef Image < handle
     
     properties (Access = private)
+        isDisplayed logical = false;
         fileName string;
         fullPath string;
         matrix uint8 = uint8([]);
@@ -8,6 +9,17 @@ classdef Image < handle
     end
     
     methods (Access = public)
+        
+        
+        function setIsDisplayed(self, state)
+            self.isDisplayed = state;
+        end
+
+
+        function state = getIsDisplayed(self, flag)
+            state = self.isDisplayed;
+        end
+
 
         function setFileName(self, name)
             self.fileName = name;

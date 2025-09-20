@@ -1,6 +1,7 @@
 classdef ImageController
     
     properties (Access = private)
+        stateApp;
         imageModel;
         wrapperPreviewImage;
         canvasWrapper;
@@ -9,7 +10,9 @@ classdef ImageController
 
     methods (Access = public)
 
-        function self = ImageController(imageModel, wrapperPreviewImage, canvasWrapper, resultsConsoleWrapper)
+        function self = ImageController(stateApp, imageModel, ...
+                wrapperPreviewImage, canvasWrapper, resultsConsoleWrapper)
+            self.stateApp = stateApp;
             self.imageModel = imageModel;
             self.wrapperPreviewImage = wrapperPreviewImage;
             self.canvasWrapper = canvasWrapper;
@@ -36,7 +39,8 @@ classdef ImageController
             
             self.wrapperPreviewImage.setPreviewImage(self.imageModel.getFullPath());
             self.canvasWrapper.showImage(self.imageModel.getImage());
-
+            
+            self.stateApp.setImageDisplayed(true);
         end
 
 
@@ -48,6 +52,8 @@ classdef ImageController
             end
 
             self.canvasWrapper.showImage(self.imageModel.getImage());
+
+            self.stateApp.setImageDisplayed(true);
         end
 
 
