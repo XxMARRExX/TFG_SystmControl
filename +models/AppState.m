@@ -1,34 +1,24 @@
 classdef AppState < handle
+    % AppState Simple state container (no singleton).
     
     properties (Access = private)
-        imageDisplayed logical = false;
-
+        imageDisplayed logical;
     end
     
-    methods (Static)
-
-        function appState = getInstance()
-            % getInstance() Returns the unique singleton instance of AppState.
-            persistent uniqueInstance
-            if isempty(uniqueInstance) || ~isvalid(uniqueInstance)
-                uniqueInstance = models.AppState();
-            end
-            appState = uniqueInstance;
+    methods
+        function self = AppState()
+            % Constructor opcional: inicia con estado por defecto
+            self.imageDisplayed = false;
         end
-    end
 
-
-    methods (Access = public)
-        
         function setImageDisplayed(self, state)
-            self.imageDisplayed = state;
+            % setImageDisplayed() Set logical flag for image displayed
+            self.imageDisplayed = logical(state);
         end
-
 
         function state = getImageDisplayed(self)
+            % getImageDisplayed() Return logical flag
             state = self.imageDisplayed;
         end
-
     end
 end
-
