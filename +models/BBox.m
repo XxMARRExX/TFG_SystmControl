@@ -1,5 +1,17 @@
 classdef BBox < handle
-    %BBox Bounding box con soporte de dibujo (drawrectangle).
+    % BBox  Bounding box model with drawing and analysis support.
+    %
+    %   Properties (private):
+    %       - id: Unique identifier for the bounding box, generated when the
+    %           object is created.
+    %       - label: Human-readable label for the bounding box (e.g., "Piece 1").
+    %       - roi: The interactive rectangle ROI handle used for drawing and
+    %           displaying the bounding box on a canvas.
+    %       - croppedImage: The cropped portion of the source image defined by the
+    %           bounding box coordinates. Stored as a grayscale or RGB
+    %           matrix.
+    %       - detectedEdges: Structure or data object holding the subpixel 
+    %           edges detected inside the cropped region.
     
     properties (Access = private)
         id string;
@@ -13,6 +25,11 @@ classdef BBox < handle
 
         function self = BBox(roi)
             self.id = models.BBox.generateRandomId();
+            self.roi = roi;
+        end
+
+
+        function setRoi(self, roi)
             self.roi = roi;
         end
 
@@ -58,6 +75,7 @@ classdef BBox < handle
     methods (Static)
 
         function id = generateRandomId()
+        % generateRandomId() Generates a unique identifier string.
             id = string(java.util.UUID.randomUUID);
         end
 

@@ -1,5 +1,9 @@
 classdef Console < handle
-    %RESULTSCONSOLE Crea pestañas dinámicas para mostrar recortes por BBox.
+    % Console  Results console that manages dynamic tabs to display
+    %          information about pieces in the image.
+    %       
+    %   - Params
+    %       tabGroup  Target container that holds all result tabs.
 
     properties (Access = private)
         tabGroup matlab.ui.container.TabGroup
@@ -11,18 +15,18 @@ classdef Console < handle
         end
 
         function renderCroppedBBoxes(self, bboxes, canvasWrapper)
-            % renderCroppedBBoxes() Crea un tab por cada BBox con su gridLayout.
-            %
-            %   Inputs:
-            %       - bboxes: array de objetos BBox
+        % renderCroppedBBoxes() Creates one tab per BBox and attaches a
+        %                       result view for each cropped image.
+        %
+        %   Inputs:
+        %       - bboxes: array of BBox objects.
+        %       - canvasWrapper: Canvas wrapper instance, passed for
+        %                 consistency with other render methods.
             
-            % Limpiar tabs anteriores
             if ~isempty(self.tabGroup.Children)
                 delete(self.tabGroup.Children);
             end
 
-
-            % 2) Crear un tab por cada BBox
             for k = 1:numel(bboxes)
                 bbox   = bboxes(k);
                 viewWrapper.results.TabPiece(self.tabGroup, bbox.getCroppedImage());
@@ -31,10 +35,15 @@ classdef Console < handle
 
 
         function renderDetectedEdges(self, bboxes, canvasWrapper)
-            % renderDetectedEdges() 
-            %
-            %   Inputs:
-            %       - bboxes: array de objetos BBox
+        % renderDetectedEdges() Adds detected edge overlays to the tabs
+        %                       corresponding to each BBox.
+        %
+        %   Inputs:
+        %       - bboxes: array of BBox objects.
+        %       - canvasWrapper: Canvas wrapper instance providing the
+        %                        method showImageWithEdges(image, edges) to
+        %                        display the selected crop and overlayed
+        %                        edges on the main canvas.
             
             for k = 1:numel(bboxes)
                 bbox   = bboxes(k);

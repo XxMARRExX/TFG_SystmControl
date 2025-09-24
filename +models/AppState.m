@@ -1,23 +1,24 @@
 classdef AppState < handle
-    % AppState Simple state container (no singleton).
-    
+    % AppState  Centralized application state manager.
+    %
+    %   Properties (private):
+    %       - imageDisplayed: Boolean flag indicating whether an image is currently
+    %           displayed on the canvas.
+
     properties (Access = private)
         imageDisplayed logical;
     end
     
     methods
         function self = AppState()
-            % Constructor opcional: inicia con estado por defecto
             self.imageDisplayed = false;
         end
 
         function setImageDisplayed(self, state)
-            % setImageDisplayed() Set logical flag for image displayed
             self.imageDisplayed = logical(state);
         end
 
         function state = getImageDisplayed(self)
-            % getImageDisplayed() Return logical flag
             state = self.imageDisplayed;
         end
     end
