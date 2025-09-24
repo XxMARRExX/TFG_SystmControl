@@ -54,7 +54,7 @@ classdef ImageController
             self.imageModel.readImage(self.imageModel.getFullPath());
             
             % View
-            self.wrapperPreviewImage.setPreviewImage(self.imageModel.getFullPath());
+            self.wrapperPreviewImage.setPreviewFile(self.imageModel.getFullPath());
             self.canvasWrapper.showImage(self.imageModel.getImage());
             
             % State app
@@ -65,7 +65,7 @@ classdef ImageController
         function previewImageOnCanva(self)
         % previewImageOnCanva() Load a preview image of the image was loaded
             
-            if isempty(self.wrapperPreviewImage.getPreviewImage())
+            if isempty(self.wrapperPreviewImage.getPreviewFile())
                 return;
             end
             
