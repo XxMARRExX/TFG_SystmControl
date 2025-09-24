@@ -74,7 +74,12 @@ classdef Image < handle
                 error('addBBox:InvalidInput', 'Input must be a BBox object.');
             end
             self.bBoxes(end+1) = newBbox;
-            disp("El Bbox ha sido añadido.")
+        end
+
+
+        function removeBBox(self, bbox)
+            idx = arrayfun(@(b) isequal(b, bbox), self.bBoxes);
+            self.bBoxes(idx) = [];
         end
 
     end

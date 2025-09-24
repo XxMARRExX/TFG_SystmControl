@@ -16,26 +16,46 @@ classdef BBox < handle
     properties (Access = private)
         id string;
         label string;
-        roi images.roi.Rectangle;
+        roi images.roi.Rectangle = images.roi.Rectangle.empty;
+        position double = [];
         croppedImage uint8;
         detectedEdges;
+        onDeleteFcn function_handle
     end
 
     methods (Access = public)
 
-        function self = BBox(roi)
+        function self = BBox(roi, onDeleteFcn)
             self.id = models.BBox.generateRandomId();
-            self.roi = roi;
+            self.setRoi(roi);
+            self.onDeleteFcn = onDeleteFcn;
         end
 
 
         function setRoi(self, roi)
             self.roi = roi;
+            if ~isempty(roi) && isvalid(roi)
+                self.position = roi.Position;
+                addlistener(roi, 'DeletingROI', @(src,evt) self.onRoiDeleted());
+            end
+        end
+
+
+        function onRoiDeleted(self)
+            self.roi = images.roi.Rectangle.empty;
+            if ~isempty(self.onDeleteFcn)
+                self.onDeleteFcn(self);
+            end
         end
 
 
         function roi = getRoi(self)
             roi = self.roi;
+        end
+
+
+        function pos = getPosition(self)
+            pos = self.position;
         end
 
 
@@ -69,7 +89,6 @@ classdef BBox < handle
         end
         
     end
-
 
 
     methods (Static)

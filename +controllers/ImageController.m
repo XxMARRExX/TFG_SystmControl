@@ -71,6 +71,7 @@ classdef ImageController
             
             % View
             self.canvasWrapper.showImage(self.imageModel.getImage());
+            self.canvasWrapper.renderBBoxes(self.imageModel.getbBoxes());
             
             % State app
             self.stateApp.setImageDisplayed(true);
@@ -83,7 +84,7 @@ classdef ImageController
         %   Inputs:
         %       - roi: ROI handle (images.roi.Rectangle) created on the canvas
             
-            newBbox = models.BBox(roi);
+            newBbox = models.BBox(roi, @(bb) self.imageModel.removeBBox(bb));
             self.imageModel.addBBox(newBbox);
             newBbox.setLabel(sprintf("Pieza %d", self.imageModel.numBBoxes()));
 

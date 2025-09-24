@@ -125,12 +125,9 @@ classdef Canvas < handle
         
             for k = 1:numel(bboxes)
                 bbox = bboxes(k);
-        
-                if ~isempty(bbox.getRoi()) && isvalid(bbox.getRoi())
-                    pos = bbox.getRoi().Position;
-                    
-                    delete(bbox.getRoi());
-                else
+                pos  = bbox.getPosition();
+
+                if isempty(pos)
                     continue;
                 end
 
@@ -138,7 +135,6 @@ classdef Canvas < handle
                     'Position', pos, ...
                     'Color', 'g', ...
                     'LineWidth', 1.5);
-                disp(newRoi);
         
                 bbox.setRoi(newRoi);
             end
