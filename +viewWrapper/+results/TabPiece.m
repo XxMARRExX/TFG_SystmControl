@@ -60,22 +60,22 @@ classdef TabPiece < handle
 
             % Buttons
             self.showImageButton = uibutton(self.gridLayoutButtons, 'push', ...
-                'Text', 'Show Image');
+                'Text', 'Mostrar imagen');
             self.showImageButton.Layout.Column = 1;
             self.showImageButton.Layout.Row = 1;
 
             self.subpixelButton = uibutton(self.gridLayoutButtons, 'push', ...
-                'Text', 'Subpixel');
+                'Text', 'Mostrar bordes detectados');
             self.subpixelButton.Layout.Column = 1;
             self.subpixelButton.Layout.Row = 2;
 
             self.filterButton = uibutton(self.gridLayoutButtons, 'push', ...
-                'Text', 'Filter');
+                'Text', 'Mostrar bordes filtrados');
             self.filterButton.Layout.Column = 2;
             self.filterButton.Layout.Row = 1;
 
             self.errorButton = uibutton(self.gridLayoutButtons, 'push', ...
-                'Text', 'Error');
+                'Text', 'Mostrar error producido');
             self.errorButton.Layout.Column = 2;
             self.errorButton.Layout.Row = 2;
 
