@@ -33,7 +33,7 @@ classdef TabPiece < handle
     
     methods (Access = public)
         
-        function self = TabPiece(resultsConsole, image)
+        function self = TabPiece(resultsConsole, image, canvasWrapper)
 
             self.tabPiece = uitab(resultsConsole, 'Title', char("Pieza"));
 
@@ -60,7 +60,9 @@ classdef TabPiece < handle
 
             % Buttons
             self.showImageButton = uibutton(self.gridLayoutButtons, 'push', ...
-                'Text', 'Mostrar imagen');
+                'Text', 'Mostrar imagen', ...
+                'ButtonPushedFcn', ...
+                @(src, event) self.showCroopedImage(image, canvasWrapper));
             self.showImageButton.Layout.Column = 1;
             self.showImageButton.Layout.Row = 1;
 
@@ -79,6 +81,16 @@ classdef TabPiece < handle
             self.errorButton.Layout.Column = 2;
             self.errorButton.Layout.Row = 2;
 
+        end
+
+    end
+
+
+
+    methods (Access = private)
+        
+        function showCroopedImage(self, image, canvasWrapper)
+            canvasWrapper.showImage(image);
         end
 
     end

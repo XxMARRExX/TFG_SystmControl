@@ -26,12 +26,12 @@ classdef Canvas < handle
             
             % print picture
             cla(self.canvas);
-            img = imagesc(self.canvas, matrix);
+            img = imshow(matrix, 'Parent', self.canvas);
             set(img, 'HitTest', 'off');
 
             % adjust limits for lace
             axis(self.canvas, 'image');
-            colormap(self.canvas, gray);
+            %colormap(self.canvas, gray);
             self.canvas.XLim = [0.5, size(matrix,2)+0.5];
             self.canvas.YLim = [0.5, size(matrix,1)+0.5];
         end

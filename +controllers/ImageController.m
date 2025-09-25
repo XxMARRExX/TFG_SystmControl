@@ -123,7 +123,7 @@ classdef ImageController
                            y,   y,   y+h, y+h];
 
                 cropped = cropImageByBoundingBox(img, corners);
-                bbox.setCroppedImage(cropped);
+                bbox.setCroppedImage(models.Image.convertToGrayScale(cropped));
             end
 
             if ~isempty(self.resultsConsoleWrapper)

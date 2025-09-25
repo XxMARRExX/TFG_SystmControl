@@ -14,7 +14,8 @@ classdef Console < handle
             self.tabGroup = tabGroupHandle;
         end
 
-        function renderCroppedBBoxes(self, bboxes, canvasWrapper)
+        function renderCroppedBBoxes( ...
+                self, bboxes, canvasWrapper)
         % renderCroppedBBoxes() Creates one tab per BBox and attaches a
         %                       result view for each cropped image.
         %
@@ -29,7 +30,10 @@ classdef Console < handle
 
             for k = 1:numel(bboxes)
                 bbox   = bboxes(k);
-                viewWrapper.results.TabPiece(self.tabGroup, bbox.getCroppedImage());
+                viewWrapper.results.TabPiece( ...
+                    self.tabGroup, ...
+                    bbox.getCroppedImage(), ...
+                    canvasWrapper);
             end
         end
 
