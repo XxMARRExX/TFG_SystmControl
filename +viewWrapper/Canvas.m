@@ -1,11 +1,18 @@
 classdef Canvas < handle
+% Canvas Wrapper for a UIAxes component that manages image display.
+%
+%   This class encapsulates a UIAxes to handle the rendering of preview
+%   images and graphical overlays. 
+%
+%   Properties:
+%       - canvas: UIAxes component where the content is displayed
 
     properties (Access = private)
         canvas matlab.ui.control.UIAxes
     end
 
     methods
-
+        
         function self = Canvas(uiCanvasComponent)
             self.canvas = uiCanvasComponent;
         end
@@ -15,15 +22,13 @@ classdef Canvas < handle
         % showPicture() Display an image matrix on a UIAxes canvas.
         %
         %   Inputs:
-        %       - canvas: UIAxes where the image will be displayed.
         %       - matrix: Image matrix (grayscale or RGB) to render.
             
             % print picture
             cla(self.canvas);
             img = imagesc(self.canvas, matrix);
-            set(img, 'HitTest', 'off');  % ← esto permite que el click pase al UIAxes
+            set(img, 'HitTest', 'off');
 
-            
             % adjust limits for lace
             axis(self.canvas, 'image');
             colormap(self.canvas, gray);
@@ -36,7 +41,6 @@ classdef Canvas < handle
         % showSVGOnCanvas() Displays SVG paths directly on a UIAxes canvas.
         %
         %   Inputs:
-        %       - canvas: UIAxes where the SVG will be plotted
         %       - svgPaths: cell array of Nx2 double paths (from readSVG)
         
             % Limpiar lienzo
@@ -93,7 +97,7 @@ classdef Canvas < handle
         %       - image: image matrix
         %       - edges: subpixel edge structure (with fields x, y, ...)
     
-             ax = self.canvas;
+            ax = self.canvas;
 
             cla(ax);
             img = imagesc(ax, image);
@@ -108,7 +112,34 @@ classdef Canvas < handle
             visEdgesModified(edges, ax);
             hold(ax, 'off');   
         end
-    
-    
+
+
+        function renderBBoxes(self, bboxes)
+        % renderBBoxes() Redraw all bboxes on canvas.
+        %
+        %   Inputs:
+        %       - bboxes: array of BBox associated with the image.
+        
+            ax = self.canvas;
+            hold(ax, 'on');
+        
+            for k = 1:numel(bboxes)
+                bbox = bboxes(k);
+                pos  = bbox.getPosition();
+
+                if isempty(pos)
+                    continue;
+                end
+
+                newRoi = drawrectangle(ax, ...
+                    'Position', pos, ...
+                    'Color', 'g', ...
+                    'LineWidth', 1.5);
+        
+                bbox.setRoi(newRoi);
+            end
+        
+            hold(ax, 'off');
+        end
     end
 end

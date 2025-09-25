@@ -1,5 +1,15 @@
 classdef SVG < handle
-    
+% SVG  Model class to store and manage an imported SVG file.
+%
+%   Properties (private):
+%       - fileName: The name of the SVG file (without path). 
+%       - fullPath: The full path to the SVG file, including file name.
+%       - contours: A cell array where each element represents a path extracted
+%           from the SVG. Each path is stored as an Nx2 numeric array
+%           of [x, y] coordinates.
+%       - previewImage: A rasterized grayscale or RGB image of the SVG contours,
+%           used for quick visualization in the application preview.
+
     properties (Access = private)
         fileName string = "";
         fullPath string = "";
@@ -49,7 +59,10 @@ classdef SVG < handle
         %   <path> elements. Each path is converted to an Nx2 matrix [x, y] and
         %   stored in a cell array. Supports 'M','m','L','l','Z','z'.
         %
-        %   Notes:
+        %   - Inputs:
+        %       filename: Name of the file.
+        %
+        %   - Notes:
         %       - Repeated commands may be omitted (command persists).
         %       - Y axis is inverted to follow a Cartesian convention.
         %       - Subpaths are closed on 'Z/z' and separated with NaN rows.
@@ -138,9 +151,8 @@ classdef SVG < handle
 
 
         function img = rasterizeSVGPaths(svgPaths, imgSize)
-        % rasterizeSVGPaths() Converts SVG paths to a high-quality raster image for preview.
-        %
-        %   img = rasterizeSVGPaths(svgPaths, imgSize)
+        % rasterizeSVGPaths() Converts SVG paths to a high-quality raster 
+        % image for preview.
         %
         %   Inputs:
         %       - svgPaths: cell array with each cell as Nx2 coordinates

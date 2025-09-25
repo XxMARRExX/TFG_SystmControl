@@ -1,5 +1,9 @@
 classdef Console < handle
-    %RESULTSCONSOLE Crea pestañas dinámicas para mostrar recortes por BBox.
+    % Console  Results console that manages dynamic tabs to display
+    %          information about pieces in the image.
+    %       
+    %   - Params
+    %       tabGroup  Target container that holds all result tabs.
 
     properties (Access = private)
         tabGroup matlab.ui.container.TabGroup
@@ -11,51 +15,35 @@ classdef Console < handle
         end
 
         function renderCroppedBBoxes(self, bboxes, canvasWrapper)
-            % renderCroppedBBoxes() Crea un tab por cada BBox con su gridLayout.
-            %
-            %   Inputs:
-            %       - bboxes: array de objetos BBox
+        % renderCroppedBBoxes() Creates one tab per BBox and attaches a
+        %                       result view for each cropped image.
+        %
+        %   Inputs:
+        %       - bboxes: array of BBox objects.
+        %       - canvasWrapper: Canvas wrapper instance, passed for
+        %                 consistency with other render methods.
             
-            % Limpiar tabs anteriores
             if ~isempty(self.tabGroup.Children)
                 delete(self.tabGroup.Children);
             end
 
-
-            % 2) Crear un tab por cada BBox
             for k = 1:numel(bboxes)
                 bbox   = bboxes(k);
-                label  = bbox.getLabel();
-                cropIm = bbox.getCroppedImage();
-        
-                % Crear tab para este BBox
-                t = uitab(self.tabGroup, 'Title', char(label));
-        
-                % Crear grid layout 1x4 dentro del tab
-                gl = uigridlayout(t, [1, 4]);
-                gl.RowHeight = {'1x'};
-                gl.ColumnWidth = {'1x','1x','1x','1x'};
-        
-                % --- Ejemplo: añadir la preview del recorte en la primera celda ---
-                ax = uiaxes(gl);
-                ax.Layout.Row = 1;
-                ax.Layout.Column = 1;
-                ax.Toolbar.Visible = 'off';
-                ax.Interactions = [];  
-                hImg = imshow(cropIm, 'Parent', ax);
-                axis(ax, 'image'); axis(ax, 'off');
-        
-                % Callback de clic para mostrar la imagen en el canvas principal
-                hImg.ButtonDownFcn = @(src, evt) canvasWrapper.showImage(cropIm);
+                viewWrapper.results.TabPiece(self.tabGroup, bbox.getCroppedImage());
             end
         end
 
 
         function renderDetectedEdges(self, bboxes, canvasWrapper)
-            % renderDetectedEdges() 
-            %
-            %   Inputs:
-            %       - bboxes: array de objetos BBox
+        % renderDetectedEdges() Adds detected edge overlays to the tabs
+        %                       corresponding to each BBox.
+        %
+        %   Inputs:
+        %       - bboxes: array of BBox objects.
+        %       - canvasWrapper: Canvas wrapper instance providing the
+        %                        method showImageWithEdges(image, edges) to
+        %                        display the selected crop and overlayed
+        %                        edges on the main canvas.
             
             for k = 1:numel(bboxes)
                 bbox   = bboxes(k);
