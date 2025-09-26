@@ -30,6 +30,11 @@ classdef BBox < handle
             self.setRoi(roi);
             self.onDeleteFcn = onDeleteFcn;
         end
+        
+        
+        function id = getId(self)
+            id = self.id;
+        end
 
 
         function setRoi(self, roi)

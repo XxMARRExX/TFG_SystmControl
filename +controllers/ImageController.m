@@ -90,50 +90,7 @@ classdef ImageController
 
         end
 
-
-        function cropImagesByBoundingBox(self)
-        % cropImagesByBoundingBox() Crop image regions defined by existing BBoxes.
-        %
-        %   This method iterates over all bounding boxes stored in the image model,
-        %   extracts their rectangular ROI positions, computes the corner
-        %   coordinates, and crops the corresponding regions from the loaded image.
-        %   Each cropped sub-image is then stored back into its respective BBox.
-        %
-        %   If a results console wrapper is available, the cropped images are also
-        %   rendered in the console for preview.
-
-            img = self.imageModel.getImage();
-            if isempty(img)
-                return;
-            end
-
-            bBoxes = self.imageModel.getbBoxes();
-            if isempty(bBoxes)
-                return;
-            end
         
-            % Crop image and set it in the Bbox
-            for k = 1:numel(bBoxes)
-                bbox = bBoxes(k);
-        
-                % Construir esquinas 2x4 a partir del ROI [x y w h]
-                pos = bbox.getRoi().Position;
-                x = pos(1); y = pos(2); w = pos(3); h = pos(4);
-                corners = [x,   x+w, x+w, x; 
-                           y,   y,   y+h, y+h];
-
-                cropped = cropImageByBoundingBox(img, corners);
-                bbox.setCroppedImage(models.Image.convertToGrayScale(cropped));
-            end
-
-            if ~isempty(self.resultsConsoleWrapper)
-                self.resultsConsoleWrapper.renderCroppedBBoxes( ...
-                    self.imageModel.getbBoxes(), self.getCanvasWrapper());
-                drawnow limitrate
-            end
-        end
-
-
     end
 
 end

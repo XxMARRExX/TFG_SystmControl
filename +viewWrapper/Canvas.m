@@ -26,14 +26,18 @@ classdef Canvas < handle
             
             % print picture
             cla(self.canvas);
-            img = imshow(matrix, 'Parent', self.canvas);
+            img = imagesc(self.canvas, matrix);
             set(img, 'HitTest', 'off');
 
             % adjust limits for lace
             axis(self.canvas, 'image');
-            %colormap(self.canvas, gray);
+            colormap(self.canvas, gray);
             self.canvas.XLim = [0.5, size(matrix,2)+0.5];
             self.canvas.YLim = [0.5, size(matrix,1)+0.5];
+            
+            % Enabled actions
+            self.canvas.Toolbar.Visible = 'off';
+            self.canvas.Interactions = [zoomInteraction panInteraction];
         end
 
 
@@ -107,6 +111,10 @@ classdef Canvas < handle
             colormap(ax, gray);
             ax.XLim = [0.5, size(image,2)+0.5];
             ax.YLim = [0.5, size(image,1)+0.5];
+
+            % Enabled actions
+            self.canvas.Toolbar.Visible = 'off';
+            self.canvas.Interactions = [zoomInteraction panInteraction];
         
             hold(ax, 'on');
             visEdgesModified(edges, ax);
@@ -141,5 +149,8 @@ classdef Canvas < handle
         
             hold(ax, 'off');
         end
+
+
+        
     end
 end
