@@ -10,10 +10,11 @@ classdef TabPiece < handle
 %       - gridLayoutTab: main grid layout container for the tab 
 %       - gridLayoutPieceInfo: grid layout for displaying piece information 
 %       - gridLayoutButtons: grid layout for arranging action buttons 
-%       - imagePiece: UI component for showing the piece image 
-%       - namePiece: label with the piece name 
+%       - idPiece: Id of the Bbox of the piece
+%       - previewPiece: UI component for showing the piece image 
+%       - imagePiece: Image of the piece
 %       - showImageButton: button to show the piece image 
-%       - subpixelButton: button to display subpixel edge detection 
+%       - detectedEdgesButton: button to display subpixel edge detection 
 %       - filterButton: button to display edges filtered
 %       - errorButton: button to display error metrics 
     
@@ -21,21 +22,24 @@ classdef TabPiece < handle
         tabPiece matlab.ui.container.Tab
         gridLayoutTab matlab.ui.container.GridLayout
         gridLayoutButtons matlab.ui.container.GridLayout
-
-        imagePiece matlab.ui.control.UIAxes
-        namePiece matlab.ui.control.Label
+        
+        idPiece string;
+        previewPiece matlab.ui.control.UIAxes
+        imagePiece uint8 = uint8([]);
 
         showImageButton matlab.ui.control.Button
-        subpixelButton matlab.ui.control.Button
+        detectedEdgesButton matlab.ui.control.Button
         filterButton matlab.ui.control.Button
         errorButton matlab.ui.control.Button
     end
     
     methods (Access = public)
         
-        function self = TabPiece(resultsConsole, image)
-
-            self.tabPiece = uitab(resultsConsole, 'Title', char("Pieza"));
+        function self = TabPiece(resultsConsole, image, id, title)
+            
+            self.idPiece = id;
+            self.tabPiece = uitab(resultsConsole, 'Title', title);
+            self.tabPiece.UserData = self;
 
             % TabLayout
             self.gridLayoutTab = uigridlayout(self.tabPiece, [1, 2]);
@@ -43,13 +47,14 @@ classdef TabPiece < handle
             self.gridLayoutTab.ColumnWidth = {'1x','1x'};
 
             % Image
-            self.imagePiece = uiaxes(self.gridLayoutTab);
-            self.imagePiece.Layout.Row = 1;
-            self.imagePiece.Layout.Column = 1;
-            self.imagePiece.Toolbar.Visible = 'off';
-            self.imagePiece.Interactions = [];
-            imshow(image, 'Parent', self.imagePiece);
-            axis(self.imagePiece, 'image'); axis(self.imagePiece, 'off');
+            self.imagePiece = image;
+            self.previewPiece = uiaxes(self.gridLayoutTab);
+            self.previewPiece.Layout.Row = 1;
+            self.previewPiece.Layout.Column = 1;
+            self.previewPiece.Toolbar.Visible = 'off';
+            self.previewPiece.Interactions = [];
+            imshow(image, 'Parent', self.previewPiece);
+            axis(self.previewPiece, 'image'); axis(self.previewPiece, 'off');
             
             % ButtonsLayout
             self.gridLayoutButtons = uigridlayout(self.gridLayoutTab, [2, 2]);
@@ -61,26 +66,42 @@ classdef TabPiece < handle
             % Buttons
             self.showImageButton = uibutton(self.gridLayoutButtons, 'push', ...
                 'Text', 'Mostrar imagen');
-            self.showImageButton.Layout.Column = 1;
             self.showImageButton.Layout.Row = 1;
+            self.showImageButton.Layout.Column = 1;
 
-            self.subpixelButton = uibutton(self.gridLayoutButtons, 'push', ...
+            self.detectedEdgesButton = uibutton(self.gridLayoutButtons, 'push', ...
                 'Text', 'Mostrar bordes detectados');
-            self.subpixelButton.Layout.Column = 1;
-            self.subpixelButton.Layout.Row = 2;
+            self.detectedEdgesButton.Layout.Row = 1;
+            self.detectedEdgesButton.Layout.Column = 2;
 
             self.filterButton = uibutton(self.gridLayoutButtons, 'push', ...
                 'Text', 'Mostrar bordes filtrados');
-            self.filterButton.Layout.Column = 2;
-            self.filterButton.Layout.Row = 1;
+            self.filterButton.Layout.Row = 2;
+            self.filterButton.Layout.Column = 1;
 
             self.errorButton = uibutton(self.gridLayoutButtons, 'push', ...
                 'Text', 'Mostrar error producido');
-            self.errorButton.Layout.Column = 2;
             self.errorButton.Layout.Row = 2;
+            self.errorButton.Layout.Column = 2;
 
         end
 
+
+        function id = getId(self)
+            id = self.idPiece;
+        end
+
+
+        function setShowImageButtonAction(self, callbackFcn)
+            self.showImageButton.ButtonPushedFcn = callbackFcn;
+        end
+
+
+        function setShowDetectedEdgesAction(self, callbackFcn)
+            self.detectedEdgesButton.ButtonPushedFcn = callbackFcn;
+        end
+
     end
+
 end
 

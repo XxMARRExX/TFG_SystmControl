@@ -7,3 +7,5 @@
 
 *.asv
 *.m~
+
+./testApp.m

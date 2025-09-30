@@ -77,7 +77,31 @@ classdef Image < handle
         end
 
 
+        function bbox = getBBoxById(self, id)
+        % getBBoxById() Retrieve a BBox object by its unique identifier.
+        %   Inputs:
+        %       - id: Identifier (string/char) of the BBox to be retrieved.
+        %   Outputs:
+        %       - bbox: The BBox instance matching the provided id. If no match is
+        %         found, returns empty ([]).
+
+            bbox = [];
+            if isempty(self.bBoxes)
+                return;
+            end
+        
+            for k = 1:numel(self.bBoxes)
+                if strcmp(self.bBoxes(k).getId(), id)
+                    bbox = self.bBoxes(k);
+                    return;
+                end
+            end
+        end
+
         function removeBBox(self, bbox)
+        % removeBBox() Removes a specific BBox object from the collection.
+        %   Inputs:
+        %       - bbox: BBox instance to be removed from the collection.
             idx = arrayfun(@(b) isequal(b, bbox), self.bBoxes);
             self.bBoxes(idx) = [];
         end
