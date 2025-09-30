@@ -76,20 +76,6 @@ classdef ImageController
             % State app
             self.stateApp.setImageDisplayed(true);
         end
-
-
-        function createNewBbox(self, roi)
-        % createNewBbox() Create and register a new bounding box in the image model.
-        %
-        %   Inputs:
-        %       - roi: ROI handle (images.roi.Rectangle) created on the canvas
-            
-            newBbox = models.BBox(roi, @(bb) self.imageModel.removeBBox(bb));
-            self.imageModel.addBBox(newBbox);
-            newBbox.setLabel(sprintf("Pieza %d", self.imageModel.numBBoxes()));
-
-        end
-
         
     end
 
