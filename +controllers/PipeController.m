@@ -1,19 +1,21 @@
 classdef PipeController
-    % PipeController Coordinates the workflow for know the error produced in 
-    % the fabrication of the steelpiece.
-    %
-    %   Steps process:
-    %       1. Crop images from BoundingBoxes 
-    %       2. Detect Edges with subpixel edgeDetector from croppedImages
-    %       3. Filter Edges for a more precission
-    %       4. Calculate the error produced
-    %
-    %   Properties (private):
-    %       - stateApp: Global application state instance.
-    %       - imageModel: Model that stores and manages the loaded image.
-    %       - svgModel: Model that stores and manages the loaded SVG file.
-    %       - canvasWrapper: View wrapper to render images and SVGs on the canvas.
-    %       - resultsConsoleWrapper: View wrapper to display results in the console.
+% PipeController Coordinates the workflow for know the error produced in 
+% the fabrication of the steelpiece.
+%
+%   Steps process:
+%       1. Crop images from BoundingBoxes 
+%       2. Detect Edges with subpixel edgeDetector from croppedImages
+%       3. Filter Edges for a more precission
+%       4. Calculate the error produced
+%
+%   Properties (private):
+%       - stateApp: Global application state instance.
+%       - imageModel: Model that stores and manages the loaded image.
+%       - svgModel: Model that stores and manages the loaded SVG file.
+%       - canvasWrapper: View wrapper to render images and SVGs on the canvas.
+%       - resultsConsoleWrapper: View wrapper to display results in the console.
+%       - feedbackManager  Centralized manager for user feedback (progress, 
+%           warnings, errors).
 
     properties (Access = private)
         stateApp;

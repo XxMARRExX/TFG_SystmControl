@@ -1,11 +1,17 @@
 classdef ToolsController < handle
-% ToolsController  Centralizes tool-state logic and canvas interactions.
+% ToolsController Centralizes tool-state logic and canvas interactions.
 %
-%   - Attributes:
-%       stateApp     Application state (active tool, app flags).
-%       imageModel   Model that stores and manages loaded image
-%       cursorTool   Handle to the uitoggletool representing cursor mode.
-%       bboxTool     Handle to the uitoggletool representing BBox mode.
+%   This class manages the logic related to tool activation and user
+%   interactions with the canvas. It coordinates the state of the
+%   application (active tool).
+%
+%   Properties:
+%       - stateApp: application state (active tool, app flags)
+%       - imageModel: model that stores and manages the loaded image
+%       - cursorTool: handle to the uitoggletool representing cursor mode
+%       - bboxTool: handle to the uitoggletool representing bounding box mode
+%       - feedbackManager: centralized manager for user feedback (progress,
+%                         warnings, errors)
 
     properties
         stateApp;

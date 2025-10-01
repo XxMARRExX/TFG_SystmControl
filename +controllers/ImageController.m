@@ -21,17 +21,20 @@ classdef ImageController
         wrapperPreviewImage;
         canvasWrapper;
         resultsConsoleWrapper;
+        feedbackManager;
     end
 
     methods (Access = public)
 
         function self = ImageController(stateApp, imageModel, ...
-                wrapperPreviewImage, canvasWrapper, resultsConsoleWrapper)
+                wrapperPreviewImage, canvasWrapper, resultsConsoleWrapper, ...
+                feedbackManager)
             self.stateApp = stateApp;
             self.imageModel = imageModel;
             self.wrapperPreviewImage = wrapperPreviewImage;
             self.canvasWrapper = canvasWrapper;
             self.resultsConsoleWrapper = resultsConsoleWrapper;
+            self.feedbackManager = feedbackManager;
         end
 
 
