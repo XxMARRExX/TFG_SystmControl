@@ -21,19 +21,22 @@ classdef PipeController
         svgModel;
         canvasWrapper;
         resultsConsoleWrapper;
+        feedbackManager;
     end
     
     methods (Access = public)
         
         function self = PipeController( ...
                 stateApp, imageModel, svgModel, ...
-                canvasWrapper, resultsConsoleWrapper)
+                canvasWrapper, resultsConsoleWrapper, ...
+                feedbackManager)
 
             self.stateApp = stateApp;
             self.imageModel = imageModel;
             self.svgModel = svgModel;
             self.canvasWrapper = canvasWrapper;
             self.resultsConsoleWrapper = resultsConsoleWrapper;
+            self.feedbackManager = feedbackManager;
             
         end
         
@@ -45,11 +48,29 @@ classdef PipeController
 
         function pipeline(self, configParams)
             
-            self.cropImagesByBoundingBox();
-            self.wireActionsOnShowImageButtons();
+            fb = self.feedbackManager;
 
+            fb.startProgress('Procesando','Iniciando pipeline...');
+            totalSteps = 3;
+            step = 0;
+        
+            % --- Etapa 1 ---
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Recortando imágenes...');
+            self.cropImagesByBoundingBox();
+        
+            % --- Etapa 2 ---
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Detectando bordes...');
             self.detectEdges(configParams);
+        
+            % --- Etapa 3 ---
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Actualizando vistas...');
+            self.wireActionsOnShowImageButtons();
             self.wireActionsOnShowDetectedEdges();
+        
+            fb.closeProgress();
 
         end
 
