@@ -12,14 +12,24 @@ function drawSVGBoundingBox(svgPaths, corners, color)
     figure; hold on; axis equal;
     title("BoundingBox Modelo SVG");
 
-    % Dibujar paths
+    % Dibujar paths (y guardar handle del primero válido)
+    hPaths = [];
     for k = 1:numel(svgPaths)
         pts = svgPaths{k};
         if ~isempty(pts)
-            plot(pts(:,1), pts(:,2), 'Color', [0.8 0.8 0.8], 'LineWidth', 0.75);
+            h = plot(pts(:,1), pts(:,2), ...
+                     'Color', [0.8 0.8 0.8], ...
+                     'LineWidth', 0.75);
+            if isempty(hPaths)   % nos quedamos con el primero para la leyenda
+                hPaths = h;
+            end
         end
     end
 
-    % Dibujar bounding box
-    drawBoundingBox(corners, color);
+    % Dibujar bounding box y guardar handle
+    bBox = drawBoundingBox(corners, color);
+
+    % Leyenda (arriba derecha dentro de los ejes)
+    lgd = legend([hPaths, bBox], {'SVG Paths','Bounding Box'}, 'Location', 'northeast');
+    set(lgd, 'Interpreter','none', 'Box','on');
 end

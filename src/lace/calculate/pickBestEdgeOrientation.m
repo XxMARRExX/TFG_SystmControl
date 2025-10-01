@@ -42,7 +42,6 @@ function [edgesBest, bestOriDeg, bestRMSE] = pickBestEdgeOrientation(cornersPiec
         bestRMSE   = rmse0;
     end
 
-    fprintf('→ Chosen orientation: %3d°   |   RMSE = %.4f\n', bestOriDeg, bestRMSE);
 end
 
 

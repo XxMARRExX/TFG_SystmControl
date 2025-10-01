@@ -3,9 +3,26 @@ function configParams = config()
     disp('Configurando el entorno de trabajo...');
     addpath(genpath('src'));
     addpath(genpath('data'));
+    addpath(genpath('+gui'));
     savepath;
     disp('Configurando variables de entorno...');
     
+    %% Parámetros de documentación del proyecto
+    configParams.nombreActualFlujo = "Flujo_20250819";
+
+    %% Imagen
+    configParams.pathImagen = "pictures/Pieza2/OLD/Imagen1.png";
+
+    %% SVG
+    configParams.pathSVG = "data/models/Pieza5.svg";
+
+    % Doc imagenes
+    [pathBase, nombreImagen, ~] = fileparts(configParams.pathImagen);
+    relPath = extractAfter(pathBase, "pictures/");
+    relPath = strrep(relPath, "/", "_");
+    configParams.nombreImagen = nombreImagen;
+    configParams.nombreImagenDoc = relPath + "_" + nombreImagen;
+
     %% SubpixelEdges
     configParams.subpixelEdges.threshold_Phase1 = 40;
     configParams.subpixelEdges.threshold_Phase2 = 20;
@@ -23,6 +40,12 @@ function configParams = config()
     %% findInnerContours
     configParams.findInnerContours.maxMeanDist = 20;
     configParams.findInnerContours.refImgSize = [7000 9344];
+
+    %% Relacion mm a px
+    configParams.svgBinaryMask.pxlTomm = 15;
+
+    %% Tolerancia de error
+    configParams.errorTolerancemm = 0.3;
     
     disp('Variables de entorno listo');
     disp('Entorno listo.');

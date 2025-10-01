@@ -1,4 +1,4 @@
-function drawPieceOnSVG(edges, svgPaths, transform)
+function drawPieceOnSVG(edges, svgPaths)
 % DRAWPIECEONSVG Visualizes the aligned detected piece over the SVG model.
 %
 % Inputs:
@@ -7,36 +7,38 @@ function drawPieceOnSVG(edges, svgPaths, transform)
 %   - transform: Procrustes transform structure (from procrustes)
 
     % 1. Plot the SVG model (red)
-    plotSVGModel(svgPaths);
-    hold on;
+    figure; hold on; axis equal;
+    hSVG = gobjects(0);
 
-    % 2. Initialize array for all points (exterior + inner)
-    allPts = [];
-
-    % 3. Add exterior points
-    ptsExt = [edges.exterior.x(:), edges.exterior.y(:)];
-    allPts = [allPts; ptsExt];
-
-    % 4. Add inner contours if any
-    if isfield(edges, "innerContours")
-        for i = 1:numel(edges.innerContours)
-            ic = edges.innerContours{i};
-            if ~isempty(ic)
-                ptsIC = [ic.x(:), ic.y(:)];
-                allPts = [allPts; ptsIC];
+    for i = 1:numel(svgPaths)
+        path = svgPaths{i};
+        if ~isempty(path)
+            h = plot(path(:,1), path(:,2), '-', ...
+                'Color', [0.3 0.3 0.3], ...     
+                'LineWidth', 1.2);
+            if isempty(hSVG)
+                hSVG = h;  % guardar solo uno para la leyenda
             end
         end
     end
 
-    % 5. Apply Procrustes transform to all points
-    ptsAligned = transform.b * allPts * transform.T + transform.c(1,:);
+    % 2. Collect all points (exterior + inner)
+    allPts = [edges.exterior.x(:), edges.exterior.y(:)];
+    if isfield(edges, "innerContours")
+        for i = 1:numel(edges.innerContours)
+            ic = edges.innerContours{i};
+            if ~isempty(ic)
+                allPts = [allPts; ic.x(:), ic.y(:)]; %#ok<AGROW>
+            end
+        end
+    end
 
-    % 6. Plot all detected piece points (blue)
-    plot(ptsAligned(:,1), ptsAligned(:,2), '.', ...
-        'Color', [0 0 1 0.4], 'DisplayName', 'Detected Piece');
+    % 3. Plot detected piece points (blue, semitransparent)
+    hPiece = plot(allPts(:,1), allPts(:,2), '.', ...
+        'Color', [0 0 1 0.4], ...
+        'MarkerSize', 8);
 
-    % 7. Finalize
-    axis equal;
+    % 4. Legend with correct colors
+    legend([hSVG, hPiece], {'SVG Model','Detected Piece'}, 'Location', 'northeast');
     title("Detected points aligned with the SVG model");
-    legend({'SVG Model', 'Detected Piece'}, 'Location', 'best');
 end

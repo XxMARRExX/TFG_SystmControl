@@ -17,7 +17,7 @@ function drawBoundingBoxesAlignment(cornersSVG, cornersPieceAligned)
     % 3. Draw aligned piece bounding box
     loopP = [cornersPieceAligned; cornersPieceAligned(1,:)];
     plot(loopP(:,1), loopP(:,2), 'r--', 'LineWidth', 2, ...
-        'DisplayName', 'BBox Piece (aligned)');
+        'DisplayName', 'BBox Piece');
 
     % 4. Finalize
     legend('show', 'Location', 'best');
