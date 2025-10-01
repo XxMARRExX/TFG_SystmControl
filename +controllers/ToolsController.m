@@ -12,15 +12,17 @@ classdef ToolsController < handle
         imageModel;
         cursorTool
         bboxTool;
+        feedbackManager;
     end
     
     methods
         function self = ToolsController(stateApp, imageModel, ...
-                cursorTool, bboxTool)
+                cursorTool, bboxTool, feedbackManager)
             self.stateApp = stateApp;
             self.imageModel = imageModel;
             self.cursorTool = cursorTool;
             self.bboxTool = bboxTool;
+            self.feedbackManager = feedbackManager;
         end
 
         
@@ -40,6 +42,7 @@ classdef ToolsController < handle
         %   Inputs:
         %       - canvas: UIAxes handle where the bounding box ROI will be drawn.
             if ~self.stateApp.getImageDisplayed()
+                self.feedbackManager.showWarning("Esta herramienta requiere que haya una imagen cargada.")
                 return;
             end
 

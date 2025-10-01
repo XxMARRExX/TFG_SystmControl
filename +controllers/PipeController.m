@@ -37,7 +37,6 @@ classdef PipeController
             self.canvasWrapper = canvasWrapper;
             self.resultsConsoleWrapper = resultsConsoleWrapper;
             self.feedbackManager = feedbackManager;
-            
         end
         
 
