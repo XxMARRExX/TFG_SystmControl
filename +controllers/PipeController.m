@@ -1,19 +1,21 @@
 classdef PipeController
-    % PipeController Coordinates the workflow for know the error produced in 
-    % the fabrication of the steelpiece.
-    %
-    %   Steps process:
-    %       1. Crop images from BoundingBoxes 
-    %       2. Detect Edges with subpixel edgeDetector from croppedImages
-    %       3. Filter Edges for a more precission
-    %       4. Calculate the error produced
-    %
-    %   Properties (private):
-    %       - stateApp: Global application state instance.
-    %       - imageModel: Model that stores and manages the loaded image.
-    %       - svgModel: Model that stores and manages the loaded SVG file.
-    %       - canvasWrapper: View wrapper to render images and SVGs on the canvas.
-    %       - resultsConsoleWrapper: View wrapper to display results in the console.
+% PipeController Coordinates the workflow for know the error produced in 
+% the fabrication of the steelpiece.
+%
+%   Steps process:
+%       1. Crop images from BoundingBoxes 
+%       2. Detect Edges with subpixel edgeDetector from croppedImages
+%       3. Filter Edges for a more precission
+%       4. Calculate the error produced
+%
+%   Properties (private):
+%       - stateApp: Global application state instance.
+%       - imageModel: Model that stores and manages the loaded image.
+%       - svgModel: Model that stores and manages the loaded SVG file.
+%       - canvasWrapper: View wrapper to render images and SVGs on the canvas.
+%       - resultsConsoleWrapper: View wrapper to display results in the console.
+%       - feedbackManager  Centralized manager for user feedback (progress, 
+%           warnings, errors).
 
     properties (Access = private)
         stateApp;
@@ -21,20 +23,22 @@ classdef PipeController
         svgModel;
         canvasWrapper;
         resultsConsoleWrapper;
+        feedbackManager;
     end
     
     methods (Access = public)
         
         function self = PipeController( ...
                 stateApp, imageModel, svgModel, ...
-                canvasWrapper, resultsConsoleWrapper)
+                canvasWrapper, resultsConsoleWrapper, ...
+                feedbackManager)
 
             self.stateApp = stateApp;
             self.imageModel = imageModel;
             self.svgModel = svgModel;
             self.canvasWrapper = canvasWrapper;
             self.resultsConsoleWrapper = resultsConsoleWrapper;
-            
+            self.feedbackManager = feedbackManager;
         end
         
 
@@ -45,11 +49,29 @@ classdef PipeController
 
         function pipeline(self, configParams)
             
-            self.cropImagesByBoundingBox();
-            self.wireActionsOnShowImageButtons();
+            fb = self.feedbackManager;
 
+            fb.startProgress('Procesando','Iniciando pipeline...');
+            totalSteps = 3;
+            step = 0;
+        
+            % --- Etapa 1 ---
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Recortando imágenes...');
+            self.cropImagesByBoundingBox();
+        
+            % --- Etapa 2 ---
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Detectando bordes...');
             self.detectEdges(configParams);
+        
+            % --- Etapa 3 ---
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Actualizando vistas...');
+            self.wireActionsOnShowImageButtons();
             self.wireActionsOnShowDetectedEdges();
+        
+            fb.closeProgress();
 
         end
 
