@@ -73,6 +73,7 @@ classdef PipeController
             self.wireActionsOnShowImageButtons();
             self.wireActionsOnShowDetectedEdges();
             self.wireActionsOnShowFilteredEdges();
+            self.wireActionsOnShowFilterStages();
         
             fb.updateProgress(1, 'Análisis completado.');
             fb.closeProgress();
@@ -93,6 +94,7 @@ classdef PipeController
         
             fb = self.feedbackManager;
             img = bbox.getCroppedImage();
+            filterStageViewer = bbox.getFilterStageViewer();
         
             % --- Parámetros internos ---
             scale = 0.15;
@@ -118,34 +120,37 @@ classdef PipeController
             fb.updateProgress(step/totalSteps, 'Detección de bordes en imagen reescalada...');
             edges = subpixelEdges(rescaledImage, threshold_Phase1, ...
                 'SmoothingIter', smoothingIter_Phase1);
-            visualizeImageWithEdges(rescaledImage, edges, "SubpixelEdges (Imagen reescalada)");
+            filterStageViewer.addStage(pipeline.imageProcessing.visualizeImageWithEdges(...
+              rescaledImage, ... 
+              edges ...
+             ));
             
             % Paso 3
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Cálculo del BoundingBox (escala reducida)...');
             BboxPiece = pipeline.piece.boundingbox.calculateExpandedBoundingBox(edges, ...
                 scale, margin);
-            drawBoundingBoxOnImage(img, BboxPiece);
+            % drawBoundingBoxOnImage(img, BboxPiece);
         
             % Paso 4
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Recorte de la imagen según el BoundingBox...');
             cropImage = pipeline.imageProcessing.cropImageByBoundingBox(img, BboxPiece);
-            imshow(cropImage);
+            % imshow(cropImage);
         
             % Paso 5
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Detección de bordes sobre imagen recortada...');
             edges = subpixelEdges(cropImage, threshold_Phase2, ...
                 'SmoothingIter', smoothingIter_Phase2);
-            visualizeImageWithEdges(cropImage, edges, "Bordes sobre imagen recortada");
+            % visualizeImageWithEdges(cropImage, edges, "Bordes sobre imagen recortada");
         
             % Paso 6
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Cálculo de nuevo BoundingBox (imagen recortada)...');
             BboxPieceCropImage = pipeline.piece.boundingbox.calculateExpandedBoundingBox(edges, 1, 0);
             edgesFiltered = filterEdgesByBoundingBox(edges, BboxPieceCropImage);
-            drawBoundingBoxOnImage(cropImage, BboxPieceCropImage);
+            % drawBoundingBoxOnImage(cropImage, BboxPieceCropImage);
 
             % Paso 7
             step = step + 1;
@@ -319,6 +324,28 @@ classdef PipeController
             end
 
         end
+
+
+        function wireActionsOnShowFilterStages(self)
+
+            tg = self.resultsConsoleWrapper.getTabGroup();
+            tabs = tg.Children;
+            
+            for i = 1:numel(tabs)
+                tab = tabs(i);
+        
+                if isa(tab.UserData, 'viewWrapper.results.TabPiece')
+                    bboxId = tab.UserData.getId();
+                    bbox = self.imageModel.getBBoxById(bboxId);
+        
+                    if ~isempty(bbox)                        
+                        tab.UserData.setShowFilteredStagesAction( ...
+                            @(~,~) self.showFilterStages(bboxId));
+                    end
+                end
+            end
+
+        end
     end
 
 
@@ -358,6 +385,18 @@ classdef PipeController
 
             self.canvasWrapper.showImageWithFilteredEdges(croppedImage, ...
                 filteredEdges);
+            self.stateApp.setImageDisplayed(false);
+        end
+
+
+        function showFilterStages(self, bboxId)
+            bbox = self.imageModel.getBBoxById(bboxId);
+            if isempty(bbox)
+                return;
+            end
+
+            filterStageViewer = bbox.getFilterStageViewer();
+            self.canvasWrapper.showImage(filterStageViewer.getCurrent());
             self.stateApp.setImageDisplayed(false);
         end
 

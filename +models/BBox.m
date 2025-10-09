@@ -21,6 +21,7 @@ classdef BBox < handle
         croppedImage uint8;
         detectedEdges;
         filteredEdges;
+        filterStageViewer;
         onDeleteFcn function_handle
     end
 
@@ -30,6 +31,7 @@ classdef BBox < handle
             self.id = models.BBox.generateRandomId();
             self.setRoi(roi);
             self.onDeleteFcn = onDeleteFcn;
+            self.filterStageViewer = models.StageViewer();
         end
         
         
@@ -82,6 +84,11 @@ classdef BBox < handle
 
         function croppedImage = getCroppedImage(self)
             croppedImage = self.croppedImage;
+        end
+
+
+        function filterStageViewer = getFilterStageViewer(self)
+            filterStageViewer = self.filterStageViewer;
         end
 
 

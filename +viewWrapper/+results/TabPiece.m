@@ -79,6 +79,10 @@ classdef TabPiece < handle
             self.filterButton.Callback = callbackFcn;
         end
 
+        function setShowFilteredStagesAction(self, callbackFcn)
+            self.showFilterStages.Callback = callbackFcn;
+        end
+
     end
 
     methods (Access = private)
