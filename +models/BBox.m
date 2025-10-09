@@ -20,6 +20,7 @@ classdef BBox < handle
         position double = [];
         croppedImage uint8;
         detectedEdges;
+        filteredEdges;
         onDeleteFcn function_handle
     end
 
@@ -91,6 +92,16 @@ classdef BBox < handle
 
         function detectedEdges = getDetectedEdges(self)
             detectedEdges = self.detectedEdges;
+        end
+
+
+        function setFilteredEdges(self, filteredEdges)
+            self.filteredEdges = filteredEdges;
+        end
+
+
+        function filteredEdges = getFilteredEdges(self)
+            filteredEdges = self.filteredEdges;
         end
         
     end

@@ -20,7 +20,7 @@ classdef Console < handle
         end
 
 
-        function renderCroppedBBoxes(self, bboxes)
+        function renderCroppedBBoxes(self, bbox)
         % renderCroppedBBoxes() Creates one tab per BBox and attaches a
         %                       result view for each cropped image.
         %
@@ -29,19 +29,12 @@ classdef Console < handle
         %       - canvasWrapper: Canvas wrapper instance, passed for
         %                 consistency with other render methods.
             
-            if ~isempty(self.tabGroup.Children)
-                delete(self.tabGroup.Children);
-            end
-
-            for k = 1:numel(bboxes)
-                bbox   = bboxes(k);
-                viewWrapper.results.TabPiece( ...
-                    self.tabGroup, ...
-                    bbox.getCroppedImage(), ...
-                    bbox.getId(), ...
-                    sprintf("Pieza %d", k));
-            end
-
+            viewWrapper.results.TabPiece( ...
+                self.tabGroup, ...
+                bbox.getCroppedImage(), ...
+                bbox.getId(), ...
+                sprintf(bbox.getLabel()));
+            
         end
 
     end

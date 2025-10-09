@@ -116,6 +116,72 @@ classdef Canvas < handle
         end
 
 
+        function showImageWithFilteredEdges(self, grayImage, pieceClusters)
+        % showImageWithFilteredEdges() Displays detected pieces with exterior and interior contours on the app canvas.
+        %
+        %   Inputs:
+        %       - grayImage: grayscale input image
+        %       - pieceClusters: cell array of structures, each with:
+        %           - edges.exterior: struct with x and y fields
+        %           - edges.innerContours: cell array of interior contours (optional)
+        %
+        %   Each piece is shown in a different color, and its inner contours share
+        %   the same color. The legend labels them as "Contours (Piece i)".
+        
+            ax = self.canvas;  % handle del UIAxes
+        
+            % --- Preparar el canvas ---
+            cla(ax);  % limpiar
+            img = imagesc(ax, grayImage);
+            set(img, 'HitTest', 'off');  % no bloquear clics
+        
+            axis(ax, 'image');
+            colormap(ax, gray);
+            ax.XLim = [0.5, size(grayImage,2)+0.5];
+            ax.YLim = [0.5, size(grayImage,1)+0.5];
+            ax.Toolbar.Visible = 'off';
+            hold(ax, 'on');
+        
+            % --- Dibujar los contornos ---
+            colors = lines(numel(pieceClusters));
+            hPlots = gobjects(numel(pieceClusters), 1);  % handles para la leyenda
+        
+            for i = 1:numel(pieceClusters)
+                edgeStruct = pieceClusters{i}.edges;
+                color = colors(i, :);
+        
+                % Exterior contour
+                if isfield(edgeStruct, 'exterior')
+                    x_ext = edgeStruct.exterior.x;
+                    y_ext = edgeStruct.exterior.y;
+        
+                    hPlots(i) = plot(ax, x_ext, y_ext, '.', ...
+                        'Color', color, ...
+                        'MarkerSize', 8);
+                end
+        
+                % Inner contours (if any)
+                if isfield(edgeStruct, 'innerContours') && ~isempty(edgeStruct.innerContours)
+                    for j = 1:numel(edgeStruct.innerContours)
+                        inner = edgeStruct.innerContours{j};
+                        plot(ax, inner.x, inner.y, '.', ...
+                            'Color', color, ...
+                            'MarkerSize', 6);
+                    end
+                end
+            end
+        
+            % --- Leyenda dentro del canvas ---
+            labels = arrayfun(@(i) sprintf('Contours (Piece %d)', i), ...
+                1:numel(pieceClusters), 'UniformOutput', false);
+            lgd = legend(ax, hPlots, labels, 'Location', 'northeast');
+            set(lgd, 'Interpreter', 'none', 'Box', 'on');
+        
+            title(ax, 'Detected pieces with contours');
+            hold(ax, 'off');
+        end
+
+
         function renderBBoxes(self, bboxes)
         % renderBBoxes() Redraw all bboxes on canvas.
         %
