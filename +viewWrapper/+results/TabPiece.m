@@ -83,6 +83,14 @@ classdef TabPiece < handle
             self.showFilterStages.Callback = callbackFcn;
         end
 
+        function setShowPreviousStageAction(self, callbackFcn)
+            self.prevFilterStage.Callback = callbackFcn;
+        end
+
+        function setShowNextStageAction(self, callbackFcn)
+            self.nextFilterStage.Callback = callbackFcn;
+        end
+
     end
 
     methods (Access = private)

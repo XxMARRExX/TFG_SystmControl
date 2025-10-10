@@ -25,7 +25,6 @@ classdef StageViewer < handle
 
         function addStage(self, image)
             self.stages{end+1} = image;
-            self.currentIndex = self.currentIndex + 1;
         end
 
 
@@ -35,40 +34,36 @@ classdef StageViewer < handle
         end
 
 
-        function img = getCurrent(self)
+        function img = startStage(self)
             if isempty(self.stages)
                 img = [];
+                return;
             else
+                self.currentIndex = 1;
                 img = self.stages{self.currentIndex};
             end
         end
 
 
         function img = next(self)
-            if isempty(self.stages)
-                img = [];
-                return;
-            end
+            img = [];
 
             if self.currentIndex < numel(self.stages)
                 self.currentIndex = self.currentIndex + 1;
             end
-
             img = self.stages{self.currentIndex};
+            fprintf('Index: %d / %d\n', self.currentIndex, numel(self.stages));
         end
 
 
         function img = prev(self)
-            if isempty(self.stages)
-                img = [];
-                return;
-            end
+            img = [];
 
             if self.currentIndex > 1
                 self.currentIndex = self.currentIndex - 1;
             end
-
             img = self.stages{self.currentIndex};
+            fprintf('Index: %d / %d\n', self.currentIndex, numel(self.stages));
         end
 
 

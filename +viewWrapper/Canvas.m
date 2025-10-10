@@ -213,5 +213,55 @@ classdef Canvas < handle
         
             hold(ax, 'off');
         end
+
+
+        function showStage(self, matrix, titleText, subtitleText)
+        % showStage() Display an image with a title and a subtitle on the UIAxes.
+        %
+        %   Inputs:
+        %       - matrix: Image matrix (grayscale or RGB) to render.
+        %       - titleText: Title displayed above the image.
+        %       - subtitleText: Subtitle displayed just below the title.
+        %
+        %   This version uses the native `subtitle()` function, so the text
+        %   automatically stays above the image and never overlaps.
+        
+            % --- Clean previous content
+            cla(self.canvas);
+            legend(self.canvas, 'off');
+            title(self.canvas, '');
+        
+            % --- Show image
+            img = imagesc(self.canvas, matrix);
+            set(img, 'HitTest', 'off');
+        
+            % --- Adjust axes
+            axis(self.canvas, 'image');
+            self.canvas.XLim = [0.5, size(matrix,2)+0.5];
+            self.canvas.YLim = [0.5, size(matrix,1)+0.5];
+            self.canvas.Color = 'w';
+            box(self.canvas, 'on');
+            self.canvas.XColor = [0 0 0];
+            self.canvas.YColor = [0 0 0];
+            self.canvas.FontSize = 10;
+        
+            % --- Title
+            title(self.canvas, titleText, ...
+                'Interpreter', 'none', ...
+                'FontSize', 14, ...
+                'FontWeight', 'bold', ...
+                'Color', 'k');
+        
+            % --- Subtitle (below title)
+            subtitle(self.canvas, subtitleText, ...
+                'Interpreter', 'none', ...
+                'FontSize', 10, ...
+                'FontAngle', 'italic', ...
+                'Color', [0.3 0.3 0.3]);
+
+            self.canvas.TitleFontSizeMultiplier = 1.5;
+            self.canvas.SubtitleFontSizeMultiplier = 0.55;
+        end
+
     end
 end
