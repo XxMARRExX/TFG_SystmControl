@@ -24,8 +24,12 @@ classdef Canvas < handle
         %   Inputs:
         %       - matrix: Image matrix (grayscale or RGB) to render.
             
-            % Print picture
+            % Clean previous show
             cla(self.canvas);
+            legend(self.canvas, 'off');
+            title(self.canvas, '');
+            
+            % Print picture
             img = imagesc(self.canvas, matrix);
             set(img, 'HitTest', 'off');
 
