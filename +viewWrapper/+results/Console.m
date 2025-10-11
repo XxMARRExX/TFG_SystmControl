@@ -37,6 +37,26 @@ classdef Console < handle
             
         end
 
+
+        function clearTabs(self)
+        % reset() Clears all result tabs and resets the console state.
+        %
+        %   This method should be called when a new image is loaded, 
+        %   ensuring the results console starts fresh.
+    
+            if isempty(self.tabGroup) || ~isvalid(self.tabGroup)
+                return;
+            end
+    
+            % Eliminar todas las pestañas existentes
+            delete(self.tabGroup.Children);
+    
+            % Crear pestaña inicial o placeholder
+            uitab(self.tabGroup, ...
+                'Title', 'Resultados', ...
+                'BackgroundColor', [1 1 1]);
+        end
+
     end
     
 end

@@ -260,5 +260,42 @@ classdef Canvas < handle
                 'Color', [0.3 0.3 0.3]);
         end
 
+
+        function cleanCanvas(self)
+        % reset() Clears the UIAxes content and restores its initial visual state.
+
+            if isempty(self.canvas) || ~isvalid(self.canvas)
+                return;
+            end
+        
+            % --- Clean graphics ---
+            cla(self.canvas);
+            hold(self.canvas, 'off');
+            legend(self.canvas, 'off');
+            title(self.canvas, '');
+            subtitle(self.canvas, '');
+            grid(self.canvas, 'off');  % igual que al inicio (sin grid)
+    
+            % --- Restore visual configuration ---
+            axis(self.canvas, 'normal');       
+            box(self.canvas, 'on');            
+            self.canvas.Color = [1 1 1];       
+            self.canvas.XColor = [0 0 0];
+            self.canvas.YColor = [0 0 0];
+        
+            % --- Restore labels and limits as at startup ---
+            xlabel(self.canvas, 'X');
+            ylabel(self.canvas, 'Y');
+            self.canvas.XLimMode = 'auto';
+            self.canvas.YLimMode = 'auto';
+            self.canvas.XTickMode = 'auto';
+            self.canvas.YTickMode = 'auto';
+        
+            if isprop(self.canvas, 'Toolbar')
+                self.canvas.Toolbar.Visible = 'off';
+            end
+
+        end
+
     end
 end

@@ -106,6 +106,32 @@ classdef Image < handle
             self.bBoxes(idx) = [];
         end
 
+
+        function clearBBoxes(self)
+        % clearBBoxes() Removes all BBoxes and their ROIs from the image model.
+        %
+        %   This method is called when a new image is loaded to ensure that
+        %   no invalid or outdated ROI handles remain linked to the previous image.
+
+            if isempty(self.bBoxes)
+                return;
+            end
+    
+            % Intentar eliminar ROIs válidos (por limpieza completa)
+            for i = 1:numel(self.bBoxes)
+                bbox = self.bBoxes(i);
+                if ismethod(bbox, "getRoi")
+                    roi = bbox.getRoi();
+                    if ~isempty(roi) && isvalid(roi)
+                        delete(roi);
+                    end
+                end
+            end
+    
+            % Vaciar colección
+            self.bBoxes = models.BBox.empty();
+        end
+
     end
 
 
