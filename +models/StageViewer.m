@@ -52,7 +52,6 @@ classdef StageViewer < handle
                 self.currentIndex = self.currentIndex + 1;
             end
             img = self.stages{self.currentIndex};
-            fprintf('Index: %d / %d\n', self.currentIndex, numel(self.stages));
         end
 
 
@@ -63,7 +62,6 @@ classdef StageViewer < handle
                 self.currentIndex = self.currentIndex - 1;
             end
             img = self.stages{self.currentIndex};
-            fprintf('Index: %d / %d\n', self.currentIndex, numel(self.stages));
         end
 
 
