@@ -258,9 +258,6 @@ classdef Canvas < handle
                 'FontSize', 10, ...
                 'FontAngle', 'italic', ...
                 'Color', [0.3 0.3 0.3]);
-
-            self.canvas.TitleFontSizeMultiplier = 1.5;
-            self.canvas.SubtitleFontSizeMultiplier = 0.55;
         end
 
     end

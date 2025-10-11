@@ -1,5 +1,5 @@
-function showImageWithEdges(grayImage, pieceClusters)
-% SHOWIMAGEWITHEDGES Displays detected pieces with exterior and interior contours.
+function imgOut = showImageWithEdges(grayImage, pieceClusters)
+% showImageWithEdges() Displays detected pieces with contours and returns the composed image.
 %
 %   Inputs:
 %       - grayImage: grayscale input image
@@ -7,32 +7,39 @@ function showImageWithEdges(grayImage, pieceClusters)
 %           - edges.exterior: struct with x and y fields
 %           - edges.innerContours: cell array of interior contours (optional)
 %
-%   Each piece is shown in a different color, and its inner contours share
-%   the same color. The legend labels them as "Contours (Piece i)".
+%   Output:
+%       - imgOut: RGB image with the visualization (not displayed).
 
-    figure;
+    fig = figure('Visible', 'off', ...
+                 'Color', 'w', ...
+                 'Units', 'pixels', ...
+                 'Position', [100 100 size(grayImage,2)+100 size(grayImage,1)+100]);
+    
+    ax = axes('Parent', fig, 'Position', [0 0 1 1], 'Units', 'normalized');
+
     imshow(grayImage, 'InitialMagnification', 'fit');
-    axis on;
     hold on;
 
-    colors = lines(numel(pieceClusters));
-    hPlots = gobjects(numel(pieceClusters), 1);  % handles for legend
+    % --- Colores y estructuras ---
+    numPieces = numel(pieceClusters);
+    colors = lines(numPieces);
+    hPlots = gobjects(numPieces, 1); % Para la leyenda
 
-    for i = 1:numel(pieceClusters)
+    % --- Dibujar cada pieza ---
+    for i = 1:numPieces
         edgeStruct = pieceClusters{i}.edges;
         color = colors(i, :);
 
-        % --- Exterior contour ---
+        % Contorno exterior
         if isfield(edgeStruct, 'exterior')
             x_ext = edgeStruct.exterior.x;
             y_ext = edgeStruct.exterior.y;
-
             hPlots(i) = plot(x_ext, y_ext, '.', ...
                 'Color', color, ...
                 'MarkerSize', 8);
         end
 
-        % --- Inner contours ---
+        % Contornos interiores (si existen)
         if isfield(edgeStruct, 'innerContours') && ~isempty(edgeStruct.innerContours)
             for j = 1:numel(edgeStruct.innerContours)
                 inner = edgeStruct.innerContours{j};
@@ -43,11 +50,15 @@ function showImageWithEdges(grayImage, pieceClusters)
         end
     end
 
-    % Legend (inside axes, estilo como en drawBoundingBoxOnImage)
-    labels = arrayfun(@(i) sprintf('Contours (Piece %d)', i), 1:numel(pieceClusters), 'UniformOutput', false);
-    lgd = legend(hPlots, labels, 'Location', "northeast");
-    set(lgd, 'Interpreter','none', 'Box','on');
+    % --- Leyenda ---
+    labels = arrayfun(@(i) sprintf('Contours (Piece %d)', i), 1:numPieces, 'UniformOutput', false);
+    lgd = legend(hPlots, labels, 'Location', 'northeast');
+    set(lgd, 'Interpreter', 'none', 'Box', 'on');
 
     title('Detected pieces with contours');
-    hold off;
+
+    frame = getframe(ax);
+    imgOut = frame.cdata;
+
+    close(fig);
 end
