@@ -19,6 +19,7 @@ classdef BBox < handle
         roi images.roi.Rectangle = images.roi.Rectangle.empty;
         position double = [];
         croppedImage uint8;
+        refinedCropImage uint8;
         detectedEdges;
         filteredEdges;
         filterStageViewer;
@@ -84,6 +85,16 @@ classdef BBox < handle
 
         function croppedImage = getCroppedImage(self)
             croppedImage = self.croppedImage;
+        end
+
+
+        function setRefinedCroppedImage(self, refinedCropImage)
+            self.refinedCropImage = refinedCropImage;
+        end
+
+
+        function refinedCropImage = getRefinedCroppedImage(self)
+            refinedCropImage = self.refinedCropImage;
         end
 
 

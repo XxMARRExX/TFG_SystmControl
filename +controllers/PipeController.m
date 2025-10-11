@@ -110,7 +110,7 @@ classdef PipeController
             totalSteps = 12;
             step = 0;
             
-            % Paso 1
+            % Stage 1
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Reescalando imagen...');
             rescaledImage = imresize(img, scale);
@@ -120,7 +120,7 @@ classdef PipeController
                 "Image.");
             filterStageViewer.addStage(stage1);
             
-            % Paso 2
+            % Stage 2
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Detección de bordes en imagen reescalada...');
             edges = subpixelEdges(rescaledImage, threshold_Phase1, ...
@@ -134,7 +134,7 @@ classdef PipeController
                 "Image.");
             filterStageViewer.addStage(stage2);
             
-            % Paso 3
+            % Stage 3
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Cálculo del BoundingBox (escala reducida)...');
             BboxPiece = pipeline.piece.boundingbox.calculateExpandedBoundingBox(edges, ...
@@ -148,17 +148,18 @@ classdef PipeController
                 "Image.");
             filterStageViewer.addStage(stage3);
         
-            % Paso 4
+            % Stage 4
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Recorte de la imagen según el BoundingBox...');
             cropImage = pipeline.imageProcessing.cropImageByBoundingBox(img, BboxPiece);
+            bbox.setRefinedCroppedImage(cropImage);
             stage4 = models.Stage( ...
                 pipeline.analyze.generateStageImage(cropImage), ...
                 sprintf("Etapa %d: Recorte de la imagen según el BoundingBox.", step), ...
                 "Image.");
             filterStageViewer.addStage(stage4);
         
-            % Paso 5
+            % Stage 5
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Detección de bordes sobre imagen recortada...');
             edges = subpixelEdges(cropImage, threshold_Phase2, ...
@@ -172,7 +173,7 @@ classdef PipeController
                 "Image.");
             filterStageViewer.addStage(stage5);
         
-            % Paso 6
+            % Stage 6
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Cálculo de nuevo BoundingBox (imagen recortada)...');
             BboxPieceCropImage = pipeline.piece.boundingbox.calculateExpandedBoundingBox(edges, 1, 0);
@@ -186,7 +187,7 @@ classdef PipeController
                 "Image.");
             filterStageViewer.addStage(stage6);
 
-            % Paso 7
+            % Stage 7
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Agrupación mediante DBSCAN...');
             [clusters, ~] = pipeline.imageProcessing.analyzeSubstructuresWithDBSCAN(edgesFiltered, ...
@@ -201,7 +202,7 @@ classdef PipeController
                 "Image.");
             filterStageViewer.addStage(stage7);
         
-            % Paso 8
+            % Stage 8
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Búsqueda del contorno principal de la pieza...');
             [pieceClusters, pieceEdges, numPieces, remainingClusters] = ...
@@ -215,7 +216,7 @@ classdef PipeController
                 "Image.");
             filterStageViewer.addStage(stage8);
         
-            % Paso 9
+            % Stage 9
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Extracción de máscara de la pieza...');
             maskPieza = pipeline.piece.analyze.createPieceMask(cropImage, pieceClusters);
@@ -225,7 +226,7 @@ classdef PipeController
                 "Image.");
             filterStageViewer.addStage(stage9);
 
-            % Paso 10
+            % Stage 10
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Filtrado de clusters dentro de la máscara...');
             filteredClusters = pipeline.piece.filters.filterClustersInsideMask(remainingClusters, maskPieza);
@@ -239,7 +240,7 @@ classdef PipeController
             filterStageViewer.addStage(stage10);
             
 
-            % Paso 11
+            % Stage 11
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Búsqueda de contornos internos...');
             piecesInnerContours = pipeline.piece.analyze.findInnerContours(filteredClusters, size(cropImage), ...
@@ -253,7 +254,7 @@ classdef PipeController
                 "Image.");
             filterStageViewer.addStage(stage11);
         
-            % Paso 12
+            % Stage 12
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Asociación de contornos internos a la pieza...');
             pieceClusters = pipeline.piece.analyze.associateInnerContoursToPieces( ...
@@ -513,7 +514,7 @@ classdef PipeController
                 return;
             end
 
-            croppedImage = bbox.getCroppedImage();
+            croppedImage = bbox.getRefinedCroppedImage();
             filteredEdges = bbox.getFilteredEdges();
 
             self.canvasWrapper.showImageWithFilteredEdges(croppedImage, ...
