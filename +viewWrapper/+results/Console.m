@@ -20,7 +20,7 @@ classdef Console < handle
         end
 
 
-        function renderCroppedBBoxes(self, bboxes)
+        function renderCroppedBBoxes(self, bbox)
         % renderCroppedBBoxes() Creates one tab per BBox and attaches a
         %                       result view for each cropped image.
         %
@@ -29,19 +29,32 @@ classdef Console < handle
         %       - canvasWrapper: Canvas wrapper instance, passed for
         %                 consistency with other render methods.
             
-            if ~isempty(self.tabGroup.Children)
-                delete(self.tabGroup.Children);
-            end
+            viewWrapper.results.TabPiece( ...
+                self.tabGroup, ...
+                bbox.getCroppedImage(), ...
+                bbox.getId(), ...
+                sprintf(bbox.getLabel()));
+            
+        end
 
-            for k = 1:numel(bboxes)
-                bbox   = bboxes(k);
-                viewWrapper.results.TabPiece( ...
-                    self.tabGroup, ...
-                    bbox.getCroppedImage(), ...
-                    bbox.getId(), ...
-                    sprintf("Pieza %d", k));
-            end
 
+        function clearTabs(self)
+        % reset() Clears all result tabs and resets the console state.
+        %
+        %   This method should be called when a new image is loaded, 
+        %   ensuring the results console starts fresh.
+    
+            if isempty(self.tabGroup) || ~isvalid(self.tabGroup)
+                return;
+            end
+    
+            % Eliminar todas las pestañas existentes
+            delete(self.tabGroup.Children);
+    
+            % Crear pestaña inicial o placeholder
+            uitab(self.tabGroup, ...
+                'Title', 'Resultados', ...
+                'BackgroundColor', [1 1 1]);
         end
 
     end

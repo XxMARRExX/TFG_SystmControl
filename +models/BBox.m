@@ -19,7 +19,10 @@ classdef BBox < handle
         roi images.roi.Rectangle = images.roi.Rectangle.empty;
         position double = [];
         croppedImage uint8;
+        refinedCropImage uint8;
         detectedEdges;
+        filteredEdges;
+        filterStageViewer;
         onDeleteFcn function_handle
     end
 
@@ -29,6 +32,7 @@ classdef BBox < handle
             self.id = models.BBox.generateRandomId();
             self.setRoi(roi);
             self.onDeleteFcn = onDeleteFcn;
+            self.filterStageViewer = models.StageViewer();
         end
         
         
@@ -84,6 +88,21 @@ classdef BBox < handle
         end
 
 
+        function setRefinedCroppedImage(self, refinedCropImage)
+            self.refinedCropImage = refinedCropImage;
+        end
+
+
+        function refinedCropImage = getRefinedCroppedImage(self)
+            refinedCropImage = self.refinedCropImage;
+        end
+
+
+        function filterStageViewer = getFilterStageViewer(self)
+            filterStageViewer = self.filterStageViewer;
+        end
+
+
         function setDetectedEdges(self, detectedEdges)
             self.detectedEdges = detectedEdges;
         end
@@ -91,6 +110,16 @@ classdef BBox < handle
 
         function detectedEdges = getDetectedEdges(self)
             detectedEdges = self.detectedEdges;
+        end
+
+
+        function setFilteredEdges(self, filteredEdges)
+            self.filteredEdges = filteredEdges;
+        end
+
+
+        function filteredEdges = getFilteredEdges(self)
+            filteredEdges = self.filteredEdges;
         end
         
     end

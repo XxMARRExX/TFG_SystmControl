@@ -21,16 +21,23 @@ classdef TabPiece < handle
     properties
         tabPiece matlab.ui.container.Tab
         gridLayoutTab matlab.ui.container.GridLayout
-        gridLayoutButtons matlab.ui.container.GridLayout
+        scrollPanel
+        vbox
         
         idPiece string;
         previewPiece matlab.ui.control.UIAxes
         imagePiece uint8 = uint8([]);
 
-        showImageButton matlab.ui.control.Button
-        detectedEdgesButton matlab.ui.control.Button
-        filterButton matlab.ui.control.Button
-        errorButton matlab.ui.control.Button
+        showImageButton 
+        detectedEdgesButton 
+        filterButton 
+        errorButton 
+        prevFilterStage 
+        nextFilterStage 
+        showFilterStages 
+        prevErrorStage 
+        nextErrorStage 
+        showErrorStages
     end
     
     methods (Access = public)
@@ -38,52 +45,18 @@ classdef TabPiece < handle
         function self = TabPiece(resultsConsole, image, id, title)
             
             self.idPiece = id;
+            self.imagePiece = image;
             self.tabPiece = uitab(resultsConsole, 'Title', title);
             self.tabPiece.UserData = self;
-
-            % TabLayout
-            self.gridLayoutTab = uigridlayout(self.tabPiece, [1, 2]);
-            self.gridLayoutTab.RowHeight = {'1x'};
-            self.gridLayoutTab.ColumnWidth = {'1x','1x'};
-
-            % Image
-            self.imagePiece = image;
-            self.previewPiece = uiaxes(self.gridLayoutTab);
-            self.previewPiece.Layout.Row = 1;
-            self.previewPiece.Layout.Column = 1;
-            self.previewPiece.Toolbar.Visible = 'off';
-            self.previewPiece.Interactions = [];
-            imshow(image, 'Parent', self.previewPiece);
-            axis(self.previewPiece, 'image'); axis(self.previewPiece, 'off');
             
-            % ButtonsLayout
-            self.gridLayoutButtons = uigridlayout(self.gridLayoutTab, [2, 2]);
-            self.gridLayoutButtons.Layout.Row = 1;
-            self.gridLayoutButtons.Layout.Column = 2;
-            self.gridLayoutButtons.ColumnWidth = {'1x', '1x'};
-            self.gridLayoutButtons.RowHeight = {'1x', '1x'};
-
-            % Buttons
-            self.showImageButton = uibutton(self.gridLayoutButtons, 'push', ...
-                'Text', 'Mostrar imagen');
-            self.showImageButton.Layout.Row = 1;
-            self.showImageButton.Layout.Column = 1;
-
-            self.detectedEdgesButton = uibutton(self.gridLayoutButtons, 'push', ...
-                'Text', 'Mostrar bordes detectados');
-            self.detectedEdgesButton.Layout.Row = 1;
-            self.detectedEdgesButton.Layout.Column = 2;
-
-            self.filterButton = uibutton(self.gridLayoutButtons, 'push', ...
-                'Text', 'Mostrar bordes filtrados');
-            self.filterButton.Layout.Row = 2;
-            self.filterButton.Layout.Column = 1;
-
-            self.errorButton = uibutton(self.gridLayoutButtons, 'push', ...
-                'Text', 'Mostrar error producido');
-            self.errorButton.Layout.Row = 2;
-            self.errorButton.Layout.Column = 2;
-
+            self.buildLayoutTab(image);
+            self.buildFirstRow();
+            self.buildSecondRow();
+            self.buildThirdRow();
+            self.buildFourthRow();        
+            
+            set(self.vbox, 'Heights', [40 40 40 40]);
+            self.scrollPanel.Heights = 200;
         end
 
 
@@ -93,12 +66,120 @@ classdef TabPiece < handle
 
 
         function setShowImageButtonAction(self, callbackFcn)
-            self.showImageButton.ButtonPushedFcn = callbackFcn;
+            self.showImageButton.Callback = callbackFcn;
         end
 
 
         function setShowDetectedEdgesAction(self, callbackFcn)
-            self.detectedEdgesButton.ButtonPushedFcn = callbackFcn;
+            self.detectedEdgesButton.Callback = callbackFcn;
+        end
+
+
+        function setShowFilteredEdgesAction(self, callbackFcn)
+            self.filterButton.Callback = callbackFcn;
+        end
+
+        function setShowFilteredStagesAction(self, callbackFcn)
+            self.showFilterStages.Callback = callbackFcn;
+        end
+
+        function setShowPreviousStageAction(self, callbackFcn)
+            self.prevFilterStage.Callback = callbackFcn;
+        end
+
+        function setShowNextStageAction(self, callbackFcn)
+            self.nextFilterStage.Callback = callbackFcn;
+        end
+
+    end
+
+    methods (Access = private)
+        
+        function buildLayoutTab(self, image)
+            % TabLayout
+            self.gridLayoutTab = uigridlayout(self.tabPiece, [1, 2]);
+            self.gridLayoutTab.RowHeight = {'1x'};
+            self.gridLayoutTab.ColumnWidth = {'1x', '1x'};
+            self.gridLayoutTab.ColumnSpacing = 8;
+            self.gridLayoutTab.Padding = [5 5 5 5];
+            self.gridLayoutTab.BackgroundColor = [1 1 1];
+        
+            % PreviewImage
+            self.previewPiece = uiaxes(self.gridLayoutTab);
+            self.previewPiece.Layout.Row = 1;
+            self.previewPiece.Layout.Column = 1;
+            self.previewPiece.Toolbar.Visible = 'off';
+            self.previewPiece.Interactions = [];
+            imshow(image, 'Parent', self.previewPiece);
+            axis(self.previewPiece, 'image');
+            axis(self.previewPiece, 'off');
+        
+            % scroollPanel
+            self.scrollPanel = uix.ScrollingPanel('Parent', self.gridLayoutTab, ...
+                'BackgroundColor', [1 1 1]);
+            self.scrollPanel.Layout.Row = 1;
+            self.scrollPanel.Layout.Column = 2;
+        
+            % verticalBox
+            self.vbox = uix.VBox('Parent', self.scrollPanel, ...
+                'Spacing', 10, 'Padding', 10, ...
+                'BackgroundColor', [1 1 1]);
+        end
+
+
+        function buildFirstRow(self)
+            hbox1 = uix.HBox('Parent', self.vbox, ...
+                'Spacing', 8, 'BackgroundColor', [1 1 1]);
+
+            self.showImageButton = uicontrol('Parent', hbox1, ...
+                'Style', 'pushbutton', 'String', 'Mostrar imagen');
+            self.detectedEdgesButton = uicontrol('Parent', hbox1, ...
+                'Style', 'pushbutton', 'String', 'Mostrar bordes detectados');
+            
+            set(hbox1, 'Widths', [-1 -1]); 
+        end
+
+
+        function buildSecondRow(self)
+            hbox2 = uix.HBox('Parent', self.vbox, 'Spacing', ...
+                8, 'BackgroundColor', [1 1 1]);
+
+            self.filterButton = uicontrol('Parent', hbox2, ...
+                'Style', 'pushbutton', 'String', 'Mostrar bordes filtrados');
+            self.errorButton = uicontrol('Parent', hbox2, ...
+                'Style', 'pushbutton', 'String', 'Mostrar error producido');
+            
+            set(hbox2, 'Widths', [-1 -1]);
+        end
+
+
+        function buildThirdRow(self)
+            hbox3 = uix.HBox('Parent', self.vbox, ...
+                'Spacing', 8, 'BackgroundColor', [1 1 1]);
+
+            self.prevFilterStage = uicontrol('Parent', hbox3, ...
+                'Style', 'pushbutton', 'String', 'Etapa previa');
+            self.showFilterStages = uicontrol('Parent', hbox3, ...
+                'Style', 'pushbutton', 'String', 'Mostrar etapas de filtrado');
+            self.nextFilterStage = uicontrol('Parent', hbox3, ...
+                'Style', 'pushbutton', 'String', 'Etapa posterior');
+
+            set(hbox3, 'Widths', [-1 -1 -1]);
+        end
+
+
+        function buildFourthRow(self)
+            hbox4 = uix.HBox('Parent', self.vbox, ...
+                'Spacing', 8, 'BackgroundColor', [1 1 1]);
+
+            self.prevErrorStage = uicontrol('Parent', hbox4, ...
+                'Style', 'pushbutton', 'String', 'Etapa previa');
+            self.showErrorStages = uicontrol('Parent', hbox4, ...
+                'Style', 'pushbutton', 'String', 'Mostrar etapas de error');
+            self.nextErrorStage = uicontrol('Parent', hbox4, ...
+                'Style', 'pushbutton', 'String', 'Etapa posterior');
+
+            set(hbox4, 'Widths', [-1 -1 -1]);
         end
 
     end

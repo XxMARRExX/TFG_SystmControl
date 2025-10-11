@@ -24,8 +24,12 @@ classdef Canvas < handle
         %   Inputs:
         %       - matrix: Image matrix (grayscale or RGB) to render.
             
-            % Print picture
+            % Clean previous show
             cla(self.canvas);
+            legend(self.canvas, 'off');
+            title(self.canvas, '');
+            
+            % Print picture
             img = imagesc(self.canvas, matrix);
             set(img, 'HitTest', 'off');
 
@@ -116,6 +120,72 @@ classdef Canvas < handle
         end
 
 
+        function showImageWithFilteredEdges(self, grayImage, pieceClusters)
+        % showImageWithFilteredEdges() Displays detected pieces with exterior and interior contours on the app canvas.
+        %
+        %   Inputs:
+        %       - grayImage: grayscale input image
+        %       - pieceClusters: cell array of structures, each with:
+        %           - edges.exterior: struct with x and y fields
+        %           - edges.innerContours: cell array of interior contours (optional)
+        %
+        %   Each piece is shown in a different color, and its inner contours share
+        %   the same color. The legend labels them as "Contours (Piece i)".
+        
+            ax = self.canvas;  % handle del UIAxes
+        
+            % --- Preparar el canvas ---
+            cla(ax);  % limpiar
+            img = imagesc(ax, grayImage);
+            set(img, 'HitTest', 'off');  % no bloquear clics
+        
+            axis(ax, 'image');
+            colormap(ax, gray);
+            ax.XLim = [0.5, size(grayImage,2)+0.5];
+            ax.YLim = [0.5, size(grayImage,1)+0.5];
+            ax.Toolbar.Visible = 'off';
+            hold(ax, 'on');
+        
+            % --- Dibujar los contornos ---
+            colors = lines(numel(pieceClusters));
+            hPlots = gobjects(numel(pieceClusters), 1);  % handles para la leyenda
+        
+            for i = 1:numel(pieceClusters)
+                edgeStruct = pieceClusters{i}.edges;
+                color = colors(i, :);
+        
+                % Exterior contour
+                if isfield(edgeStruct, 'exterior')
+                    x_ext = edgeStruct.exterior.x;
+                    y_ext = edgeStruct.exterior.y;
+        
+                    hPlots(i) = plot(ax, x_ext, y_ext, '.', ...
+                        'Color', color, ...
+                        'MarkerSize', 8);
+                end
+        
+                % Inner contours (if any)
+                if isfield(edgeStruct, 'innerContours') && ~isempty(edgeStruct.innerContours)
+                    for j = 1:numel(edgeStruct.innerContours)
+                        inner = edgeStruct.innerContours{j};
+                        plot(ax, inner.x, inner.y, '.', ...
+                            'Color', color, ...
+                            'MarkerSize', 6);
+                    end
+                end
+            end
+        
+            % --- Leyenda dentro del canvas ---
+            labels = arrayfun(@(i) sprintf('Contours (Piece %d)', i), ...
+                1:numel(pieceClusters), 'UniformOutput', false);
+            lgd = legend(ax, hPlots, labels, 'Location', 'northeast');
+            set(lgd, 'Interpreter', 'none', 'Box', 'on');
+        
+            title(ax, 'Detected pieces with contours');
+            hold(ax, 'off');
+        end
+
+
         function renderBBoxes(self, bboxes)
         % renderBBoxes() Redraw all bboxes on canvas.
         %
@@ -143,5 +213,89 @@ classdef Canvas < handle
         
             hold(ax, 'off');
         end
+
+
+        function showStage(self, matrix, titleText, subtitleText)
+        % showStage() Display an image with a title and a subtitle on the UIAxes.
+        %
+        %   Inputs:
+        %       - matrix: Image matrix (grayscale or RGB) to render.
+        %       - titleText: Title displayed above the image.
+        %       - subtitleText: Subtitle displayed just below the title.
+        %
+        %   This version uses the native `subtitle()` function, so the text
+        %   automatically stays above the image and never overlaps.
+        
+            % --- Clean previous content
+            cla(self.canvas);
+            legend(self.canvas, 'off');
+            title(self.canvas, '');
+        
+            % --- Show image
+            img = imagesc(self.canvas, matrix);
+            set(img, 'HitTest', 'off');
+        
+            % --- Adjust axes
+            axis(self.canvas, 'image');
+            self.canvas.XLim = [0.5, size(matrix,2)+0.5];
+            self.canvas.YLim = [0.5, size(matrix,1)+0.5];
+            self.canvas.Color = 'w';
+            box(self.canvas, 'on');
+            self.canvas.XColor = [0 0 0];
+            self.canvas.YColor = [0 0 0];
+            self.canvas.FontSize = 10;
+        
+            % --- Title
+            title(self.canvas, titleText, ...
+                'Interpreter', 'none', ...
+                'FontSize', 14, ...
+                'FontWeight', 'bold', ...
+                'Color', 'k');
+        
+            % --- Subtitle (below title)
+            subtitle(self.canvas, subtitleText, ...
+                'Interpreter', 'none', ...
+                'FontSize', 10, ...
+                'FontAngle', 'italic', ...
+                'Color', [0.3 0.3 0.3]);
+        end
+
+
+        function cleanCanvas(self)
+        % reset() Clears the UIAxes content and restores its initial visual state.
+
+            if isempty(self.canvas) || ~isvalid(self.canvas)
+                return;
+            end
+        
+            % --- Clean graphics ---
+            cla(self.canvas);
+            hold(self.canvas, 'off');
+            legend(self.canvas, 'off');
+            title(self.canvas, '');
+            subtitle(self.canvas, '');
+            grid(self.canvas, 'off');  % igual que al inicio (sin grid)
+    
+            % --- Restore visual configuration ---
+            axis(self.canvas, 'normal');       
+            box(self.canvas, 'on');            
+            self.canvas.Color = [1 1 1];       
+            self.canvas.XColor = [0 0 0];
+            self.canvas.YColor = [0 0 0];
+        
+            % --- Restore labels and limits as at startup ---
+            xlabel(self.canvas, 'X');
+            ylabel(self.canvas, 'Y');
+            self.canvas.XLimMode = 'auto';
+            self.canvas.YLimMode = 'auto';
+            self.canvas.XTickMode = 'auto';
+            self.canvas.YTickMode = 'auto';
+        
+            if isprop(self.canvas, 'Toolbar')
+                self.canvas.Toolbar.Visible = 'off';
+            end
+
+        end
+
     end
 end
