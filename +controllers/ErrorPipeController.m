@@ -47,7 +47,8 @@ classdef ErrorPipeController
                     svgPaths, cornersSVG);
             end
             
-            % self.wireActionsOnShowCalculatedError();
+            self.wireActionsOnShowCalculatedError( ...
+                svgPaths, configParams.error.tolerance);
             self.wireActionsOnShowErrorStages();
             self.wireActionsOnShowPreviousErrorStage();
             self.wireActionsOnShowNextErrorStage();
@@ -132,13 +133,7 @@ classdef ErrorPipeController
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Cálculo error sobre cada punto...');
             edgesWithError = errorPipeline.laceError.pointsError(edgesOk, svgMaskParameters);
-            stage = models.Stage( ...
-                errorPipeline.laceError.plotErrorOnSVG( ...
-                svgPaths, edgesWithError, errorTolerancemm), ...
-                sprintf("Etapa %d: Cálculo error sobre cada punto", step), ...
-                "Image.");
-            errorStageViewer.addStage(stage);
-
+            bbox.setEdgesWithError(edgesWithError);
         end
         
     end
@@ -156,8 +151,24 @@ classdef ErrorPipeController
         end
 
 
-        function wireActionsOnShowCalculatedError(self)
+        function wireActionsOnShowCalculatedError(self, svgPaths, tolerance)
+
+            tg = self.resultsConsoleWrapper.getTabGroup();
+            tabs = tg.Children;
+
+            for i = 1:numel(tabs)
+                tab = tabs(i);
+                
+                if isa(tab.UserData, 'viewWrapper.results.TabPiece')
+                    bboxId = tab.UserData.getId();
+                    bbox = self.imageModel.getBBoxById(bboxId);
         
+                    if ~isempty(bbox)                        
+                        tab.UserData.setShowErrorOnSVGAction( ...
+                            @(~,~) self.showErrorOnSVG(svgPaths, bbox, tolerance));
+                    end
+                end
+            end
         end
 
         function wireActionsOnShowErrorStages(self)
@@ -223,6 +234,13 @@ classdef ErrorPipeController
                 end
             end
 
+        end
+
+
+        function showErrorOnSVG(self, svgPaths, bbox, tolerance)
+            self.canvasWrapper.plotErrorOnSVG( ...
+                svgPaths, bbox.getEdgesWithError(), tolerance);
+            self.stateApp.setImageDisplayed(false);
         end
 
 

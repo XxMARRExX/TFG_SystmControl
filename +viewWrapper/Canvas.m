@@ -261,6 +261,94 @@ classdef Canvas < handle
         end
 
 
+        function plotErrorOnSVG(self, svgPaths, edgesWithError, threshold)
+        % plotErrorOnSVG() Displays the contour errors (exterior + interiors)
+        % aligned with the SVG model directly on the app canvas.
+        %
+        %   Inputs:
+        %       - svgPaths: cell array with SVG contours (in real coordinates)
+        %       - edgesWithError: struct with fields:
+        %           .exterior (x, y, e)
+        %           .innerContours{...} (x, y, e)
+        %       - threshold: base error threshold (mm)
+        %
+        %   This method draws directly on the UIAxes canvas, following the same
+        %   visual logic as other Canvas methods (no new figure is created).
+        
+            ax = self.canvas;
+        
+            % --- Preparar canvas ---
+            cla(ax);
+            hold(ax, 'on');
+            axis(ax, 'equal');
+            grid(ax, 'on');
+            title(ax, 'Error sobre cada punto detectado');
+            xlabel(ax, 'x (mm)');
+            ylabel(ax, 'y (mm)');
+            box(ax, 'on');
+            ax.Toolbar.Visible = 'off';
+        
+            % --- 1. Dibujar el modelo SVG (línea fina gris) ---
+            for i = 1:numel(svgPaths)
+                if isempty(svgPaths{i})
+                    continue;
+                end
+                plot(ax, svgPaths{i}(:,1), svgPaths{i}(:,2), '-', ...
+                    'Color', [0 0 0], 'LineWidth', 0.5);
+            end
+        
+            % --- 2. Unir puntos y errores (exterior + interiores) ---
+            pts = [edgesWithError.exterior.x(:), edgesWithError.exterior.y(:)];
+            e   = edgesWithError.exterior.e(:);
+        
+            if isfield(edgesWithError, 'innerContours')
+                for i = 1:numel(edgesWithError.innerContours)
+                    ic = edgesWithError.innerContours{i};
+                    if ~isempty(ic)
+                        pts = [pts; ic.x(:), ic.y(:)]; %#ok<AGROW>
+                        e   = [e;   ic.e(:)];          %#ok<AGROW>
+                    end
+                end
+            end
+        
+            % --- 3. Crear colormap (verde, amarillo, naranja, rojo) ---
+            cmap = [
+                0.2 0.8 0.2;   % verde
+                1.0 1.0 0.2;   % amarillo
+                1.0 0.6 0.1;   % naranja
+                1.0 0.2 0.2    % rojo
+            ];
+        
+            % --- 4. Asignar color según nivel de error ---
+            mag = abs(e);
+            colorIdx = 4*ones(size(mag));
+            colorIdx(mag <= 3*threshold) = 3;
+            colorIdx(mag <= 2*threshold) = 2;
+            colorIdx(mag <= threshold)   = 1;
+        
+            % --- 5. Dibujar puntos coloreados por error ---
+            scatter(ax, pts(:,1), pts(:,2), 20, cmap(colorIdx,:), 'filled');
+        
+            % --- 6. Crear leyenda con rangos de error ---
+            hModel = plot(ax, NaN, NaN, '-', 'Color', [0 0 0], 'LineWidth', 0.5);
+            hGreen  = scatter(ax, NaN, NaN, 20, cmap(1,:), 'filled');
+            hYellow = scatter(ax, NaN, NaN, 20, cmap(2,:), 'filled');
+            hOrange = scatter(ax, NaN, NaN, 20, cmap(3,:), 'filled');
+            hRed    = scatter(ax, NaN, NaN, 20, cmap(4,:), 'filled');
+        
+            legend(ax, [hModel, hGreen, hYellow, hOrange, hRed], { ...
+                'Modelo SVG', ...
+                sprintf('e ≤ %.1f mm (Dentro tolerancia)', threshold), ...
+                sprintf('%.1f < e ≤ %.1f mm', threshold, 2*threshold), ...
+                sprintf('%.1f < e ≤ %.1f mm', 2*threshold, 3*threshold), ...
+                sprintf('e > %.1f mm', 3*threshold) ...
+            }, 'Location', 'northeast');
+        
+            hold(ax, 'off');
+        end
+
+
+
         function cleanCanvas(self)
         % reset() Clears the UIAxes content and restores its initial visual state.
 

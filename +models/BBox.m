@@ -22,6 +22,7 @@ classdef BBox < handle
         refinedCropImage uint8;
         detectedEdges;
         filteredEdges;
+        edgesWithError;
         filterStageViewer;
         errorStageViewer;
         onDeleteFcn function_handle
@@ -127,6 +128,15 @@ classdef BBox < handle
 
         function filteredEdges = getFilteredEdges(self)
             filteredEdges = self.filteredEdges;
+        end
+
+        function setEdgesWithError(self, edgesWithError)
+            self.edgesWithError = edgesWithError;
+        end
+
+
+        function edgesWithError = getEdgesWithError(self)
+            edgesWithError = self.edgesWithError;
         end
         
     end

@@ -80,6 +80,11 @@ classdef TabPiece < handle
         end
 
 
+        function setShowErrorOnSVGAction(self, callbackFcn)
+            self.errorButton.Callback = callbackFcn;
+        end
+
+
         function setShowFilteredStagesAction(self, callbackFcn)
             self.showFilterStages.Callback = callbackFcn;
         end
