@@ -20,7 +20,6 @@ classdef PipeController
     properties (Access = private)
         stateApp;
         imageModel;
-        svgModel;
         canvasWrapper;
         resultsConsoleWrapper;
         feedbackManager;
@@ -29,13 +28,12 @@ classdef PipeController
     methods (Access = public)
         
         function self = PipeController( ...
-                stateApp, imageModel, svgModel, ...
+                stateApp, imageModel, ...
                 canvasWrapper, resultsConsoleWrapper, ...
                 feedbackManager)
 
             self.stateApp = stateApp;
             self.imageModel = imageModel;
-            self.svgModel = svgModel;
             self.canvasWrapper = canvasWrapper;
             self.resultsConsoleWrapper = resultsConsoleWrapper;
             self.feedbackManager = feedbackManager;
@@ -433,7 +431,7 @@ classdef PipeController
                     bbox = self.imageModel.getBBoxById(bboxId);
         
                     if ~isempty(bbox)                        
-                        tab.UserData.setShowPreviousStageAction( ...
+                        tab.UserData.setShowPreviousFilteredStageAction( ...
                             @(~,~) self.showPreviousFilterStage(bboxId));
                     end
                 end
@@ -455,7 +453,7 @@ classdef PipeController
                     bbox = self.imageModel.getBBoxById(bboxId);
         
                     if ~isempty(bbox)                        
-                        tab.UserData.setShowNextStageAction( ...
+                        tab.UserData.setShowNextFilteredStageAction( ...
                             @(~,~) self.showNextFilterStage(bboxId));
                     end
                 end
