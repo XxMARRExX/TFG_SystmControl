@@ -14,7 +14,7 @@ function configParams = config()
     configParams.pathImagen = "pictures/Pieza2/OLD/Imagen1.png";
 
     %% SVG
-    configParams.pathSVG = "data/models/Pieza5.svg";
+    configParams.pathSVG = "data/models/Pieza2.svg";
 
     % Doc imagenes
     [pathBase, nombreImagen, ~] = fileparts(configParams.pathImagen);

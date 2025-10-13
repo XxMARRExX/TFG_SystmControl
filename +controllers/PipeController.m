@@ -432,7 +432,7 @@ classdef PipeController
         
                     if ~isempty(bbox)                        
                         tab.UserData.setShowPreviousFilteredStageAction( ...
-                            @(~,~) self.showPreviousFilterStage(bboxId));
+                            @(~,~) self.showPreviousFilteredStage(bboxId));
                     end
                 end
             end
@@ -454,7 +454,7 @@ classdef PipeController
         
                     if ~isempty(bbox)                        
                         tab.UserData.setShowNextFilteredStageAction( ...
-                            @(~,~) self.showNextFilterStage(bboxId));
+                            @(~,~) self.showNextFilteredStage(bboxId));
                     end
                 end
             end
@@ -536,7 +536,7 @@ classdef PipeController
         end
 
 
-        function showPreviousFilterStage(self, bboxId)
+        function showPreviousFilteredStage(self, bboxId)
             bbox = self.imageModel.getBBoxById(bboxId);
             if isempty(bbox)
                 return;
@@ -557,7 +557,7 @@ classdef PipeController
         end
 
 
-        function showNextFilterStage(self, bboxId)
+        function showNextFilteredStage(self, bboxId)
             bbox = self.imageModel.getBBoxById(bboxId);
             if isempty(bbox)
                 return;

@@ -10,7 +10,7 @@ grayImage = convertToGrayScale(image);
 
 
 disp("2 -- Rescalado de la imagen --")
-rescaledImage = imresize(grayImage, configParams.subpixelEdges.scale);
+rescaledImage = imresize(image, configParams.subpixelEdges.scale);
 
 
 

@@ -23,6 +23,7 @@ classdef BBox < handle
         detectedEdges;
         filteredEdges;
         filterStageViewer;
+        errorStageViewer;
         onDeleteFcn function_handle
     end
 
@@ -33,6 +34,7 @@ classdef BBox < handle
             self.setRoi(roi);
             self.onDeleteFcn = onDeleteFcn;
             self.filterStageViewer = models.StageViewer();
+            self.errorStageViewer = models.StageViewer();
         end
         
         
@@ -100,6 +102,11 @@ classdef BBox < handle
 
         function filterStageViewer = getFilterStageViewer(self)
             filterStageViewer = self.filterStageViewer;
+        end
+
+
+        function errorStageViewer = getErrorStageViewer(self)
+            errorStageViewer = self.errorStageViewer;
         end
 
 

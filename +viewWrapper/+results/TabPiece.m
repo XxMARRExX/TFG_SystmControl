@@ -79,16 +79,34 @@ classdef TabPiece < handle
             self.filterButton.Callback = callbackFcn;
         end
 
+
         function setShowFilteredStagesAction(self, callbackFcn)
             self.showFilterStages.Callback = callbackFcn;
         end
 
-        function setShowPreviousStageAction(self, callbackFcn)
+
+        function setShowPreviousFilteredStageAction(self, callbackFcn)
             self.prevFilterStage.Callback = callbackFcn;
         end
 
-        function setShowNextStageAction(self, callbackFcn)
+
+        function setShowNextFilteredStageAction(self, callbackFcn)
             self.nextFilterStage.Callback = callbackFcn;
+        end
+
+
+        function setShowErrorStagesAction(self, callbackFcn)
+            self.showErrorStages.Callback = callbackFcn;
+        end
+
+        
+        function setShowPreviousErrorStageAction(self, callbackFcn)
+            self.prevErrorStage.Callback = callbackFcn;
+        end
+
+
+        function setShowNextErrorStageAction(self, callbackFcn)
+            self.nextErrorStage.Callback = callbackFcn;
         end
 
     end
