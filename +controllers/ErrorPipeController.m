@@ -68,20 +68,77 @@ classdef ErrorPipeController
             pxlTomm = 15;
             errorTolerancemm = 0.3;
 
-            totalSteps = 12;
+            totalSteps = 7;
             step = 0;
             
             % Stage 1
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Cálculo BoundingBox de la pieza...');
             points = [filteredEdges{1}.edges.exterior.x, filteredEdges{1}.edges.exterior.y];
-            bBoxFinal = minBoundingBox(points');
-            cornersPiece = formatCorners(bBoxFinal);
-            stage1 = models.Stage( ...
+            bBoxFinal = pipeline.piece.boundingbox.minBoundingBox(points');
+            cornersPiece = errorPipeline.lace.calculate.formatCorners(bBoxFinal);
+            stage = models.Stage( ...
                 errorPipeline.lace.visualization.drawPieceBoundingBox(filteredEdges, cornersPiece), ...
                 sprintf("Etapa %d: Cálculo BoundingBox del SVG.", step), ...
                 "Image.");
-            errorStageViewer.addStage(stage1);
+            errorStageViewer.addStage(stage);
+
+            % Stage 2
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Encaje de ambos Bboxes...');
+            cornersPieceAligned = errorPipeline.lace.calculate.alignBoundingBoxCorners( ...
+                cornersSVG, cornersPiece);
+            [d, Z, transform] = procrustes(cornersSVG, cornersPieceAligned, ...
+                'Scaling', true, 'Reflection', false);
+            stage = models.Stage( ...
+                errorPipeline.lace.visualization.drawBoundingBoxesAlignment(cornersSVG, Z), ...
+                sprintf("Etapa %d: Encaje de ambos Bboxes.", step), ...
+                "Image.");
+            errorStageViewer.addStage(stage);
+
+            % Stage 3
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Aplicar transformación procrustes...');
+            [pieceClustersTransformed, cornersPieceTransformed] = errorPipeline.lace.calculate.applyProcrustesTransform( ...
+                filteredEdges, cornersPiece, transform);
+            
+            % Stage 4
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Rectificación de orientación...');
+            [edgesOk, oriDeg, err] = errorPipeline.lace.calculate.pickBestEdgeOrientation( ...
+                cornersPieceTransformed, pieceClustersTransformed, svgPaths);
+
+            
+            % Stage 5
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Encaje de ambos Bboxes...');
+            stage = models.Stage( ...
+                errorPipeline.lace.visualization.drawPieceOnSVG(edgesOk, svgPaths), ...
+                sprintf("Etapa %d: Encaje de ambos Bboxes.", step), ...
+                "Image.");
+            errorStageViewer.addStage(stage);
+
+            % Stage 6
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Extracción máscara binaria del SVG...');
+            svgMaskParameters = errorPipeline.laceError.svgBinaryMask(svgPaths, pxlTomm);
+            stage = models.Stage( ...
+                errorPipeline.laceError.visualizeSVGBinaryMask(svgMaskParameters.mask), ...
+                sprintf("Etapa %d: Extracción máscara binaria del SVG.", step), ...
+                "Image.");
+            errorStageViewer.addStage(stage);
+
+            % Stage 7
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Cálculo error sobre cada punto...');
+            edgesWithError = errorPipeline.laceError.pointsError(edgesOk, svgMaskParameters);
+            stage = models.Stage( ...
+                errorPipeline.laceError.plotErrorOnSVG( ...
+                svgPaths, edgesWithError, errorTolerancemm), ...
+                sprintf("Etapa %d: Cálculo error sobre cada punto", step), ...
+                "Image.");
+            errorStageViewer.addStage(stage);
+
         end
         
     end
@@ -219,7 +276,7 @@ classdef ErrorPipeController
 
             nextStage = errorStageViewer.next();
 
-            self.canvasWrapper.showStage(prevStage.getImage(), ...
+            self.canvasWrapper.showStage(nextStage.getImage(), ...
                 nextStage.getTittle(), ...
                 nextStage.getSubTittle());
             self.stateApp.setImageDisplayed(false);

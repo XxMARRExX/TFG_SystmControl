@@ -2,12 +2,38 @@ clear; clc; close all;
 totalStart = tic;
 configParams = config();
 
-
-disp("1 -- Paso de la imagen a gris --")
 image = imread(configParams.pathImagen);
+
+% Convertir a escala de grises
 grayImage = convertToGrayScale(image);
 
+% Mostrar imagen para seleccionar ROI
+figure('Name', 'Selecciona la región de interés (ROI)');
+imshow(grayImage, 'InitialMagnification', 'fit');
+title('Dibuja un rectángulo para seleccionar la pieza');
+axis on;
 
+% Esperar a que el usuario dibuje el rectángulo ROI
+roi = drawrectangle('Color', 'r', 'LineWidth', 1.5);
+disp("Selecciona la ROI y pulsa doble clic dentro del rectángulo para confirmar...");
+
+% Esperar a que se confirme la selección (doble clic)
+wait(roi);
+
+% Obtener posición [x, y, width, height]
+roiPosition = round(roi.Position);
+
+% Recortar imagen según la ROI
+croppedImage = imcrop(grayImage, roiPosition);
+
+% Cerrar la figura original
+close(gcf);
+
+grayImage = convertToGrayScale(croppedImage);
+
+% disp("1 -- Paso de la imagen a gris --")
+% image = imread(configParams.pathImagen);
+% grayImage = convertToGrayScale(image);
 
 disp("2 -- Rescalado de la imagen --")
 rescaledImage = imresize(image, configParams.subpixelEdges.scale);
@@ -216,7 +242,7 @@ disp("21 -- Rectificación de orientación --")
 
 
 disp("22 -- Encaje entre SVG y pieza --")
-% drawPieceOnSVG(edgesOk, svgPaths);
+drawPieceOnSVG(edgesOk, svgPaths);
 
 % fig = gcf;
 % title("Capa 22: Encaje entre SVG y pieza ");
