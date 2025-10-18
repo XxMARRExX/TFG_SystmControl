@@ -22,8 +22,11 @@ classdef BBox < handle
         refinedCropImage uint8;
         detectedEdges;
         filteredEdges;
+        edgesWithError;
         filterStageViewer;
+        errorStageViewer;
         onDeleteFcn function_handle
+        transformedSVGPaths
     end
 
     methods (Access = public)
@@ -33,6 +36,7 @@ classdef BBox < handle
             self.setRoi(roi);
             self.onDeleteFcn = onDeleteFcn;
             self.filterStageViewer = models.StageViewer();
+            self.errorStageViewer = models.StageViewer();
         end
         
         
@@ -103,6 +107,11 @@ classdef BBox < handle
         end
 
 
+        function errorStageViewer = getErrorStageViewer(self)
+            errorStageViewer = self.errorStageViewer;
+        end
+
+
         function setDetectedEdges(self, detectedEdges)
             self.detectedEdges = detectedEdges;
         end
@@ -120,6 +129,25 @@ classdef BBox < handle
 
         function filteredEdges = getFilteredEdges(self)
             filteredEdges = self.filteredEdges;
+        end
+
+        function setEdgesWithError(self, edgesWithError)
+            self.edgesWithError = edgesWithError;
+        end
+
+
+        function edgesWithError = getEdgesWithError(self)
+            edgesWithError = self.edgesWithError;
+        end
+
+
+        function setAssociatedSVG(self, transformedSVGPaths)
+            self.transformedSVGPaths = transformedSVGPaths;
+        end
+
+
+        function transformedSVGPaths = getAssociatedSVG(self)
+            transformedSVGPaths = self.transformedSVGPaths;
         end
         
     end

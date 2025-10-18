@@ -61,7 +61,7 @@ classdef ImageController
             self.canvasWrapper.showImage(self.imageModel.getImage());
             
             % State app
-            self.stateApp.setImageDisplayed(true);
+            self.stateApp.setActiveState('imageDisplayed');
         end
 
 
@@ -77,7 +77,7 @@ classdef ImageController
             self.canvasWrapper.renderBBoxes(self.imageModel.getbBoxes());
             
             % State app
-            self.stateApp.setImageDisplayed(true);
+            self.stateApp.setActiveState('imageDisplayed');
         end
         
     end

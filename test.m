@@ -2,15 +2,15 @@ clear; clc; close all;
 totalStart = tic;
 configParams = config();
 
-
-disp("1 -- Paso de la imagen a gris --")
+disp("1 -- Lectura de la imagen --")
 image = imread(configParams.pathImagen);
 grayImage = convertToGrayScale(image);
+croppedImage = selectPieceROI(grayImage);
 
 
 
 disp("2 -- Rescalado de la imagen --")
-rescaledImage = imresize(grayImage, configParams.subpixelEdges.scale);
+rescaledImage = imresize(croppedImage, configParams.subpixelEdges.scale);
 
 
 
@@ -41,7 +41,7 @@ disp("5 -- Cálculo del Bbox imagen sin reescalado --")
 BboxPiece = calculateExpandedBoundingBox(edges, ...
     configParams.subpixelEdges.scale, configParams.BboxPiece.margin);
 
-% drawBoundingBoxOnImage(grayImage, BboxPiece);
+% drawBoundingBoxOnImage(croppedImage, BboxPiece);
 % fig = gcf;
 % title("Capa 5: Cálculo del Bbox imagen sin reescalado");
 % capa = "05_Calculo_Bbox_imagen_sin_reescalado";
@@ -50,12 +50,12 @@ BboxPiece = calculateExpandedBoundingBox(edges, ...
 
 
 disp("6 -- Recorte de la imagen según el Bbox --");
-cropImage = cropImageByBoundingBox(grayImage, BboxPiece);
+cropImage = cropImageByBoundingBox(croppedImage, BboxPiece);
 
 
 
-disp("7 -- Sombras en píxeles que son ruido --");
-cropImage = eraseRegionInImage(cropImage, configParams.pathImagen);
+% disp("7 -- Sombras en píxeles que son ruido --");
+% cropImage = eraseRegionInImage(cropImage, configParams.pathImagen);
 
 
 
@@ -146,7 +146,7 @@ piecesInnerContours = findInnerContours(filteredClusters, size(cropImage), ...
 disp("15 -- Asociación de contornos internos a pieza/s --")
 pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContours, maskPieza);
 
-% showImageWithEdges(cropImage, pieceClusters);
+showImageWithEdges(cropImage, pieceClusters);
 % fig = gcf;
 % title("Capa 15: Asociación de contornos internos a pieza/s");
 % capa = "15_Asociacion_contornos_internos_piezas";
@@ -157,16 +157,18 @@ pieceClusters = associateInnerContoursToPieces(pieceClusters, piecesInnerContour
 
 %% Proceso de encaje
 disp("16 -- Carga del plano SVG --")
-configParams = config();
+% configParams = config();
 svgPaths = importSVG(configParams.pathSVG);
 
-plotSVGModel(svgPaths)
+% plotSVGModel(svgPaths)
 % fig = gcf;
 % title("Capa 16: Carga del plano SVG");
 % capa = "16_Carga_SVG";
 % saveImage(fig, configParams.nombreImagenDoc, configParams.nombreActualFlujo, capa);
 
-
+for i = 1:numel(svgPaths)
+    svgPaths{i} = svgPaths{i}(~any(isnan(svgPaths{i}),2), :);
+end
 
 disp("17 -- Cálculo BoundingBox del SVG --")
 cornersSVG = calculateBboxSVG(svgPaths);
@@ -211,12 +213,13 @@ disp("20 -- Aplicar transformación procrustes --")
 
 
 disp("21 -- Rectificación de orientación --")
-[edgesOk, oriDeg, err] = pickBestEdgeOrientation(cornersPieceTransformed, pieceClustersTransformed, svgPaths);
+[edgesOk, oriDeg, err, bboxCenter, rotatedFlag] = pickBestEdgeOrientation( ...
+    cornersPieceTransformed, pieceClustersTransformed, svgPaths);
 
 
 
 disp("22 -- Encaje entre SVG y pieza --")
-% drawPieceOnSVG(edgesOk, svgPaths);
+drawPieceOnSVG(edgesOk, svgPaths);
 
 % fig = gcf;
 % title("Capa 22: Encaje entre SVG y pieza ");
@@ -245,6 +248,22 @@ plotErrorOnSVG(svgPaths, edgesWithError, configParams.errorTolerancemm);
 % capa = "24_Calculo_error_puntos";
 % saveImage(fig, configParams.nombreImagenDoc, configParams.nombreActualFlujo, capa);
 
+disp("25 -- Error sobre la imagen original --")
+pointsPiece = edgesWithError;
+
+if rotatedFlag
+    pointsPiece = undoRotation(pointsPiece, oriDeg, bboxCenter);
+end
+
+pointsPiece = applyInverseProcrustesTransform(pointsPiece, transform);
+
+svgPathsInv = invertSvgPathsTransform(svgPaths, transform, oriDeg, bboxCenter, rotatedFlag);
+
+plotErrorOnOriginalImage( ...
+    cropImage, ...
+    svgPathsInv, ...
+    pointsPiece, ...
+    configParams.errorTolerancemm);
 
 %% Tiempo total
 disp(['Tiempo total del programa: ' num2str(toc(totalStart)) ' segundos'])

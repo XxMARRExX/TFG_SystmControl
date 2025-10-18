@@ -27,7 +27,7 @@ function [edgesBest, bestOriDeg, bestRMSE, bboxCenter, rotatedFlag] = pickBestEd
     rmse0 = rmseNoRotation(Pdet0, PsvgAll);
 
     % 4. Orientation 180°
-    [edges180, bboxCenter] = rotatePiece180(edges, cornersPiece);
+    [edges180, bboxCenter] = errorPipeline.lace.calculate.rotatePiece180(edges, cornersPiece);
     Pdet180  = gatherDetPoints(edges180);
     rmse180  = rmseNoRotation(Pdet180, PsvgAll);
 

@@ -20,7 +20,6 @@ classdef PipeController
     properties (Access = private)
         stateApp;
         imageModel;
-        svgModel;
         canvasWrapper;
         resultsConsoleWrapper;
         feedbackManager;
@@ -29,13 +28,12 @@ classdef PipeController
     methods (Access = public)
         
         function self = PipeController( ...
-                stateApp, imageModel, svgModel, ...
+                stateApp, imageModel, ...
                 canvasWrapper, resultsConsoleWrapper, ...
                 feedbackManager)
 
             self.stateApp = stateApp;
             self.imageModel = imageModel;
-            self.svgModel = svgModel;
             self.canvasWrapper = canvasWrapper;
             self.resultsConsoleWrapper = resultsConsoleWrapper;
             self.feedbackManager = feedbackManager;
@@ -433,8 +431,8 @@ classdef PipeController
                     bbox = self.imageModel.getBBoxById(bboxId);
         
                     if ~isempty(bbox)                        
-                        tab.UserData.setShowPreviousStageAction( ...
-                            @(~,~) self.showPreviousFilterStage(bboxId));
+                        tab.UserData.setShowPreviousFilteredStageAction( ...
+                            @(~,~) self.showPreviousFilteredStage(bboxId));
                     end
                 end
             end
@@ -455,8 +453,8 @@ classdef PipeController
                     bbox = self.imageModel.getBBoxById(bboxId);
         
                     if ~isempty(bbox)                        
-                        tab.UserData.setShowNextStageAction( ...
-                            @(~,~) self.showNextFilterStage(bboxId));
+                        tab.UserData.setShowNextFilteredStageAction( ...
+                            @(~,~) self.showNextFilteredStage(bboxId));
                     end
                 end
             end
@@ -488,7 +486,7 @@ classdef PipeController
         
         function showCroopedImage(self, image)
             self.canvasWrapper.showImage(image);
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('croppedImageByUserDisplayed');
         end
 
 
@@ -503,7 +501,7 @@ classdef PipeController
             edges = bbox.getDetectedEdges();
 
             self.canvasWrapper.showImageWithEdges(image, edges);
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('detectedEdgesDisplayed');
         end
 
 
@@ -519,7 +517,7 @@ classdef PipeController
 
             self.canvasWrapper.showImageWithFilteredEdges(croppedImage, ...
                 filteredEdges);
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('filteredEdgesDisplayed');
         end
 
 
@@ -534,11 +532,11 @@ classdef PipeController
             self.canvasWrapper.showStage(startStage.getImage(), ...
                 startStage.getTittle(), ...
                 startStage.getSubTittle());
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('filteredStagesDisplayed');
         end
 
 
-        function showPreviousFilterStage(self, bboxId)
+        function showPreviousFilteredStage(self, bboxId)
             bbox = self.imageModel.getBBoxById(bboxId);
             if isempty(bbox)
                 return;
@@ -555,11 +553,11 @@ classdef PipeController
             self.canvasWrapper.showStage(prevStage.getImage(), ...
                 prevStage.getTittle(), ...
                 prevStage.getSubTittle());
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('filteredStagesDisplayed');
         end
 
 
-        function showNextFilterStage(self, bboxId)
+        function showNextFilteredStage(self, bboxId)
             bbox = self.imageModel.getBBoxById(bboxId);
             if isempty(bbox)
                 return;
@@ -576,7 +574,7 @@ classdef PipeController
             self.canvasWrapper.showStage(nextStage.getImage(), ...
                 nextStage.getTittle(), ...
                 nextStage.getSubTittle());
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('filteredStagesDisplayed');
         end
 
     end
