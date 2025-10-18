@@ -261,43 +261,46 @@ classdef Canvas < handle
         end
 
 
-        function plotErrorOnSVG(self, svgPaths, edgesWithError, threshold)
-        % plotErrorOnSVG() Displays the contour errors (exterior + interiors)
-        % aligned with the SVG model directly on the app canvas.
+        function showErrorOnOriginalImage(self, originalImage, svgPaths, edgesWithError, threshold)
+        % showErrorOnOriginalImage() Displays the detected points (with error)
+        % and the SVG model over the original image directly on the app canvas.
         %
         %   Inputs:
-        %       - svgPaths: cell array with SVG contours (in real coordinates)
-        %       - edgesWithError: struct with fields:
-        %           .exterior (x, y, e)
-        %           .innerContours{...} (x, y, e)
-        %       - threshold: base error threshold (mm)
-        %
-        %   This method draws directly on the UIAxes canvas, following the same
-        %   visual logic as other Canvas methods (no new figure is created).
+        %       - originalImage: matrix (grayscale or RGB) of the original piece image.
+        %       - svgPaths: cell array of [Nx2] coordinates (already aligned to image).
+        %       - edgesWithError: struct containing:
+        %             .exterior (x, y, e)
+        %             .innerContours{...} (x, y, e)
+        %       - threshold: base error tolerance (e.g. mm)
         
             ax = self.canvas;
         
-            % --- Preparar canvas ---
+            % --- Preparar el canvas ---
             cla(ax);
             hold(ax, 'on');
-            axis(ax, 'equal');
-            grid(ax, 'on');
-            title(ax, 'Error sobre cada punto detectado');
-            xlabel(ax, 'x (mm)');
-            ylabel(ax, 'y (mm)');
+            axis(ax, 'image');
+            grid(ax, 'off');
+            title(ax, 'Error de los puntos sobre la imagen original');
             box(ax, 'on');
             ax.Toolbar.Visible = 'off';
         
-            % --- 1. Dibujar el modelo SVG (línea fina gris) ---
+            % --- 1. Dibujar la imagen de fondo ---
+            img = imagesc(ax, originalImage);
+            set(img, 'HitTest', 'off');
+            colormap(ax, gray);
+        
+            % --- 2. Dibujar el modelo SVG (azul claro) ---
+            svgColor = [0.26 0.65 0.96];  % azul claro (#42a5f5)
             for i = 1:numel(svgPaths)
-                if isempty(svgPaths{i})
+                P = svgPaths{i};
+                if isempty(P) || all(isnan(P(:)))
                     continue;
                 end
-                plot(ax, svgPaths{i}(:,1), svgPaths{i}(:,2), '-', ...
-                    'Color', [0 0 0], 'LineWidth', 0.5);
+                plot(ax, P(:,1), P(:,2), '-', ...
+                    'Color', svgColor, 'LineWidth', 1.3);
             end
         
-            % --- 2. Unir puntos y errores (exterior + interiores) ---
+            % --- 3. Reunir puntos con error ---
             pts = [edgesWithError.exterior.x(:), edgesWithError.exterior.y(:)];
             e   = edgesWithError.exterior.e(:);
         
@@ -311,30 +314,34 @@ classdef Canvas < handle
                 end
             end
         
-            % --- 3. Crear colormap (verde, amarillo, naranja, rojo) ---
+            % --- 4. Asignar color por nivel de error ---
             cmap = [
                 0.2 0.8 0.2;   % verde
                 1.0 1.0 0.2;   % amarillo
                 1.0 0.6 0.1;   % naranja
                 1.0 0.2 0.2    % rojo
             ];
-        
-            % --- 4. Asignar color según nivel de error ---
             mag = abs(e);
             colorIdx = 4*ones(size(mag));
             colorIdx(mag <= 3*threshold) = 3;
             colorIdx(mag <= 2*threshold) = 2;
             colorIdx(mag <= threshold)   = 1;
         
-            % --- 5. Dibujar puntos coloreados por error ---
-            scatter(ax, pts(:,1), pts(:,2), 20, cmap(colorIdx,:), 'filled');
-        
-            % --- 6. Crear leyenda con rangos de error ---
-            hModel = plot(ax, NaN, NaN, '-', 'Color', [0 0 0], 'LineWidth', 0.5);
-            hGreen  = scatter(ax, NaN, NaN, 20, cmap(1,:), 'filled');
-            hYellow = scatter(ax, NaN, NaN, 20, cmap(2,:), 'filled');
-            hOrange = scatter(ax, NaN, NaN, 20, cmap(3,:), 'filled');
-            hRed    = scatter(ax, NaN, NaN, 20, cmap(4,:), 'filled');
+            % --- 5. Dibujar puntos (encima del SVG) ---
+            h = scatter(ax, pts(:,1), pts(:,2), 22, cmap(colorIdx,:), 'filled', ...
+                        'MarkerEdgeColor', 'k', 'MarkerEdgeAlpha', 0.25);
+            h.UserData = e;  % guardar los errores en el handle
+            
+            % --- 5.1 Activar tooltip (solo sobre los puntos) ---
+            dcm = datacursormode(ancestor(ax, 'figure'));
+            dcm.UpdateFcn = @(~, event_obj) self.customTooltip(event_obj, h);
+
+            % --- 6. Crear leyenda ---
+            hModel  = plot(ax, NaN,NaN,'-', 'Color',svgColor, 'LineWidth',1.3);
+            hGreen  = scatter(ax, NaN, NaN, 22, cmap(1,:), 'filled');
+            hYellow = scatter(ax, NaN, NaN, 22, cmap(2,:), 'filled');
+            hOrange = scatter(ax, NaN, NaN, 22, cmap(3,:), 'filled');
+            hRed    = scatter(ax, NaN, NaN, 22, cmap(4,:), 'filled');
         
             legend(ax, [hModel, hGreen, hYellow, hOrange, hRed], { ...
                 'Modelo SVG', ...
@@ -342,11 +349,10 @@ classdef Canvas < handle
                 sprintf('%.1f < e ≤ %.1f mm', threshold, 2*threshold), ...
                 sprintf('%.1f < e ≤ %.1f mm', 2*threshold, 3*threshold), ...
                 sprintf('e > %.1f mm', 3*threshold) ...
-            }, 'Location', 'northeast');
+            }, 'Location', 'southeast');
         
             hold(ax, 'off');
         end
-
 
 
         function cleanCanvas(self)
@@ -385,5 +391,24 @@ classdef Canvas < handle
 
         end
 
+    end
+
+
+    methods(Access = private)
+        function txt = customTooltip(event_obj, h)
+            % Coordenadas
+            pos = get(event_obj, 'Position');
+            idx = get(event_obj, 'DataIndex');
+            
+            % Recuperar el error del UserData
+            e = h.UserData(idx);
+            
+            % Texto del datatip
+            txt = {
+                ['X: ', num2str(pos(1), '%.3f')]
+                ['Y: ', num2str(pos(2), '%.3f')]
+                ['Error (e): ', num2str(e, '%.3f'), ' mm']
+            };
+        end
     end
 end

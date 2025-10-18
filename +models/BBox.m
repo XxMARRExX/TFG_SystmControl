@@ -26,6 +26,7 @@ classdef BBox < handle
         filterStageViewer;
         errorStageViewer;
         onDeleteFcn function_handle
+        transformedSVGPaths
     end
 
     methods (Access = public)
@@ -137,6 +138,16 @@ classdef BBox < handle
 
         function edgesWithError = getEdgesWithError(self)
             edgesWithError = self.edgesWithError;
+        end
+
+
+        function setAssociatedSVG(self, transformedSVGPaths)
+            self.transformedSVGPaths = transformedSVGPaths;
+        end
+
+
+        function transformedSVGPaths = getAssociatedSVG(self)
+            transformedSVGPaths = self.transformedSVGPaths;
         end
         
     end

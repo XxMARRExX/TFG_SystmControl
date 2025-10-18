@@ -25,6 +25,13 @@ classdef ErrorPipeController
 
 
         function errorPipeline(self, configParams)
+            if ~self.stateApp.getStatusState('svgUploaded')
+                self.feedbackManager.showWarning("Para calcular el error " + ...
+                    "se debe haber cargado el archivo .svg de la " + ...
+                    "correspondiente pieza.")
+                return;
+            end
+
             fb = self.feedbackManager;
             
             self.resetProcessingState();
@@ -36,6 +43,11 @@ classdef ErrorPipeController
             
             fb.updateProgress(0, 'Cálculo BoundingBox del SVG...');
             svgPaths = self.svgModel.getContours();
+
+            for i = 1:numel(svgPaths)
+                svgPaths{i} = svgPaths{i}(~any(isnan(svgPaths{i}),2), :);
+            end
+
             cornersSVG = errorPipeline.svg.calculateBboxSVG(svgPaths);
         
             for i = 1:numImages
@@ -47,8 +59,7 @@ classdef ErrorPipeController
                     svgPaths, cornersSVG);
             end
             
-            self.wireActionsOnShowCalculatedError( ...
-                svgPaths, configParams.error.tolerance);
+            self.wireActionsOnShowCalculatedError(configParams.error.tolerance);
             self.wireActionsOnShowErrorStages();
             self.wireActionsOnShowPreviousErrorStage();
             self.wireActionsOnShowNextErrorStage();
@@ -69,7 +80,7 @@ classdef ErrorPipeController
             pxlTomm = 15;
             errorTolerancemm = 0.3;
 
-            totalSteps = 7;
+            totalSteps = 9;
             step = 0;
             
             % Stage 1
@@ -106,7 +117,7 @@ classdef ErrorPipeController
             % Stage 4
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Rectificación de orientación...');
-            [edgesOk, oriDeg, err] = errorPipeline.lace.calculate.pickBestEdgeOrientation( ...
+            [edgesOk, oriDeg, err, bboxCenter, rotatedFlag] = errorPipeline.lace.calculate.pickBestEdgeOrientation( ...
                 cornersPieceTransformed, pieceClustersTransformed, svgPaths);
 
             
@@ -133,7 +144,28 @@ classdef ErrorPipeController
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Cálculo error sobre cada punto...');
             edgesWithError = errorPipeline.laceError.pointsError(edgesOk, svgMaskParameters);
+            stage = models.Stage( ...
+                errorPipeline.laceError.plotErrorOnSVG( ...
+                svgPaths, edgesWithError, errorTolerancemm), ...
+                sprintf("Etapa %d: Cálculo error sobre cada punto", step), ...
+                "Image.");
+            errorStageViewer.addStage(stage);
+            
+            % Stage 8
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Transformación inversa de los puntos originales...');
+            if rotatedFlag
+                edgesWithError = undoRotation(edgesWithError, oriDeg, bboxCenter);
+            end
+            edgesWithError = applyInverseProcrustesTransform(edgesWithError, transform);
             bbox.setEdgesWithError(edgesWithError);
+
+            % Stage 9
+            step = step + 1;
+            fb.updateProgress(step/totalSteps, 'Transformación del SVG al sistema de la imagen original...');
+            svgPathsInv = invertSvgPathsTransform( ...
+                svgPaths, transform, oriDeg, bboxCenter, rotatedFlag);
+            bbox.setAssociatedSVG(svgPathsInv);
         end
         
     end
@@ -151,8 +183,8 @@ classdef ErrorPipeController
         end
 
 
-        function wireActionsOnShowCalculatedError(self, svgPaths, tolerance)
-
+        function wireActionsOnShowCalculatedError(self, tolerance)
+            
             tg = self.resultsConsoleWrapper.getTabGroup();
             tabs = tg.Children;
 
@@ -165,11 +197,13 @@ classdef ErrorPipeController
         
                     if ~isempty(bbox)                        
                         tab.UserData.setShowErrorOnSVGAction( ...
-                            @(~,~) self.showErrorOnSVG(svgPaths, bbox, tolerance));
+                            @(~,~) self.showErrorOnRefinedCropImage(bbox.getRefinedCroppedImage(), ...
+                            bbox.getAssociatedSVG(), bbox.getEdgesWithError(), tolerance));
                     end
                 end
             end
         end
+
 
         function wireActionsOnShowErrorStages(self)
             
@@ -237,10 +271,13 @@ classdef ErrorPipeController
         end
 
 
-        function showErrorOnSVG(self, svgPaths, bbox, tolerance)
-            self.canvasWrapper.plotErrorOnSVG( ...
-                svgPaths, bbox.getEdgesWithError(), tolerance);
-            self.stateApp.setImageDisplayed(false);
+        function showErrorOnRefinedCropImage( ...
+                self, refinedCropImage, svgPaths, edgesWithError, tolerance)
+
+            self.canvasWrapper.showErrorOnOriginalImage( ...
+                refinedCropImage, svgPaths, edgesWithError, tolerance);
+            self.stateApp.setActiveState('errorOnPieceDisplayed');
+
         end
 
 
@@ -255,7 +292,7 @@ classdef ErrorPipeController
             self.canvasWrapper.showStage(startStage.getImage(), ...
                 startStage.getTittle(), ...
                 startStage.getSubTittle());
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('errorStagesDisplayed');
         end
 
 
@@ -276,7 +313,7 @@ classdef ErrorPipeController
             self.canvasWrapper.showStage(prevStage.getImage(), ...
                 prevStage.getTittle(), ...
                 prevStage.getSubTittle());
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('errorStagesDisplayed');
         end
 
 
@@ -297,7 +334,7 @@ classdef ErrorPipeController
             self.canvasWrapper.showStage(nextStage.getImage(), ...
                 nextStage.getTittle(), ...
                 nextStage.getSubTittle());
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('errorStagesDisplayed');
         end
     end
 end
