@@ -47,8 +47,9 @@ classdef ToolsController < handle
         %
         %   Inputs:
         %       - canvas: UIAxes handle where the bounding box ROI will be drawn.
-            if ~self.stateApp.getImageDisplayed()
-                self.feedbackManager.showWarning("Esta herramienta requiere que haya una imagen cargada.")
+            if ~strcmp(self.stateApp.getActiveState(), 'imageDisplayed')
+                self.feedbackManager.showWarning("Esta herramienta requiere " + ...
+                    "que la imagen cargada esté sobre el lienzo.")
                 return;
             end
 

@@ -486,7 +486,7 @@ classdef PipeController
         
         function showCroopedImage(self, image)
             self.canvasWrapper.showImage(image);
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('croppedImageByUserDisplayed');
         end
 
 
@@ -501,7 +501,7 @@ classdef PipeController
             edges = bbox.getDetectedEdges();
 
             self.canvasWrapper.showImageWithEdges(image, edges);
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('detectedEdgesDisplayed');
         end
 
 
@@ -517,7 +517,7 @@ classdef PipeController
 
             self.canvasWrapper.showImageWithFilteredEdges(croppedImage, ...
                 filteredEdges);
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('filteredEdgesDisplayed');
         end
 
 
@@ -532,7 +532,7 @@ classdef PipeController
             self.canvasWrapper.showStage(startStage.getImage(), ...
                 startStage.getTittle(), ...
                 startStage.getSubTittle());
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('filteredStagesDisplayed');
         end
 
 
@@ -553,7 +553,7 @@ classdef PipeController
             self.canvasWrapper.showStage(prevStage.getImage(), ...
                 prevStage.getTittle(), ...
                 prevStage.getSubTittle());
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('filteredStagesDisplayed');
         end
 
 
@@ -574,7 +574,7 @@ classdef PipeController
             self.canvasWrapper.showStage(nextStage.getImage(), ...
                 nextStage.getTittle(), ...
                 nextStage.getSubTittle());
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('filteredStagesDisplayed');
         end
 
     end

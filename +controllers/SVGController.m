@@ -58,7 +58,8 @@ classdef SVGController
             self.canvasWrapper.showSVG( ...
                 self.svgModel.getContours());
 
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('svgDisplayed');
+            self.stateApp.activateState('svgUploaded');
         end
 
         
@@ -73,7 +74,7 @@ classdef SVGController
             self.canvasWrapper.showSVG( ...
                 self.svgModel.getContours());
 
-            self.stateApp.setImageDisplayed(false);
+            self.stateApp.setActiveState('svgDisplayed');
         end
 
     end
