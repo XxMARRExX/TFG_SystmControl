@@ -1,4 +1,4 @@
-function edgesRot = rotatePiece180(edges, bboxCorners)
+function [edgesRot, bboxCenter] = rotatePiece180(edges, bboxCorners)
 % ROTATEPIECE180 Applies a 180° rotation (central symmetry) around the bbox center.
 %
 %   edgesRot = rotatePiece180(edges, bboxCorners)
