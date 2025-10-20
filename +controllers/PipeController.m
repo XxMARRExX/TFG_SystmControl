@@ -66,12 +66,21 @@ classdef PipeController
                 self.processSingleImage(currentBBox, configParams);
             end
 
-            self.wireActionsOnShowImageButtons();
+            %self.wireActionsOnShowImageButtons();
+            self.wireTabSelectionChanged();
             self.wireActionsOnShowDetectedEdges();
             self.wireActionsOnShowFilteredEdges();
             self.wireActionsOnShowFilterStages();
             self.wireActionsOnShowPreviousFilterStage();
             self.wireActionsOnShowNextFilterStage();
+
+            tg = self.resultsConsoleWrapper.getTabGroup();
+            if ~isempty(tg.Children)
+                firstTab = tg.Children(end);
+                if isprop(firstTab, 'UserData') && isa(firstTab.UserData, 'viewWrapper.results.TabPiece')
+                    self.onTabChanged(firstTab.UserData);
+                end
+            end
         
             fb.updateProgress(1, 'Análisis completado.');
             fb.closeProgress();
@@ -305,7 +314,7 @@ classdef PipeController
             end
         end
 
-
+        %%
         function wireActionsOnShowImageButtons(self)
 
             tg = self.resultsConsoleWrapper.getTabGroup();
@@ -324,6 +333,31 @@ classdef PipeController
 
         end
 
+
+        function wireTabSelectionChanged(self)
+            tg = self.resultsConsoleWrapper.getTabGroup();
+        
+            tg.SelectionChangedFcn = @(src, evt) ...
+                self.onTabChanged(evt.NewValue.UserData);
+        end
+
+
+        function onTabChanged(self, tabPiece)
+            % onTabChanged() Updates the active BBox and displays its cropped image.
+            %
+            %   Inputs:
+            %       - tabPiece: instance of viewWrapper.results.TabPiece
+        
+            if isempty(tabPiece)
+                return;
+            end
+        
+            bboxId = tabPiece.getId();
+            self.stateApp.setCurrentBBox(bboxId);
+            self.canvasWrapper.showImage(tabPiece.imagePiece);
+            self.stateApp.setActiveState('croppedImageByUserDisplayed');
+        end
+%%
 
         function detectEdges(self, configParams, bbox)
         % detectEdges() Perform subpixel edge detection on cropped images (bBoxes).
