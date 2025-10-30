@@ -155,15 +155,15 @@ classdef ErrorPipeController
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Transformación inversa de los puntos originales...');
             if rotatedFlag
-                edgesWithError = undoRotation(edgesWithError, oriDeg, bboxCenter);
+                edgesWithError = errorPipeline.laceError.overOriginalPiece.undoRotation(edgesWithError, oriDeg, bboxCenter);
             end
-            edgesWithError = applyInverseProcrustesTransform(edgesWithError, transform);
+            edgesWithError = errorPipeline.laceError.overOriginalPiece.applyInverseProcrustesTransform(edgesWithError, transform);
             bbox.setEdgesWithError(edgesWithError);
 
             % Stage 9
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Transformación del SVG al sistema de la imagen original...');
-            svgPathsInv = invertSvgPathsTransform( ...
+            svgPathsInv = errorPipeline.laceError.overOriginalPiece.invertSvgPathsTransform( ...
                 svgPaths, transform, oriDeg, bboxCenter, rotatedFlag);
             bbox.setAssociatedSVG(svgPathsInv);
         end

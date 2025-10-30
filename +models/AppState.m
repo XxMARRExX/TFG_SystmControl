@@ -10,6 +10,7 @@ classdef AppState < handle
         states containers.Map
         activeState char
         activeTool matlab.ui.container.toolbar.ToggleTool;
+        currentBBoxId;
     end
     
     methods
@@ -60,11 +61,6 @@ classdef AppState < handle
         end
 
 
-        function state = getStateActiveTool(self)
-            state = self.activeTool.State;
-        end
-
-
         function setActiveTool(self, newActiveTool)
         % setActiveTool() Set a new active tool in the application state.
         %
@@ -81,6 +77,11 @@ classdef AppState < handle
         
             newActiveTool.State = "on";
             self.activeTool = newActiveTool;
+        end
+
+
+        function state = getStateActiveTool(self)
+            state = self.activeTool.State;
         end
 
 
@@ -103,6 +104,15 @@ classdef AppState < handle
             if isvalid(self.activeTool)
                 self.activeTool.State = "on";
             end
+        end
+
+
+        function setCurrentBBox(self, bboxId)
+            self.currentBBoxId = bboxId;
+        end
+    
+        function bboxId = getCurrentBBox(self)
+            bboxId = self.currentBBoxId;
         end
         
     end
