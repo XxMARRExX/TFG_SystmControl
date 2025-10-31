@@ -63,6 +63,14 @@ classdef ErrorPipeController
             self.wireActionsOnShowErrorStages();
             self.wireActionsOnShowPreviousErrorStage();
             self.wireActionsOnShowNextErrorStage();
+
+            tg = self.resultsConsoleWrapper.getTabGroup();
+            if ~isempty(tg.Children)
+                firstTab = tg.Children(end);
+                if isprop(firstTab, 'UserData') && isa(firstTab.UserData, 'viewWrapper.results.TabPiece')
+                    self.onTabChanged(firstTab.UserData, configParams.error.tolerance);
+                end
+            end
             
             fb.updateProgress(1, 'Error calculado.');
             fb.closeProgress();
@@ -76,9 +84,6 @@ classdef ErrorPipeController
 
             filteredEdges = bbox.getFilteredEdges();
             errorStageViewer = bbox.getErrorStageViewer();
-            
-            pxlTomm = 15;
-            errorTolerancemm = 0.3;
 
             totalSteps = 9;
             step = 0;
@@ -87,7 +92,7 @@ classdef ErrorPipeController
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Cálculo BoundingBox de la pieza...');
             points = [filteredEdges{1}.edges.exterior.x, filteredEdges{1}.edges.exterior.y];
-            bBoxFinal = pipeline.piece.boundingbox.minBoundingBox(points');
+            bBoxFinal = filterPipeline.piece.boundingbox.minBoundingBox(points');
             cornersPiece = errorPipeline.lace.calculate.formatCorners(bBoxFinal);
             stage = models.Stage( ...
                 errorPipeline.lace.visualization.drawPieceBoundingBox(filteredEdges, cornersPiece), ...
@@ -133,7 +138,7 @@ classdef ErrorPipeController
             % Stage 6
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Extracción máscara binaria del SVG...');
-            svgMaskParameters = errorPipeline.laceError.svgBinaryMask(svgPaths, pxlTomm);
+            svgMaskParameters = errorPipeline.laceError.svgBinaryMask(svgPaths, configParams.error.pixelTomm);
             stage = models.Stage( ...
                 errorPipeline.laceError.visualizeSVGBinaryMask(svgMaskParameters.mask), ...
                 sprintf("Etapa %d: Extracción máscara binaria del SVG.", step), ...
@@ -146,7 +151,7 @@ classdef ErrorPipeController
             edgesWithError = errorPipeline.laceError.pointsError(edgesOk, svgMaskParameters);
             stage = models.Stage( ...
                 errorPipeline.laceError.plotErrorOnSVG( ...
-                svgPaths, edgesWithError, errorTolerancemm), ...
+                svgPaths, edgesWithError, configParams.error.tolerance), ...
                 sprintf("Etapa %d: Cálculo error sobre cada punto", step), ...
                 "Image.");
             errorStageViewer.addStage(stage);
@@ -180,6 +185,26 @@ classdef ErrorPipeController
                     bbox.getErrorStageViewer().clear();
                 end
             end
+        end
+
+
+        function onTabChanged(self, tabPiece, tolerance)
+        % onTabChanged() Updates the active BBox and displays its cropped image.
+        %
+        %   Inputs:
+        %       - tabPiece: instance of viewWrapper.results.TabPiece
+        
+            if isempty(tabPiece)
+                return;
+            end
+        
+            bboxId = tabPiece.getId();
+            self.stateApp.setCurrentBBox(bboxId);
+            bbox = self.imageModel.getBBoxById(bboxId);
+            self.canvasWrapper.showErrorOnOriginalImage( ...
+                bbox.getRefinedCroppedImage(), ...
+                bbox.getAssociatedSVG(), bbox.getEdgesWithError(), tolerance);
+            self.stateApp.setActiveState('errorOnPieceDisplayed');
         end
 
 
