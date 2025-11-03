@@ -11,10 +11,10 @@ function configParams = config()
     configParams.nombreActualFlujo = "Flujo_20250819";
 
     %% Imagen
-    configParams.pathImagen = "pictures/Pieza2/OLD/Imagen1.png";
+    configParams.pathImagen = "pictures/Pieza1/Imagen7.png";
 
     %% SVG
-    configParams.pathSVG = "data/models/Pieza5.svg";
+    configParams.pathSVG = "data/models/Pieza1.svg";
 
     % Doc imagenes
     [pathBase, nombreImagen, ~] = fileparts(configParams.pathImagen);
@@ -24,11 +24,11 @@ function configParams = config()
     configParams.nombreImagenDoc = relPath + "_" + nombreImagen;
 
     %% SubpixelEdges
-    configParams.subpixelEdges.threshold_Phase1 = 40;
-    configParams.subpixelEdges.threshold_Phase2 = 20;
-    configParams.subpixelEdges.smoothingIter_Phase1 = 3;
-    configParams.subpixelEdges.smoothingIter_Phase2 = 1;
-    configParams.subpixelEdges.scale = 0.05;
+    configParams.subpixelEdges.threshold_Phase1 = 10;
+    configParams.subpixelEdges.threshold_Phase2 = 5;
+    configParams.subpixelEdges.smoothingIter_Phase1 = 5;
+    configParams.subpixelEdges.smoothingIter_Phase2 = 3;
+    configParams.subpixelEdges.scale = 0.15;
     
     %% BboxPiece margin
     configParams.BboxPiece.margin = 15;

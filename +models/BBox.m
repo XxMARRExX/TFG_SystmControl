@@ -19,8 +19,14 @@ classdef BBox < handle
         roi images.roi.Rectangle = images.roi.Rectangle.empty;
         position double = [];
         croppedImage uint8;
+        refinedCropImage uint8;
         detectedEdges;
+        filteredEdges;
+        edgesWithError;
+        filterStageViewer;
+        errorStageViewer;
         onDeleteFcn function_handle
+        transformedSVGPaths
     end
 
     methods (Access = public)
@@ -29,6 +35,8 @@ classdef BBox < handle
             self.id = models.BBox.generateRandomId();
             self.setRoi(roi);
             self.onDeleteFcn = onDeleteFcn;
+            self.filterStageViewer = models.StageViewer();
+            self.errorStageViewer = models.StageViewer();
         end
         
         
@@ -84,6 +92,26 @@ classdef BBox < handle
         end
 
 
+        function setRefinedCroppedImage(self, refinedCropImage)
+            self.refinedCropImage = refinedCropImage;
+        end
+
+
+        function refinedCropImage = getRefinedCroppedImage(self)
+            refinedCropImage = self.refinedCropImage;
+        end
+
+
+        function filterStageViewer = getFilterStageViewer(self)
+            filterStageViewer = self.filterStageViewer;
+        end
+
+
+        function errorStageViewer = getErrorStageViewer(self)
+            errorStageViewer = self.errorStageViewer;
+        end
+
+
         function setDetectedEdges(self, detectedEdges)
             self.detectedEdges = detectedEdges;
         end
@@ -91,6 +119,35 @@ classdef BBox < handle
 
         function detectedEdges = getDetectedEdges(self)
             detectedEdges = self.detectedEdges;
+        end
+
+
+        function setFilteredEdges(self, filteredEdges)
+            self.filteredEdges = filteredEdges;
+        end
+
+
+        function filteredEdges = getFilteredEdges(self)
+            filteredEdges = self.filteredEdges;
+        end
+
+        function setEdgesWithError(self, edgesWithError)
+            self.edgesWithError = edgesWithError;
+        end
+
+
+        function edgesWithError = getEdgesWithError(self)
+            edgesWithError = self.edgesWithError;
+        end
+
+
+        function setAssociatedSVG(self, transformedSVGPaths)
+            self.transformedSVGPaths = transformedSVGPaths;
+        end
+
+
+        function transformedSVGPaths = getAssociatedSVG(self)
+            transformedSVGPaths = self.transformedSVGPaths;
         end
         
     end
