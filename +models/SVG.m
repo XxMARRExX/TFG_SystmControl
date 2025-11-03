@@ -204,6 +204,9 @@ classdef SVG < handle
         
             xlim(ax, [xmin - padding*dx, xmax + padding*dx]);
             ylim(ax, [ymin - padding*dy, ymax + padding*dy]);
+
+            % 🔁 Invertir eje Y para coincidir con SVG
+            set(ax, 'YDir', 'reverse');
         
             % Exportar imagen (mayor precisión que getframe)
             tempFile = [tempname, '.png'];

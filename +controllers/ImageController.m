@@ -51,18 +51,38 @@ classdef ImageController
         %       - path: 
         %       - file: 
             
-            % Model
-            self.imageModel.setFileName(file);
-            self.imageModel.setFullPath(file, path);
-            self.imageModel.readImage(self.imageModel.getFullPath());
-            
-            % View
-            self.wrapperPreviewImage.setPreviewFile(self.imageModel.getFullPath());
-            self.canvasWrapper.showImage(self.imageModel.getImage());
-            
-            % State app
-            self.stateApp.setActiveState('imageDisplayed');
-            self.stateApp.activateState('imageUploaded');
+            fb = self.feedbackManager;
+
+            try
+                % --- Iniciar progreso ---
+                fb.startProgress('Cargando imagen', 'Leyendo archivo desde el disco...');
+        
+                % --- Modelo: establecer metadatos ---
+                self.imageModel.setFileName(file);
+                self.imageModel.setFullPath(file, path);
+        
+                fb.updateProgress(0.3, 'Leyendo datos de imagen...');
+                self.imageModel.readImage(self.imageModel.getFullPath());
+        
+                % --- Vista previa ---
+                fb.updateProgress(0.6, 'Generando vista previa...');
+                self.wrapperPreviewImage.setPreviewFile(self.imageModel.getFullPath());
+        
+                fb.updateProgress(0.85, 'Mostrando imagen en el lienzo...');
+                self.canvasWrapper.showImage(self.imageModel.getImage(), 'Imagen cargada correctamente');
+        
+                % --- Actualizar estado global ---
+                self.stateApp.setActiveState('imageDisplayed');
+                self.stateApp.activateState('imageUploaded');
+        
+                fb.updateProgress(1, 'Imagen cargada correctamente.');
+                fb.closeProgress();
+        
+            catch ME
+                % --- Manejo seguro de errores ---
+                fb.showWarning("Error al cargar la imagen: " + ME.message);
+                fb.closeProgress();
+            end
         end
 
 
