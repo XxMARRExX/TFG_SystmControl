@@ -62,6 +62,7 @@ classdef ImageController
             
             % State app
             self.stateApp.setActiveState('imageDisplayed');
+            self.stateApp.activateState('imageUploaded');
         end
 
 

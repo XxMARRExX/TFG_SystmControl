@@ -123,6 +123,7 @@ classdef AppState < handle
         
         function initializeAppStates(self)
             self.states('initialized') = true;
+            self.states('imageUploaded') = false;
             self.states('imageDisplayed') = false;
             self.states('svgUploaded')    = false;
             self.states('svgDisplayed') = false;

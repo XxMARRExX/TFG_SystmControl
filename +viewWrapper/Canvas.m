@@ -18,11 +18,19 @@ classdef Canvas < handle
         end
 
 
-        function showImage(self, matrix)
+        function canvas = getCanvas(self)
+            canvas = self.canvas;
+        end
+
+
+        function showImage(self, matrix, titleText)
         % showPicture() Display an image matrix on a UIAxes canvas.
         %
         %   Inputs:
         %       - matrix: Image matrix (grayscale or RGB) to render.
+        %       - titleText (optional): String title to display above the image.
+        %
+        %   If no title is provided, the image is shown without title.
             
             % Clean previous show
             cla(self.canvas);
@@ -38,6 +46,9 @@ classdef Canvas < handle
             self.canvas.XLim = [0.5, size(matrix,2)+0.5];
             self.canvas.YLim = [0.5, size(matrix,1)+0.5];
 
+            if nargin > 2 && ~isempty(titleText)
+                title(self.canvas, titleText, 'Interpreter', 'none');
+            end
         end
 
 
@@ -116,6 +127,7 @@ classdef Canvas < handle
         
             hold(ax, 'on');
             visEdgesModified(edges, ax);
+            title(ax, 'Pieza con los bordes detectados.');
             hold(ax, 'off');   
         end
 
@@ -181,7 +193,7 @@ classdef Canvas < handle
             lgd = legend(ax, hPlots, labels, 'Location', 'northeast');
             set(lgd, 'Interpreter', 'none', 'Box', 'on');
         
-            title(ax, 'Detected pieces with contours');
+            title(ax, 'Pieza con los bordes filtrados.');
             hold(ax, 'off');
         end
 
