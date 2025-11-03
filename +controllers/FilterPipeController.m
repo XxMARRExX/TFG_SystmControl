@@ -66,7 +66,7 @@ classdef FilterPipeController
                 self.processSingleImage(currentBBox, configParams);
             end
 
-            %self.wireActionsOnShowImageButtons();
+            self.wireActionsOnShowImageButtons();
             self.wireTabSelectionChanged();
             self.wireActionsOnShowDetectedEdges();
             self.wireActionsOnShowFilteredEdges();
@@ -104,12 +104,6 @@ classdef FilterPipeController
             filterStageViewer = bbox.getFilterStageViewer();
         
             % --- Parámetros internos ---
-            scale = 0.15;
-            threshold_Phase1 = 5;
-            smoothingIter_Phase1 = 5;
-            threshold_Phase2 = 5;
-            smoothingIter_Phase2 = 3;
-            margin = 15;
             maxMeanDist = 20;
             refImgSize = [7000 9344];
         
@@ -120,7 +114,7 @@ classdef FilterPipeController
             % Stage 1
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Reescalando imagen...');
-            rescaledImage = imresize(img, scale);
+            rescaledImage = imresize(img, configParams.subpixel.scale);
             stage1 = models.Stage( ...
                 filterPipeline.analyze.generateStageImage(rescaledImage), ...
                 sprintf("Etapa %d: Detección de bordes en imagen reescalada.", step), ...
@@ -130,8 +124,8 @@ classdef FilterPipeController
             % Stage 2
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Detección de bordes en imagen reescalada...');
-            edges = subpixelEdges(rescaledImage, threshold_Phase1, ...
-                'SmoothingIter', smoothingIter_Phase1);
+            edges = subpixelEdges(rescaledImage, configParams.subpixel.threshold_Ph1, ...
+                'SmoothingIter', configParams.subpixel.smoothIters_Ph1);
             stage2 = models.Stage( ...
                 filterPipeline.imageProcessing.visualizeImageWithEdges(...
                     rescaledImage, ... 
@@ -145,7 +139,7 @@ classdef FilterPipeController
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Cálculo del BoundingBox (escala reducida)...');
             BboxPiece = filterPipeline.piece.boundingbox.calculateExpandedBoundingBox(edges, ...
-                scale, margin);
+                configParams.subpixel.scale, configParams.subpixel.margin);
             stage3 = models.Stage( ...
                 filterPipeline.piece.boundingbox.drawBoundingBoxOnImage( ...
                     img, ...
@@ -169,8 +163,8 @@ classdef FilterPipeController
             % Stage 5
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Detección de bordes sobre imagen recortada...');
-            edges = subpixelEdges(cropImage, threshold_Phase2, ...
-                'SmoothingIter', smoothingIter_Phase2);
+            edges = subpixelEdges(cropImage, configParams.subpixel.threshold_Ph2, ...
+                'SmoothingIter', configParams.subpixel.smoothIters_Ph2);
             stage5 = models.Stage( ...
                 filterPipeline.imageProcessing.visualizeImageWithEdges(...
                     cropImage, ... 
@@ -199,7 +193,7 @@ classdef FilterPipeController
             fb.updateProgress(step/totalSteps, 'Agrupación mediante DBSCAN...');
             [clusters, ~] = filterPipeline.imageProcessing.analyzeSubstructuresWithDBSCAN(edgesFiltered, ...
                 configParams.DBSCAN.epsilon, ...
-                str2double(configParams.DBSCAN.minPoints));
+                configParams.DBSCAN.minPoints);
             stage7 = models.Stage( ...
                 filterPipeline.imageProcessing.showClusters(...
                     cropImage, ... 
@@ -314,7 +308,7 @@ classdef FilterPipeController
             end
         end
 
-        %%
+
         function wireActionsOnShowImageButtons(self)
 
             tg = self.resultsConsoleWrapper.getTabGroup();
@@ -357,7 +351,7 @@ classdef FilterPipeController
             self.canvasWrapper.showImage(tabPiece.imagePiece);
             self.stateApp.setActiveState('croppedImageByUserDisplayed');
         end
-%%
+
 
         function detectEdges(self, configParams, bbox)
         % detectEdges() Perform subpixel edge detection on cropped images (bBoxes).
@@ -377,8 +371,8 @@ classdef FilterPipeController
             croppedImage = bbox.getCroppedImage();
         
             edges = subpixelEdges(croppedImage, ...
-                    configParams.subpixel.threshold, ...
-                    'SmoothingIter', configParams.subpixel.smoothIters);
+                    configParams.subpixel.threshold_Ph1, ...
+                    'SmoothingIter', configParams.subpixel.smoothIters_Ph1);
 
             bbox.setDetectedEdges(edges);
             
