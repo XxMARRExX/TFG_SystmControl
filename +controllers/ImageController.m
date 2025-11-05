@@ -69,7 +69,7 @@ classdef ImageController
                 self.wrapperPreviewImage.setPreviewFile(self.imageModel.getFullPath());
         
                 fb.updateProgress(0.85, 'Mostrando imagen en el lienzo...');
-                self.canvasWrapper.showImage(self.imageModel.getImage(), 'Imagen cargada correctamente');
+                self.canvasWrapper.showImage(self.imageModel.getImage(), 'Imagen cargada');
         
                 % --- Actualizar estado global ---
                 self.stateApp.setActiveState('imageDisplayed');
@@ -94,7 +94,7 @@ classdef ImageController
             end
             
             % View
-            self.canvasWrapper.showImage(self.imageModel.getImage());
+            self.canvasWrapper.showImage(self.imageModel.getImage(), 'Imagen cargada');
             self.canvasWrapper.renderBBoxes(self.imageModel.getbBoxes());
             
             % State app
