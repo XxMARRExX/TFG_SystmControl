@@ -66,7 +66,7 @@ classdef ErrorPipeController
 
             tg = self.resultsConsoleWrapper.getTabGroup();
             if ~isempty(tg.Children)
-                firstTab = tg.Children(end);
+                firstTab = tg.Children(1);
                 if isprop(firstTab, 'UserData') && isa(firstTab.UserData, 'viewWrapper.results.TabPiece')
                     self.onTabChanged(firstTab.UserData, configParams.error.tolerance);
                 end
