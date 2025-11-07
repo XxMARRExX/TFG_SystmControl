@@ -23,6 +23,7 @@ classdef BBox < handle
         detectedEdges;
         filteredEdges;
         edgesWithError;
+        edgesWithErrorOverSVG;
         filterStageViewer;
         errorStageViewer;
         onDeleteFcn function_handle
@@ -138,6 +139,16 @@ classdef BBox < handle
 
         function edgesWithError = getEdgesWithError(self)
             edgesWithError = self.edgesWithError;
+        end
+
+
+        function setEdgesWithErrorOverSVG(self, edgesWithErrorOverSVG)
+            self.edgesWithErrorOverSVG = edgesWithErrorOverSVG;
+        end
+
+
+        function edgesWithErrorOverSVG = getEdgesWithErrorOverSVG(self)
+            edgesWithErrorOverSVG = self.edgesWithErrorOverSVG;
         end
 
 
