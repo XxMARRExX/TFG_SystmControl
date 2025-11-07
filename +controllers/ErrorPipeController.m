@@ -72,6 +72,7 @@ classdef ErrorPipeController
                 end
             end
             
+            self.stateApp.activateState('errorOnPieceCalculated');
             fb.updateProgress(1, 'Error calculado.');
             fb.closeProgress();
         end
@@ -154,6 +155,7 @@ classdef ErrorPipeController
                 svgPaths, edgesWithError, configParams.error.tolerance), ...
                 sprintf("Etapa %d: Cálculo error sobre cada punto", step), ...
                 "Image.");
+            bbox.setEdgesWithErrorOverSVG(edgesWithError);
             errorStageViewer.addStage(stage);
             
             % Stage 8

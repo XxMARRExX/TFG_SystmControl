@@ -132,6 +132,7 @@ classdef AppState < handle
             self.states('filteredEdgesDisplayed') = false;
             self.states('filteredStagesDisplayed') = false;
             self.states('errorOnPieceDisplayed') = false;
+            self.states('errorOnPieceCalculated') = false;
             self.states('errorStagesDisplayed') = false;
 
             self.activeState = 'initialized';
