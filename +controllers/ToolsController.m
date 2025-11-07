@@ -176,7 +176,6 @@ classdef ToolsController < handle
             self.canvasWrapper.showImageWithFilteredEdges(croppedImage, filteredEdges);
     
             delete(roi);
-            disp("Me ejecute");
         end
     end
 

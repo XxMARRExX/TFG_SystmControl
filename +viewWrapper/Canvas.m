@@ -18,11 +18,19 @@ classdef Canvas < handle
         end
 
 
-        function showImage(self, matrix)
+        function canvas = getCanvas(self)
+            canvas = self.canvas;
+        end
+
+
+        function showImage(self, matrix, titleText)
         % showPicture() Display an image matrix on a UIAxes canvas.
         %
         %   Inputs:
         %       - matrix: Image matrix (grayscale or RGB) to render.
+        %       - titleText (optional): String title to display above the image.
+        %
+        %   If no title is provided, the image is shown without title.
             
             % Clean previous show
             cla(self.canvas);
@@ -38,6 +46,9 @@ classdef Canvas < handle
             self.canvas.XLim = [0.5, size(matrix,2)+0.5];
             self.canvas.YLim = [0.5, size(matrix,1)+0.5];
 
+            if nargin > 2 && ~isempty(titleText)
+                title(self.canvas, titleText, 'Interpreter', 'none');
+            end
         end
 
 
@@ -47,7 +58,7 @@ classdef Canvas < handle
         %   Inputs:
         %       - svgPaths: cell array of Nx2 double paths (from readSVG)
         
-            % Limpiar lienzo
+            % Clean canvas
             cla(self.canvas);
             hold(self.canvas, 'on');
             axis(self.canvas, 'equal');
@@ -56,7 +67,7 @@ classdef Canvas < handle
             xlabel(self.canvas, 'X');
             ylabel(self.canvas, 'Y');
         
-            % Dibujar todos los paths
+            % Draw all paths
             hPaths = gobjects(numel(svgPaths), 1);
             for i = 1:numel(svgPaths)
                 path = svgPaths{i};
@@ -67,7 +78,7 @@ classdef Canvas < handle
                 end
             end
         
-            % Ajustar límites para ocupar el canvas completo
+            % Adjust limits
             allPoints = vertcat(svgPaths{:});
             if ~isempty(allPoints)
                 xmin = min(allPoints(:,1));
@@ -83,7 +94,7 @@ classdef Canvas < handle
                 self.canvas.YLim = [ymin - margin*dy, ymax + margin*dy];
             end
         
-            % Leyenda opcional
+            % Optional Legend
             idxFirst = find(hPaths ~= 0, 1, 'first');
             if ~isempty(idxFirst)
                 legend(self.canvas, hPaths(idxFirst), {'SVG Paths'}, ...
@@ -116,6 +127,7 @@ classdef Canvas < handle
         
             hold(ax, 'on');
             visEdgesModified(edges, ax);
+            title(ax, 'Pieza con los bordes detectados.');
             hold(ax, 'off');   
         end
 
@@ -134,10 +146,9 @@ classdef Canvas < handle
         
             ax = self.canvas;  % handle del UIAxes
         
-            % --- Preparar el canvas ---
-            cla(ax);  % limpiar
+            cla(ax);
             img = imagesc(ax, grayImage);
-            set(img, 'HitTest', 'off');  % no bloquear clics
+            set(img, 'HitTest', 'off');
         
             axis(ax, 'image');
             colormap(ax, gray);
@@ -146,9 +157,9 @@ classdef Canvas < handle
             ax.Toolbar.Visible = 'off';
             hold(ax, 'on');
         
-            % --- Dibujar los contornos ---
+            % Draw paths
             colors = lines(numel(pieceClusters));
-            hPlots = gobjects(numel(pieceClusters), 1);  % handles para la leyenda
+            hPlots = gobjects(numel(pieceClusters), 1);
         
             for i = 1:numel(pieceClusters)
                 edgeStruct = pieceClusters{i}.edges;
@@ -175,13 +186,13 @@ classdef Canvas < handle
                 end
             end
         
-            % --- Leyenda dentro del canvas ---
+            % Legend inside canvas
             labels = arrayfun(@(i) sprintf('Contours (Piece %d)', i), ...
                 1:numel(pieceClusters), 'UniformOutput', false);
             lgd = legend(ax, hPlots, labels, 'Location', 'northeast');
             set(lgd, 'Interpreter', 'none', 'Box', 'on');
         
-            title(ax, 'Detected pieces with contours');
+            title(ax, 'Pieza con los bordes filtrados.');
             hold(ax, 'off');
         end
 
@@ -275,7 +286,6 @@ classdef Canvas < handle
         
             ax = self.canvas;
         
-            % --- Preparar el canvas ---
             cla(ax);
             hold(ax, 'on');
             axis(ax, 'image');
@@ -284,13 +294,12 @@ classdef Canvas < handle
             box(ax, 'on');
             ax.Toolbar.Visible = 'off';
         
-            % --- 1. Dibujar la imagen de fondo ---
+            % Draw image at the back
             img = imagesc(ax, originalImage);
             set(img, 'HitTest', 'off');
             colormap(ax, gray);
         
-            % --- 2. Dibujar el modelo SVG (azul claro) ---
-            svgColor = [0.26 0.65 0.96];  % azul claro (#42a5f5)
+            svgColor = [0.26 0.65 0.96];  % ligth blue (#42a5f5)
             for i = 1:numel(svgPaths)
                 P = svgPaths{i};
                 if isempty(P) || all(isnan(P(:)))
@@ -300,7 +309,7 @@ classdef Canvas < handle
                     'Color', svgColor, 'LineWidth', 1.3);
             end
         
-            % --- 3. Reunir puntos con error ---
+            % Join all the points
             pts = [edgesWithError.exterior.x(:), edgesWithError.exterior.y(:)];
             e   = edgesWithError.exterior.e(:);
         
@@ -308,18 +317,18 @@ classdef Canvas < handle
                 for i = 1:numel(edgesWithError.innerContours)
                     ic = edgesWithError.innerContours{i};
                     if ~isempty(ic)
-                        pts = [pts; ic.x(:), ic.y(:)]; %#ok<AGROW>
-                        e   = [e;   ic.e(:)];          %#ok<AGROW>
+                        pts = [pts; ic.x(:), ic.y(:)]; 
+                        e   = [e;   ic.e(:)];         
                     end
                 end
             end
         
-            % --- 4. Asignar color por nivel de error ---
+            % Match color by level of error
             cmap = [
-                0.2 0.8 0.2;   % verde
-                1.0 1.0 0.2;   % amarillo
-                1.0 0.6 0.1;   % naranja
-                1.0 0.2 0.2    % rojo
+                0.2 0.8 0.2;   % green
+                1.0 1.0 0.2;   % yellow
+                1.0 0.6 0.1;   % orange
+                1.0 0.2 0.2    % red
             ];
             mag = abs(e);
             colorIdx = 4*ones(size(mag));
@@ -327,16 +336,14 @@ classdef Canvas < handle
             colorIdx(mag <= 2*threshold) = 2;
             colorIdx(mag <= threshold)   = 1;
         
-            % --- 5. Dibujar puntos (encima del SVG) ---
+            % Draw points over canvas
             h = scatter(ax, pts(:,1), pts(:,2), 22, cmap(colorIdx,:), 'filled', ...
                         'MarkerEdgeColor', 'k', 'MarkerEdgeAlpha', 0.25);
-            h.UserData = e;  % guardar los errores en el handle
+            h.UserData = e;
             
-            % --- 5.1 Activar tooltip (solo sobre los puntos) ---
             dcm = datacursormode(ancestor(ax, 'figure'));
             dcm.UpdateFcn = @(~, event_obj) self.customTooltip(event_obj, h);
 
-            % --- 6. Crear leyenda ---
             hModel  = plot(ax, NaN,NaN,'-', 'Color',svgColor, 'LineWidth',1.3);
             hGreen  = scatter(ax, NaN, NaN, 22, cmap(1,:), 'filled');
             hYellow = scatter(ax, NaN, NaN, 22, cmap(2,:), 'filled');
@@ -396,14 +403,12 @@ classdef Canvas < handle
 
     methods(Access = private)
         function txt = customTooltip(event_obj, h)
-            % Coordenadas
+            
             pos = get(event_obj, 'Position');
             idx = get(event_obj, 'DataIndex');
             
-            % Recuperar el error del UserData
             e = h.UserData(idx);
             
-            % Texto del datatip
             txt = {
                 ['X: ', num2str(pos(1), '%.3f')]
                 ['Y: ', num2str(pos(2), '%.3f')]

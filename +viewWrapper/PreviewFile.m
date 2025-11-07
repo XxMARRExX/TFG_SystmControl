@@ -1,5 +1,5 @@
 classdef PreviewFile < handle
-    % Image View logic wrapper for a preview UIImage
+% Image View logic wrapper for a preview UIImage
     
     properties (Access = private)
         previewFile matlab.ui.control.Image

@@ -66,12 +66,13 @@ classdef ErrorPipeController
 
             tg = self.resultsConsoleWrapper.getTabGroup();
             if ~isempty(tg.Children)
-                firstTab = tg.Children(end);
+                firstTab = tg.Children(1);
                 if isprop(firstTab, 'UserData') && isa(firstTab.UserData, 'viewWrapper.results.TabPiece')
                     self.onTabChanged(firstTab.UserData, configParams.error.tolerance);
                 end
             end
             
+            self.stateApp.activateState('errorOnPieceCalculated');
             fb.updateProgress(1, 'Error calculado.');
             fb.closeProgress();
         end
@@ -154,6 +155,7 @@ classdef ErrorPipeController
                 svgPaths, edgesWithError, configParams.error.tolerance), ...
                 sprintf("Etapa %d: Cálculo error sobre cada punto", step), ...
                 "Image.");
+            bbox.setEdgesWithErrorOverSVG(edgesWithError);
             errorStageViewer.addStage(stage);
             
             % Stage 8

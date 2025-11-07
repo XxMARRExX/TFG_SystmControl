@@ -1,12 +1,12 @@
 classdef FeedbackManager < handle
-    % FeedbackManager Centralized user feedback (progress, warnings, errors).
-    %
-    %   Handles modal dialogs for progress indication, warnings and errors.
-    %
-    %   Properties:
-    %       - uiFig: Reference to the main UIFigure of the application.
-    %       - progressDialog: Handle to the current progress dialog
-    %           (matlab.ui.dialog.ProgressDialog).
+% FeedbackManager Centralized user feedback (progress, warnings, errors).
+%
+%   Handles modal dialogs for progress indication, warnings and errors.
+%
+%   Properties:
+%       - uiFig: Reference to the main UIFigure of the application.
+%       - progressDialog: Handle to the current progress dialog
+%           (matlab.ui.dialog.ProgressDialog).
     
     properties
         uiFig matlab.ui.Figure

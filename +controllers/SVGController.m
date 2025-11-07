@@ -43,23 +43,40 @@ classdef SVGController
         %   Inputs:
         %       - path: directory path where the SVG file is located
         %       - file: name of the SVG file to be loaded
-
-            self.svgModel.setFileName(file);
-            self.svgModel.setFullPath(path, file);
             
-            self.svgModel.setContours( ...
-                models.SVG.readSVG( ...
-                self.svgModel.getFullPath()));
+            fb = self.feedbackManager;
 
-            self.previewSVGWrapper.setPreviewFile( ...
-                models.SVG.rasterizeSVGPaths( ...
-                self.svgModel.getContours()));
-            
-            self.canvasWrapper.showSVG( ...
-                self.svgModel.getContours());
-
-            self.stateApp.setActiveState('svgDisplayed');
-            self.stateApp.activateState('svgUploaded');
+            try
+                % --- Iniciar progreso ---
+                fb.startProgress('Cargando SVG', 'Leyendo el archivo y generando vista previa...');
+        
+                % --- Cargar datos del modelo SVG ---
+                self.svgModel.setFileName(file);
+                self.svgModel.setFullPath(path, file);
+        
+                fb.updateProgress(0.2, 'Leyendo rutas del archivo SVG...');
+                contours = models.SVG.readSVG(self.svgModel.getFullPath());
+                self.svgModel.setContours(contours);
+        
+                fb.updateProgress(0.6, 'Generando vista previa del modelo...');
+                previewImg = models.SVG.rasterizeSVGPaths(contours);
+                self.previewSVGWrapper.setPreviewFile(previewImg);
+        
+                fb.updateProgress(0.85, 'Mostrando modelo SVG en el lienzo...');
+                self.canvasWrapper.showSVG(contours);
+        
+                % --- Actualizar estado global ---
+                self.stateApp.setActiveState('svgDisplayed');
+                self.stateApp.activateState('svgUploaded');
+        
+                fb.updateProgress(1, 'Modelo SVG cargado correctamente.');
+                fb.closeProgress();
+        
+            catch ME
+                % --- Capturar errores y mostrarlos sin bloquear la app ---
+                fb.showWarning("Error al cargar el archivo SVG: " + ME.message);
+                fb.closeProgress();
+            end
         end
 
         

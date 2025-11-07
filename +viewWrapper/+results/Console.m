@@ -1,9 +1,9 @@
 classdef Console < handle
-    % Console  Results console that manages dynamic tabs to display
-    %          information about pieces in the image.
-    %       
-    %   - Params
-    %       tabGroup  Target container that holds all result tabs.
+% Console  Results console that manages dynamic tabs to display
+%          information about pieces in the image.
+%       
+%   - Params
+%       tabGroup  Target container that holds all result tabs.
 
     properties (Access = private)
         tabGroup matlab.ui.container.TabGroup
@@ -39,23 +39,22 @@ classdef Console < handle
 
 
         function clearTabs(self)
-        % reset() Clears all result tabs and resets the console state.
-        %
-        %   This method should be called when a new image is loaded, 
-        %   ensuring the results console starts fresh.
-    
+        % clearTabs() Removes all result tabs and resets the console state.
+        
+            % --- Return early if tab group is invalid or not initialized ---
             if isempty(self.tabGroup) || ~isvalid(self.tabGroup)
                 return;
             end
-    
-            % Eliminar todas las pestañas existentes
+        
+            % --- Remove all existing result tabs ---
             delete(self.tabGroup.Children);
-    
-            % Crear pestaña inicial o placeholder
+        
+            % --- Create an initial placeholder tab ---
             uitab(self.tabGroup, ...
-                'Title', 'Resultados', ...
+                'Title', 'Results', ...
                 'BackgroundColor', [1 1 1]);
         end
+
 
     end
     

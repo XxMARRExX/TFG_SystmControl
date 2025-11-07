@@ -1,10 +1,29 @@
 classdef AppState < handle
 % AppState  Centralized application state manager.
 %
-%   Properties (private):
-%       - states: containers.Map storing all logical application states.
-%       - activeState: name (char) of the currently active state.
-%       - activeTool: handle to the currently active uitoggletool in the toolbar.
+%   This class is responsible for maintaining and controlling the global
+%   state of the application. It tracks the current operational mode,
+%   active tools, and contextual identifiers (e.g., the currently selected
+%   bounding box). Its purpose is to provide a single, consistent source
+%   of truth for state-related logic throughout the GUI.
+%
+%   -----------------------------------------------------------------------
+%   Properties (private)
+%   -----------------------------------------------------------------------
+%
+%   states            : containers.Map object storing all logical states
+%                       of the application as key–value pairs, where keys
+%                       represent state names and values are boolean flags.
+%
+%   activeState       : Character array indicating the name of the current
+%                       active state (e.g., 'idle', 'drawing', 'analyzing').
+%
+%   activeTool        : Handle to the currently active UIToggleTool in the
+%                       application toolbar, representing the tool
+%                       currently engaged by the user.
+%
+%   currentBBoxId     : Identifier (string) of the currently
+%                       selected bounding box being visualized.
 
     properties (Access = private)
         states containers.Map
@@ -123,6 +142,7 @@ classdef AppState < handle
         
         function initializeAppStates(self)
             self.states('initialized') = true;
+            self.states('imageUploaded') = false;
             self.states('imageDisplayed') = false;
             self.states('svgUploaded')    = false;
             self.states('svgDisplayed') = false;
@@ -131,6 +151,7 @@ classdef AppState < handle
             self.states('filteredEdgesDisplayed') = false;
             self.states('filteredStagesDisplayed') = false;
             self.states('errorOnPieceDisplayed') = false;
+            self.states('errorOnPieceCalculated') = false;
             self.states('errorStagesDisplayed') = false;
 
             self.activeState = 'initialized';

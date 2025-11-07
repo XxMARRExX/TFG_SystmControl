@@ -1,6 +1,46 @@
 classdef TabParams < handle
-    
+% TabParams  Configuration tab for processing parameters in the GUI.
+%
+%   This class builds and manages the "Parameters" tab of the application's
+%   graphical interface. It provides grouped interactive controls that
+%   allow the user to configure the main parameters used throughout the
+%   image analysis and error computation pipeline.
+%
+%   The tab is composed of four collapsible parameter panels:
+%       1. Subpixel Phase 1 parameters
+%       2. Subpixel Phase 2 parameters
+%       3. DBSCAN clustering parameters
+%       4. Error calculation parameters
+%
+%   -----------------------------------------------------------------------
+%   Properties
+%   -----------------------------------------------------------------------
+%
+%   feedbackManager   : Instance of the feedback system used to show
+%                       warnings and validation messages to the user.
+%
+%   tab               : UI tab container that holds all parameter panels.
+%
+%   subpixelPanelPhase1 : Panel containing subpixel phase 1 controls.
+%   threshold_Ph1        : Numeric input for the edge detection threshold.
+%   smoothIters_Ph1      : Numeric input for the number of smoothing iterations.
+%   scale                : Numeric input for subpixel scaling factor.
+%   margin               : Numeric input for the margin around the bounding box.
+%
+%   subpixelPanelPhase2 : Panel containing subpixel phase 2 controls.
+%   threshold_Ph2        : Numeric input for the second-phase threshold.
+%   smoothIters_Ph2      : Numeric input for smoothing iterations in phase 2.
+%
+%   dbscanPanel         : Panel with clustering parameters for DBSCAN.
+%   minPoints           : Minimum number of points required to form a cluster.
+%   epsilon             : Radius defining the neighborhood for DBSCAN.
+%
+%   errorPanel          : Panel containing error-related configuration.
+%   pixelTomm           : Conversion ratio from pixels to millimeters.
+%   tolerance           : Error tolerance threshold in millimeters.
+
     properties
+        feedbackManager;
         tab;
 
         subpixelPanelPhase1;
@@ -23,37 +63,48 @@ classdef TabParams < handle
     end
     
     methods
-        function self = TabParams(tabGroup)
+        function self = TabParams(tabGroup, feedbackManager)
+        % TabParams() Class constructor for the configuration parameters tab.
+        %
+        %   Inputs:
+        %       - tabGroup: parent UITabGroup where the tab will be created.
+        %       - feedbackManager: instance responsible for displaying user feedback.
+        
+            self.feedbackManager = feedbackManager;
             
-            % Pestaña nueva (una sola columna con scroll)
-            self.tab = uitab(tabGroup, 'Title', 'Parámetros de configuración');
+            % --- Create new tab (single column with scroll) ---
+            self.tab = uitab(tabGroup, 'Title', 'Configuration Parameters');
             self.tab.BackgroundColor = [1 1 1];
         
-            % Contenedor base 1x1
+            % --- Base 1x1 grid container ---
             grid = uigridlayout(self.tab, [1, 1], ...
                 'RowHeight', {'1x'}, 'ColumnWidth', {'1x'}, ...
                 'ColumnSpacing', 0, 'Padding', [0 0 0 0], ...
                 'BackgroundColor', [1 1 1]);
         
-            % ScrollingPanel (uix) en la celda (1,1)
+            % --- Scrolling panel (uix) occupying cell (1,1) ---
             scroll = uix.ScrollingPanel('Parent', grid, 'BackgroundColor', [1 1 1]);
             scroll.Layout.Row = 1; 
             scroll.Layout.Column = 1;
-
-            % VBox interno (uix) que contendrá los grupos
+        
+            % --- Internal VBox container (uix) that will hold all parameter groups ---
             vbox = uix.VBox('Parent', scroll, ...
                 'Spacing', 12, 'Padding', 10, 'BackgroundColor', [1 1 1]);
-
+        
+            % --- Build all parameter sections ---
             self.buildSubpixelPhase1(vbox);
             self.buildSubpixelPhase2(vbox);
             self.buildDBSCANParams(vbox);
             self.buildErrorParams(vbox);
             
-            % --- Altura de cada grupo
-            set(vbox, 'Heights', [250 150 150 150]);  % -1 = flexible (ocupa hueco restante)
+            % --- Define fixed heights for each parameter group panel ---
+            % Note: -1 would make the panel flexible (fill remaining space)
+            set(vbox, 'Heights', [250 150 150 150]);  
             
+            % --- Update scroll area dynamically when the layout changes ---
             vbox.SizeChangedFcn = @(~,~) self.updateScroll(scroll, vbox);
         end
+
 
 
         function value = getThreshold_Ph1(self)
@@ -110,57 +161,63 @@ classdef TabParams < handle
 
     methods (Access = private)
         function updateScroll(self, scroll, vbox)
-            pause(0.01); % Permite estabilizar layout (MATLAB necesita 1 ciclo de dibujo)
+        % updateScroll() Adjusts the scrollable area height dynamically.
+        %
+        %   Inputs:
+        %       - scroll: uix.ScrollingPanel object whose content height must be updated.
+        %       - vbox  : uix.VBox container holding all parameter panels.
         
-            % Altura real del VBox (suma de hijos)
+            pause(0.01); % Allows layout stabilization
+            
+            % --- Compute the total VBox height (sum of children, padding, and spacing)
             hVec = vbox.Heights;
             pad  = vbox.Padding;
             spac = vbox.Spacing;
             contentHeight = sum(hVec) + 2*pad + (numel(hVec)-1)*spac;
         
-            % Actualizar scroll solo si es necesario
+            % --- Update scroll only if there is a significant difference
             if abs(contentHeight - scroll.MinimumHeights) > 1e-3
                 scroll.MinimumHeights = contentHeight;
             end
         end
 
 
+
         function buildSubpixelPhase1(self, vbox)
-        % buildSubpixelParams()  Crea el panel de parámetros Subpixel.
+        % buildSubpixelPhase1() Creates the parameter panel for Subpixel Phase 1.
         %
         %   Inputs:
-        %       - vbox: contenedor vertical (uix.VBox) donde se añadirá el panel.
-        %
-        %   Crea el panel "Subpixel" con los campos "Umbral" e "Iteraciones de suavizado".
+        %       - vbox: vertical container (uix.VBox) where the panel will be added.
         %
     
-            % --- Panel principal ---
+            % First pane
             self.subpixelPanelPhase1 = uipanel('Parent', vbox, ...
                 'Title', 'Subpixel Fase 1', ...
                 'BackgroundColor', [0.7804 0.3882 0.2314], ...
                 'FontWeight', 'bold', ...
                 'ForegroundColor', [1 1 1]);                    
         
-            % --- Layout interno del panel ---
+            % Inner layout
             subpixelLayout = uigridlayout(self.subpixelPanelPhase1, ...
                 'BackgroundColor', [0.95 0.95 0.95]);
         
-            % --- Etiqueta y campo: Umbral ---
-            umbralLabel = uilabel(subpixelLayout, ...
+            % threshold_Ph1
+            threshold_Ph1Label = uilabel(subpixelLayout, ...
                 'Text', 'Umbral', ...
                 'HorizontalAlignment', 'center', ...
                 'WordWrap', 'on', ...
                 'BackgroundColor', subpixelLayout.BackgroundColor);
-            umbralLabel.Layout.Row = 1;
-            umbralLabel.Layout.Column = 1;
+            threshold_Ph1Label.Layout.Row = 1;
+            threshold_Ph1Label.Layout.Column = 1;
         
             self.threshold_Ph1 = uieditfield(subpixelLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 5);
+                'Value', 5, ...
+                'ValueChangedFcn', @(src,~)validateThreshold_Ph1(self, src));
             self.threshold_Ph1.Layout.Row = 1;
             self.threshold_Ph1.Layout.Column = 2;
         
-            % --- Etiqueta y campo: Iteraciones de suavizado ---
+            % SmoothIters
             smoothLabel = uilabel(subpixelLayout, ...
                 'Text', 'Iteraciones de suavizado', ...
                 'HorizontalAlignment', 'center', ...
@@ -172,11 +229,12 @@ classdef TabParams < handle
             self.smoothIters_Ph1 = uieditfield(subpixelLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
                 'Placeholder', '1', ...
-                'Value', 5);
+                'Value', 5, ...
+                'ValueChangedFcn', @(src,~)validateSmoothIters_Ph1(self, src));
             self.smoothIters_Ph1.Layout.Row = 2;
             self.smoothIters_Ph1.Layout.Column = 2;
 
-            % --- Etiqueta y campo: Scale ---
+            % Scale
             scaleLabel = uilabel(subpixelLayout, ...
                 'Text', 'Escala', ...
                 'HorizontalAlignment', 'center', ...
@@ -187,11 +245,12 @@ classdef TabParams < handle
             
             self.scale = uieditfield(subpixelLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 0.15);
+                'Value', 0.15, ...
+                'ValueChangedFcn', @(src,~)validateScale(self, src));
             self.scale.Layout.Row = 3;
             self.scale.Layout.Column = 2;
 
-            % --- Etiqueta y campo: Margin ---
+            % Margin
             marginLabel = uilabel(subpixelLayout, ...
                 'Text', 'Margen', ...
                 'HorizontalAlignment', 'center', ...
@@ -202,48 +261,51 @@ classdef TabParams < handle
             
             self.margin = uieditfield(subpixelLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 15);
+                'Value', 15, ...
+                'ValueChangedFcn', @(src,~)validateMargin(self, src));
             self.margin.Layout.Row = 4;
             self.margin.Layout.Column = 2;
         end
 
 
         function buildSubpixelPhase2(self, vbox)
-        % buildSubpixelParams()  Crea el panel de parámetros Subpixel.
+        % buildSubpixelPhase2() Creates the Subpixel parameter panel.
         %
         %   Inputs:
-        %       - vbox: contenedor vertical (uix.VBox) donde se añadirá el panel.
+        %       - vbox: vertical container (uix.VBox) where the panel will be added.
         %
-        %   Crea el panel "Subpixel" con los campos "Umbral" e "Iteraciones de suavizado".
-        %
+        %   Creates the "Subpixel" parameter panel containing the numeric fields:
+        %       - Threshold
+        %       - Smoothing iterations
     
-            % --- Panel principal ---
+            % First pane
             self.subpixelPanelPhase2 = uipanel('Parent', vbox, ...
                 'Title', 'Subpixel Fase 2', ...
                 'BackgroundColor', [0.7804 0.3882 0.2314], ...
                 'FontWeight', 'bold', ...
                 'ForegroundColor', [1 1 1]); 
         
-            % --- Layout interno del panel ---
+            % Inner layout
             subpixelLayout = uigridlayout(self.subpixelPanelPhase2, ...
                 'BackgroundColor', [0.95 0.95 0.95]);
         
-            % --- Etiqueta y campo: Umbral ---
-            umbralLabel = uilabel(subpixelLayout, ...
+            % threshold_Ph2
+            threshold_Ph2Label = uilabel(subpixelLayout, ...
                 'Text', 'Umbral', ...
                 'HorizontalAlignment', 'center', ...
                 'WordWrap', 'on', ...
                 'BackgroundColor', subpixelLayout.BackgroundColor);
-            umbralLabel.Layout.Row = 1;
-            umbralLabel.Layout.Column = 1;
+            threshold_Ph2Label.Layout.Row = 1;
+            threshold_Ph2Label.Layout.Column = 1;
         
             self.threshold_Ph2 = uieditfield(subpixelLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 5);
+                'Value', 5, ...
+                'ValueChangedFcn', @(src,~)validateThreshold_Ph2(self, src));
             self.threshold_Ph2.Layout.Row = 1;
             self.threshold_Ph2.Layout.Column = 2;
         
-            % --- Etiqueta y campo: Iteraciones de suavizado ---
+            % SmoothIters
             smoothLabel = uilabel(subpixelLayout, ...
                 'Text', 'Iteraciones de suavizado', ...
                 'HorizontalAlignment', 'center', ...
@@ -254,33 +316,36 @@ classdef TabParams < handle
         
             self.smoothIters_Ph2 = uieditfield(subpixelLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 3);
+                'Value', 3, ...
+                'ValueChangedFcn', @(src,~)validateSmoothIters_Ph2(self, src));
             self.smoothIters_Ph2.Layout.Row = 2;
             self.smoothIters_Ph2.Layout.Column = 2;
         end
 
 
         function buildDBSCANParams(self, vbox)
-        % buildDBSCANParams()  Crea el panel de parámetros DBSCAN.
+        % buildDBSCANParams() Creates the DBSCAN parameter panel.
         %
         %   Inputs:
-        %       - vbox: contenedor vertical (uix.VBox) donde se añadirá el panel.
+        %       - vbox: vertical container (uix.VBox) where the panel will be added.
         %
-        %   Crea el panel "DBSCAN" con los campos "Epsilon" y "Mínimo de puntos".
-        %
+        %   Creates the "DBSCAN" parameter panel containing the numeric fields:
+        %       - Epsilon (neighborhood radius)
+        %       - Minimum number of points
+
     
-            % --- Panel principal ---
+            % First pane
             self.dbscanPanel = uipanel('Parent', vbox, ...
                 'Title', 'DBSCAN', ...
                 'BackgroundColor', [0.7804 0.3882 0.2314], ...
                 'FontWeight', 'bold', ...
                 'ForegroundColor', [1 1 1]);
         
-            % --- Layout interno del panel ---
+            % Inner layout
             dbscanLayout = uigridlayout(self.dbscanPanel, ...
                 'BackgroundColor', [0.95 0.95 0.95]);
         
-            % --- Etiqueta y campo: Epsilon ---
+            % Epsilon
             epsilonLabel = uilabel(dbscanLayout, ...
                 'Text', 'Epsilon', ...
                 'HorizontalAlignment', 'center', ...
@@ -291,11 +356,12 @@ classdef TabParams < handle
         
             self.epsilon = uieditfield(dbscanLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 6);
+                'Value', 6, ...
+                'ValueChangedFcn', @(src,~)validateEpsilon(self, src));
             self.epsilon.Layout.Row = 1;
             self.epsilon.Layout.Column = 2;
         
-            % --- Etiqueta y campo: Mínimo de puntos ---
+            % MinPoints
             minPointsLabel = uilabel(dbscanLayout, ...
                 'Text', 'Mínimo de puntos', ...
                 'HorizontalAlignment', 'center', ...
@@ -306,7 +372,8 @@ classdef TabParams < handle
         
             self.minPoints = uieditfield(dbscanLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 4);
+                'Value', 4, ...
+                'ValueChangedFcn', @(src,~)validateMinPoints(self, src));
             self.minPoints.Layout.Row = 2;
             self.minPoints.Layout.Column = 2;
         end
@@ -344,7 +411,8 @@ classdef TabParams < handle
             % --- Campo: pixelTomm ---
             self.pixelTomm = uieditfield(errorLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 15);
+                'Value', 15, ...
+                'ValueChangedFcn', @(src,~)validatePixelTomm(self, src));
             self.pixelTomm.Layout.Row = 1;
             self.pixelTomm.Layout.Column = 2;
         
@@ -359,11 +427,111 @@ classdef TabParams < handle
             % --- Campo: tolerance ---
             self.tolerance = uieditfield(errorLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 0.3);
+                'Value', 0.3, ...
+                'ValueChangedFcn', @(src,~)validateTolerance(self, src));
             self.tolerance.Layout.Row = 2;
             self.tolerance.Layout.Column = 2;
         end
 
+
+        function validateThreshold_Ph1(self, src)
+            val = src.Value;
+            if val <= 0 || val > 255
+                src.Value = 5;
+                self.feedbackManager.showWarning("El valor del umbral en la fase 1, " + ...
+                    "debe estar entre 0 y 255.");
+            end
+        end
+
+
+        function validateSmoothIters_Ph1(self, src)
+            val = src.Value;
+            if val <= 0 || val > 10
+                src.Value = 5;
+                self.feedbackManager.showWarning("El valor de las iteraciones de suavizado " + ...
+                    "en la fase 1, debe estar entre 0 y 10.");
+            end
+        end
+
+
+        function validateScale(self, src)
+            val = src.Value;
+            if val <= 0 || val > 1
+                src.Value = 0.15;
+                self.feedbackManager.showWarning("El valor de las escala" + ...
+                    "en la fase 1, debe estar entre 0 y 1.");
+            end
+        end
+
+
+        function validateMargin(self, src)
+            val = src.Value;
+            if val <= 0 || val > 200
+                src.Value = 15;
+                self.feedbackManager.showWarning("El valor del margen del BoundingBox" + ...
+                    "en la fase 1, debe estar entre 0 y 200.");
+            end
+        end
+
+        
+        function validateThreshold_Ph2(self, src)
+            val = src.Value;
+            if val <= 0 || val > 255
+                src.Value = 5;
+                self.feedbackManager.showWarning("El valor del umbral en la fase 2, " + ...
+                    "debe estar entre 0 y 255.");
+            end
+        end
+
+
+        function validateSmoothIters_Ph2(self, src)
+            val = src.Value;
+            if val <= 0 || val > 10
+                src.Value = 5;
+                self.feedbackManager.showWarning("El valor de las iteraciones de suavizado " + ...
+                    "en la fase 2, debe estar entre 0 y 10.");
+            end
+        end
+
+
+        function validateMinPoints(self, src)
+            val = src.Value;
+            if val <= 0 || val > 500
+                src.Value = 4;
+                self.feedbackManager.showWarning("El valor del numero mínimo de puntos en DBSCAN, " + ...
+                    "debe estar entre 0 y 500.");
+            end
+        end
+
+
+        function validateEpsilon(self, src)
+            val = src.Value;
+            if val <= 0 || val > 500
+                src.Value = 6;
+                self.feedbackManager.showWarning("El valor del epsilon (Radio de vencidad) en DBSCAN, " + ...
+                    "debe estar entre 0 y 500.");
+            end
+        end
+
+
+        function validatePixelTomm(self, src)
+            val = src.Value;
+            if val <= 0 || val > 100
+                src.Value = 4;
+                self.feedbackManager.showWarning("El valor de px a mm, " + ...
+                    "debe estar entre 0 y 100.");
+            end
+        end
+
+
+        function validateTolerance(self, src)
+            val = src.Value;
+            if val <= 0.1 || val > 1000
+                src.Value = 0.3;
+                self.feedbackManager.showWarning("El valor de la tolerancia del error, " + ...
+                    "debe estar entre 0.1 y 1000.");
+            end
+        end
     end
 end
 
