@@ -9,13 +9,16 @@ function imgOut = visualizeSVGBinaryMask(binaryMask)
 
     % --- Create invisible figure ---
     fig = figure('Visible', 'off');
-    ax = axes('Parent', fig);
+    ax = axes('Parent', fig, 'Position', [0 0 1 1]);
+    cla(ax);
     hold(ax, 'on');
-    axis(ax, 'equal');
+    axis(ax, 'off');
     title(ax, 'Máscara binaria generada');
 
     % --- Show binary mask ---
     imshow(binaryMask, 'Parent', ax);
+    axis(ax, 'image'); 
+    axis(ax, 'off');
     colormap(ax, gray);
 
     % --- Capture only axes content ---

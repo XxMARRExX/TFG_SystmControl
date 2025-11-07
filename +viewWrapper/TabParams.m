@@ -1,6 +1,7 @@
 classdef TabParams < handle
     
     properties
+        feedbackManager;
         tab;
 
         subpixelPanelPhase1;
@@ -23,7 +24,8 @@ classdef TabParams < handle
     end
     
     methods
-        function self = TabParams(tabGroup)
+        function self = TabParams(tabGroup, feedbackManager)
+            self.feedbackManager = feedbackManager;
             
             % Pestaña nueva (una sola columna con scroll)
             self.tab = uitab(tabGroup, 'Title', 'Parámetros de configuración');
@@ -156,7 +158,8 @@ classdef TabParams < handle
         
             self.threshold_Ph1 = uieditfield(subpixelLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 5);
+                'Value', 5, ...
+                'ValueChangedFcn', @(src,~)validateThreshold_Ph1(self, src));
             self.threshold_Ph1.Layout.Row = 1;
             self.threshold_Ph1.Layout.Column = 2;
         
@@ -172,7 +175,8 @@ classdef TabParams < handle
             self.smoothIters_Ph1 = uieditfield(subpixelLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
                 'Placeholder', '1', ...
-                'Value', 5);
+                'Value', 5, ...
+                'ValueChangedFcn', @(src,~)validateSmoothIters_Ph1(self, src));
             self.smoothIters_Ph1.Layout.Row = 2;
             self.smoothIters_Ph1.Layout.Column = 2;
 
@@ -187,7 +191,8 @@ classdef TabParams < handle
             
             self.scale = uieditfield(subpixelLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 0.15);
+                'Value', 0.15, ...
+                'ValueChangedFcn', @(src,~)validateScale(self, src));
             self.scale.Layout.Row = 3;
             self.scale.Layout.Column = 2;
 
@@ -202,7 +207,8 @@ classdef TabParams < handle
             
             self.margin = uieditfield(subpixelLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 15);
+                'Value', 15, ...
+                'ValueChangedFcn', @(src,~)validateMargin(self, src));
             self.margin.Layout.Row = 4;
             self.margin.Layout.Column = 2;
         end
@@ -239,7 +245,8 @@ classdef TabParams < handle
         
             self.threshold_Ph2 = uieditfield(subpixelLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 5);
+                'Value', 5, ...
+                'ValueChangedFcn', @(src,~)validateThreshold_Ph2(self, src));
             self.threshold_Ph2.Layout.Row = 1;
             self.threshold_Ph2.Layout.Column = 2;
         
@@ -254,7 +261,8 @@ classdef TabParams < handle
         
             self.smoothIters_Ph2 = uieditfield(subpixelLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 3);
+                'Value', 3, ...
+                'ValueChangedFcn', @(src,~)validateSmoothIters_Ph2(self, src));
             self.smoothIters_Ph2.Layout.Row = 2;
             self.smoothIters_Ph2.Layout.Column = 2;
         end
@@ -291,7 +299,8 @@ classdef TabParams < handle
         
             self.epsilon = uieditfield(dbscanLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 6);
+                'Value', 6, ...
+                'ValueChangedFcn', @(src,~)validateEpsilon(self, src));
             self.epsilon.Layout.Row = 1;
             self.epsilon.Layout.Column = 2;
         
@@ -306,7 +315,8 @@ classdef TabParams < handle
         
             self.minPoints = uieditfield(dbscanLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 4);
+                'Value', 4, ...
+                'ValueChangedFcn', @(src,~)validateMinPoints(self, src));
             self.minPoints.Layout.Row = 2;
             self.minPoints.Layout.Column = 2;
         end
@@ -344,7 +354,8 @@ classdef TabParams < handle
             % --- Campo: pixelTomm ---
             self.pixelTomm = uieditfield(errorLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 15);
+                'Value', 15, ...
+                'ValueChangedFcn', @(src,~)validatePixelTomm(self, src));
             self.pixelTomm.Layout.Row = 1;
             self.pixelTomm.Layout.Column = 2;
         
@@ -359,11 +370,111 @@ classdef TabParams < handle
             % --- Campo: tolerance ---
             self.tolerance = uieditfield(errorLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
-                'Value', 0.3);
+                'Value', 0.3, ...
+                'ValueChangedFcn', @(src,~)validateTolerance(self, src));
             self.tolerance.Layout.Row = 2;
             self.tolerance.Layout.Column = 2;
         end
 
+
+        function validateThreshold_Ph1(self, src)
+            val = src.Value;
+            if val <= 0 || val > 255
+                src.Value = 5;
+                self.feedbackManager.showWarning("El valor del umbral en la fase 1, " + ...
+                    "debe estar entre 0 y 255.");
+            end
+        end
+
+
+        function validateSmoothIters_Ph1(self, src)
+            val = src.Value;
+            if val <= 0 || val > 10
+                src.Value = 5;
+                self.feedbackManager.showWarning("El valor de las iteraciones de suavizado " + ...
+                    "en la fase 1, debe estar entre 0 y 10.");
+            end
+        end
+
+
+        function validateScale(self, src)
+            val = src.Value;
+            if val <= 0 || val > 1
+                src.Value = 0.15;
+                self.feedbackManager.showWarning("El valor de las escala" + ...
+                    "en la fase 1, debe estar entre 0 y 1.");
+            end
+        end
+
+
+        function validateMargin(self, src)
+            val = src.Value;
+            if val <= 0 || val > 200
+                src.Value = 15;
+                self.feedbackManager.showWarning("El valor del margen del BoundingBox" + ...
+                    "en la fase 1, debe estar entre 0 y 200.");
+            end
+        end
+
+        
+        function validateThreshold_Ph2(self, src)
+            val = src.Value;
+            if val <= 0 || val > 255
+                src.Value = 5;
+                self.feedbackManager.showWarning("El valor del umbral en la fase 2, " + ...
+                    "debe estar entre 0 y 255.");
+            end
+        end
+
+
+        function validateSmoothIters_Ph2(self, src)
+            val = src.Value;
+            if val <= 0 || val > 10
+                src.Value = 5;
+                self.feedbackManager.showWarning("El valor de las iteraciones de suavizado " + ...
+                    "en la fase 2, debe estar entre 0 y 10.");
+            end
+        end
+
+
+        function validateMinPoints(self, src)
+            val = src.Value;
+            if val <= 0 || val > 500
+                src.Value = 4;
+                self.feedbackManager.showWarning("El valor del numero mínimo de puntos en DBSCAN, " + ...
+                    "debe estar entre 0 y 500.");
+            end
+        end
+
+
+        function validateEpsilon(self, src)
+            val = src.Value;
+            if val <= 0 || val > 500
+                src.Value = 6;
+                self.feedbackManager.showWarning("El valor del epsilon (Radio de vencidad) en DBSCAN, " + ...
+                    "debe estar entre 0 y 500.");
+            end
+        end
+
+
+        function validatePixelTomm(self, src)
+            val = src.Value;
+            if val <= 0 || val > 100
+                src.Value = 4;
+                self.feedbackManager.showWarning("El valor de px a mm, " + ...
+                    "debe estar entre 0 y 100.");
+            end
+        end
+
+
+        function validateTolerance(self, src)
+            val = src.Value;
+            if val <= 0.1 || val > 1000
+                src.Value = 0.3;
+                self.feedbackManager.showWarning("El valor de la tolerancia del error, " + ...
+                    "debe estar entre 0.1 y 1000.");
+            end
+        end
     end
 end
 

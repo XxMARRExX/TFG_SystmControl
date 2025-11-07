@@ -123,6 +123,7 @@ classdef AppState < handle
         
         function initializeAppStates(self)
             self.states('initialized') = true;
+            self.states('imageUploaded') = false;
             self.states('imageDisplayed') = false;
             self.states('svgUploaded')    = false;
             self.states('svgDisplayed') = false;
@@ -131,6 +132,7 @@ classdef AppState < handle
             self.states('filteredEdgesDisplayed') = false;
             self.states('filteredStagesDisplayed') = false;
             self.states('errorOnPieceDisplayed') = false;
+            self.states('errorOnPieceCalculated') = false;
             self.states('errorStagesDisplayed') = false;
 
             self.activeState = 'initialized';

@@ -47,12 +47,25 @@ classdef FilterPipeController
 
         function filterPipeline(self, configParams)
             fb = self.feedbackManager;
+
+            if ~self.stateApp.getStatusState('imageUploaded')
+                fb.showWarning("Para iniciar el procesamiento " + ...
+                    "se debe haber cargado una imagen.")
+                return;
+            end
             
             self.resetProcessingState();
 
             img = self.imageModel.getImage();
-            bboxes = self.imageModel.getbBoxes();  
+            bboxes = self.imageModel.getbBoxes();
+            self.rebuildBBoxAssociations(bboxes);
             numImages = numel(bboxes);
+
+            if isempty(bboxes)
+                fb.showWarning("No se han definido los Bounding Boxes sobre la imagen. " + ...
+                    "Por favor, dibuje o cargue los BBoxes antes de iniciar el procesamiento.");
+                return;
+            end
 
             fb.startProgress('Procesando', 'Iniciando análisis por imagen...');
         
@@ -76,7 +89,7 @@ classdef FilterPipeController
 
             tg = self.resultsConsoleWrapper.getTabGroup();
             if ~isempty(tg.Children)
-                firstTab = tg.Children(end);
+                firstTab = tg.Children(1);
                 if isprop(firstTab, 'UserData') && isa(firstTab.UserData, 'viewWrapper.results.TabPiece')
                     self.onTabChanged(firstTab.UserData);
                 end
@@ -117,23 +130,46 @@ classdef FilterPipeController
             rescaledImage = imresize(img, configParams.subpixel.scale);
             stage1 = models.Stage( ...
                 filterPipeline.analyze.generateStageImage(rescaledImage), ...
-                sprintf("Etapa %d: Detección de bordes en imagen reescalada.", step), ...
+                sprintf("Etapa %d: Imagen reescalada.", step), ...
                 "Image.");
             filterStageViewer.addStage(stage1);
+
             
             % Stage 2
-            step = step + 1;
-            fb.updateProgress(step/totalSteps, 'Detección de bordes en imagen reescalada...');
-            edges = subpixelEdges(rescaledImage, configParams.subpixel.threshold_Ph1, ...
-                'SmoothingIter', configParams.subpixel.smoothIters_Ph1);
+            try
+                step = step + 1;
+                fb.updateProgress(step/totalSteps, 'Detección subpixel Fase 1...');
+                edges = subpixelEdges(rescaledImage, ...
+                    configParams.subpixel.threshold_Ph1, ...
+                    'SmoothingIter', configParams.subpixel.smoothIters_Ph1);
+            catch ME
+                fb.showWarning("Error durante la detección de bordes en la etapa 2: " + ME.message);
+                bbox.setFilteredEdges([]);
+                return;
+            end
+            
+            % --- Comprobación de detección ---
+            if isempty(edges) || isempty(edges.x)
+                fb.showWarning("No se detectaron bordes en la imagen reescalada. " + ...
+                    "Verifique el umbral de subpíxel o la calidad de la imagen.");
+                
+                stage2 = models.Stage( ...
+                    filterPipeline.analyze.generateStageImage(rescaledImage), ...
+                    sprintf("Etapa %d: Sin bordes detectados en la imagen reescalada.", step), ...
+                    "Image.");
+                filterStageViewer.addStage(stage2);
+            
+                bbox.setFilteredEdges([]);
+                return;
+            end
+            
             stage2 = models.Stage( ...
-                filterPipeline.imageProcessing.visualizeImageWithEdges(...
-                    rescaledImage, ... 
-                    edges ...
-                ), ...
+                filterPipeline.imageProcessing.visualizeImageWithEdges( ...
+                    rescaledImage, edges), ...
                 sprintf("Etapa %d: Detección de bordes en imagen reescalada.", step), ...
                 "Image.");
             filterStageViewer.addStage(stage2);
+
             
             % Stage 3
             step = step + 1;
@@ -149,6 +185,7 @@ classdef FilterPipeController
                 "Image.");
             filterStageViewer.addStage(stage3);
         
+
             % Stage 4
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Recorte de la imagen según el BoundingBox...');
@@ -160,19 +197,42 @@ classdef FilterPipeController
                 "Image.");
             filterStageViewer.addStage(stage4);
         
+
             % Stage 5
-            step = step + 1;
-            fb.updateProgress(step/totalSteps, 'Detección de bordes sobre imagen recortada...');
-            edges = subpixelEdges(cropImage, configParams.subpixel.threshold_Ph2, ...
-                'SmoothingIter', configParams.subpixel.smoothIters_Ph2);
+            try
+                step = step + 1;
+                fb.updateProgress(step/totalSteps, 'Detección subpixel Fase 2...');
+                edges = subpixelEdges(cropImage, ...
+                    configParams.subpixel.threshold_Ph2, ...
+                    'SmoothingIter', configParams.subpixel.smoothIters_Ph2);
+            catch ME
+                fb.showWarning("Error durante la detección de bordes en la etapa 5: " + ME.message);
+                bbox.setFilteredEdges([]);  
+                return; 
+            end
+            
+            % --- Comprobación de detección ---
+            if isempty(edges) || isempty(edges.x)
+                fb.showWarning("No se detectaron bordes en la imagen recortada. " + ...
+                    "Verifique el umbral o la nitidez de la imagen.");
+            
+                stage5 = models.Stage( ...
+                    filterPipeline.analyze.generateStageImage(cropImage), ...
+                    sprintf("Etapa %d: Sin bordes detectados en la imagen recortada.", step), ...
+                    "Image.");
+                filterStageViewer.addStage(stage5);
+            
+                bbox.setFilteredEdges([]);
+                return;
+            end
+            
             stage5 = models.Stage( ...
-                filterPipeline.imageProcessing.visualizeImageWithEdges(...
-                    cropImage, ... 
-                    edges ...
-                ), ...
+                filterPipeline.imageProcessing.visualizeImageWithEdges( ...
+                    cropImage, edges), ...
                 sprintf("Etapa %d: Detección de bordes sobre imagen recortada.", step), ...
                 "Image.");
             filterStageViewer.addStage(stage5);
+
         
             % Stage 6
             step = step + 1;
@@ -188,34 +248,88 @@ classdef FilterPipeController
                 "Image.");
             filterStageViewer.addStage(stage6);
 
+
             % Stage 7
-            step = step + 1;
-            fb.updateProgress(step/totalSteps, 'Agrupación mediante DBSCAN...');
-            [clusters, ~] = filterPipeline.imageProcessing.analyzeSubstructuresWithDBSCAN(edgesFiltered, ...
-                configParams.DBSCAN.epsilon, ...
-                configParams.DBSCAN.minPoints);
+            if isempty(edgesFiltered) || isempty(edgesFiltered.x)
+                fb.showWarning("No hay bordes válidos para agrupar mediante DBSCAN. " + ...
+                    "La imagen puede carecer de información suficiente.");
+                stage7 = models.Stage( ...
+                    filterPipeline.analyze.generateStageImage(cropImage), ...
+                    sprintf("Etapa %d: Sin datos para DBSCAN.", step), "Image.");
+                filterStageViewer.addStage(stage7);
+                return;
+            end
+            
+            % Intentar agrupación segura
+            try
+                step = step + 1;
+                [clusters, ~] = filterPipeline.imageProcessing.analyzeSubstructuresWithDBSCAN( ...
+                    edgesFiltered, ...
+                    configParams.DBSCAN.epsilon, ...
+                    configParams.DBSCAN.minPoints);
+            catch ME
+                fb.showWarning("Error durante la agrupación DBSCAN: " + ME.message);
+                stage7 = models.Stage( ...
+                    filterPipeline.analyze.generateStageImage(cropImage), ...
+                    sprintf("Etapa %d: Error en DBSCAN.", step), "Image.");
+                filterStageViewer.addStage(stage7);
+                return;
+            end
+            
+            % Validar resultado
+            if isempty(clusters)
+                fb.showWarning("DBSCAN no detectó ningún clúster. " + ...
+                    "Revise los parámetros epsilon y minPoints.");
+                stage7 = models.Stage( ...
+                    filterPipeline.analyze.generateStageImage(cropImage), ...
+                    sprintf("Etapa %d: Sin clústeres detectados.", step), "Image.");
+                filterStageViewer.addStage(stage7);
+                return;
+            end
+            
+            % Etapa correcta
             stage7 = models.Stage( ...
-                filterPipeline.imageProcessing.showClusters(...
-                    cropImage, ... 
-                    clusters ...
-                ), ...
+                filterPipeline.imageProcessing.showClusters( ...
+                    cropImage, clusters), ...
                 sprintf("Etapa %d: Agrupación mediante DBSCAN.", step), ...
                 "Image.");
             filterStageViewer.addStage(stage7);
+
         
             % Stage 8
-            step = step + 1;
-            fb.updateProgress(step/totalSteps, 'Búsqueda del contorno principal de la pieza...');
-            [pieceClusters, pieceEdges, numPieces, remainingClusters] = ...
-                filterPipeline.piece.analyze.findPieceClusters(clusters);
-            stage8 = models.Stage( ...
-                filterPipeline.imageProcessing.showClusters(...
-                    cropImage, ... 
-                    pieceClusters ...
-                ), ...
-                sprintf("Etapa %d: Búsqueda del contorno principal de la pieza.", step), ...
-                "Image.");
-            filterStageViewer.addStage(stage8);
+            try
+                step = step + 1;
+                [pieceClusters, pieceEdges, numPieces, remainingClusters] = ...
+                    filterPipeline.piece.analyze.findPieceClusters(clusters);
+            
+                % Validación mínima de resultado
+                if isempty(pieceClusters) || numPieces == 0
+                    fb.showWarning("No se encontró ningún contorno principal de pieza. " + ...
+                        "Es posible que los parámetros de DBSCAN no sean adecuados o " + ...
+                        "que la imagen tenga demasiado ruido.");
+                    stage8 = models.Stage( ...
+                        filterPipeline.analyze.generateStageImage(cropImage), ...
+                        sprintf("Etapa %d: Sin pieza detectada.", step), "Image.");
+                    filterStageViewer.addStage(stage8);
+                    return;
+                end
+            
+                % Etapa correcta
+                stage8 = models.Stage( ...
+                    filterPipeline.imageProcessing.showClusters(cropImage, pieceClusters), ...
+                    sprintf("Etapa %d: Búsqueda del contorno principal de la pieza.", step), ...
+                    "Image.");
+                filterStageViewer.addStage(stage8);
+            
+            catch ME
+                fb.showWarning("Error durante la búsqueda del contorno principal: " + ME.message);
+                stage8 = models.Stage( ...
+                    filterPipeline.analyze.generateStageImage(cropImage), ...
+                    sprintf("Etapa %d: Error en búsqueda de contorno principal.", step), "Image.");
+                filterStageViewer.addStage(stage8);
+                return;
+            end
+
         
             % Stage 9
             step = step + 1;
@@ -226,6 +340,7 @@ classdef FilterPipeController
                 sprintf("Etapa %d: Extracción de máscara de la pieza.", step), ...
                 "Image.");
             filterStageViewer.addStage(stage9);
+
 
             % Stage 10
             step = step + 1;
@@ -255,6 +370,7 @@ classdef FilterPipeController
                 "Image.");
             filterStageViewer.addStage(stage11);
         
+
             % Stage 12
             step = step + 1;
             fb.updateProgress(step/totalSteps, 'Asociación de contornos internos a la pieza...');
@@ -494,6 +610,53 @@ classdef FilterPipeController
 
     methods (Access = private)
 
+        function rebuildBBoxAssociations(self, bboxes)
+        % rebuildBBoxAssociations() Recreate ROI handles for existing BBoxes so they are
+        % logically linked to the current canvas before processing.
+        %
+        %   Inputs:
+        %       - bboxes: array of BBox objects that already contain stored positions.
+        %
+        %   This method ensures that each BBox has a valid ROI handle (drawrectangle)
+        %   associated with the active UIAxes, without requiring user interaction.
+        
+            ax = self.canvasWrapper.getCanvas();
+        
+            for k = 1:numel(bboxes)
+                bbox = bboxes(k);
+        
+                % Obtener la posición del bbox (guardada previamente)
+                if ismethod(bbox, 'getPosition')
+                    pos = bbox.getPosition();
+                elseif ismethod(bbox, 'getRoi') && ~isempty(bbox.getRoi())
+                    pos = bbox.getRoi().Position;
+                else
+                    continue;
+                end
+        
+                % Validar posición
+                if isempty(pos) || numel(pos) ~= 4
+                    continue;
+                end
+        
+                % Crear un ROI asociado al eje actual (sin mostrarlo como editable)
+                newRoi = drawrectangle(ax, ...
+                    'Position', pos, ...
+                    'Color', 'k', ...        % color válido (no importa cuál)
+                    'EdgeAlpha', 0, ...      % borde invisible
+                    'FaceAlpha', 0, ...      % sin relleno
+                    'Visible', 'off');  % No se muestra al usuario
+        
+                % Desactivar interacciones completamente
+                newRoi.InteractionsAllowed = 'none';
+                newRoi.Deletable = false;
+        
+                % Asociar el ROI al objeto BBox
+                bbox.setRoi(newRoi);
+            end
+        end
+
+
         function resetProcessingState(self)
             tg = self.resultsConsoleWrapper.getTabGroup();
             if ~isempty(tg.Children)
@@ -513,7 +676,7 @@ classdef FilterPipeController
         end
         
         function showCroopedImage(self, image)
-            self.canvasWrapper.showImage(image);
+            self.canvasWrapper.showImage(image, 'Imagen recortada según el BBox definido por el usuario');
             self.stateApp.setActiveState('croppedImageByUserDisplayed');
         end
 
