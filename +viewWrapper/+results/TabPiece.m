@@ -1,22 +1,63 @@
 classdef TabPiece < handle
-% TabPiece UI container for displaying and interacting with a single piece.
+% TabPiece  UI container for displaying and interacting with a single piece.
 %
-%   This class defines the layout and controls for a tab dedicated to one
-%   piece within the application. It manages image preview, 
-%   piece metadata, and action buttons (e.g., subpixel detection,
-%   filtering, error calculation).
+%   This class defines the structure and interactive controls of a tab
+%   associated with a specific piece (bounding box) in the application.
+%   Each tab contains the visual preview of the piece, relevant metadata,
+%   and action buttons to trigger various analysis stages, such as
+%   subpixel detection, filtering, and error computation.
 %
-%   Properties:
-%       - gridLayoutTab: main grid layout container for the tab 
-%       - gridLayoutPieceInfo: grid layout for displaying piece information 
-%       - gridLayoutButtons: grid layout for arranging action buttons 
-%       - idPiece: Id of the Bbox of the piece
-%       - previewPiece: UI component for showing the piece image 
-%       - imagePiece: Image of the piece
-%       - showImageButton: button to show the piece image 
-%       - detectedEdgesButton: button to display subpixel edge detection 
-%       - filterButton: button to display edges filtered
-%       - errorButton: button to display error metrics 
+%   -----------------------------------------------------------------------
+%   Properties
+%   -----------------------------------------------------------------------
+%
+%   tabPiece            : UITab object representing this piece's tab.
+%
+%   gridLayoutTab       : Main grid layout container of the tab.
+%   gridLayoutPieceInfo : Grid layout for displaying piece metadata and info.
+%   gridLayoutButtons   : Grid layout for arranging interactive buttons.
+%
+%   scrollPanel         : uix.ScrollingPanel that enables vertical scrolling
+%                         within the tab content.
+%
+%   vbox                : uix.VBox container grouping the main UI sections
+%                         (piece info, image preview, and buttons).
+%
+%   idPiece             : Identifier (string) of the piece’s bounding box.
+%
+%   previewPiece        : UIAxes component displaying the piece image or
+%                         intermediate processing results.
+%
+%   imagePiece          : Image matrix (uint8) representing the visual data
+%                         of the piece to be displayed in the preview.
+%
+%   showImageButton     : Button to display the original cropped image
+%                         of the piece on the preview canvas.
+%
+%   detectedEdgesButton : Button to show the result of subpixel edge
+%                         detection for the current piece.
+%
+%   filterButton        : Button to display the filtered edge results.
+%
+%   errorButton         : Button to visualize the computed geometric error
+%                         and tolerance comparison.
+%
+%   prevFilterStage     : Button to navigate to the previous stage of the
+%                         filtering process (if available).
+%
+%   nextFilterStage     : Button to navigate to the next stage of the
+%                         filtering process (if available).
+%
+%   showFilterStages    : Button to show all available filtering stages.
+%
+%   prevErrorStage      : Button to navigate to the previous stage of the
+%                         error computation process.
+%
+%   nextErrorStage      : Button to navigate to the next stage of the
+%                         error computation process.
+%
+%   showErrorStages     : Button to display all available stages of error
+%                         visualization.
     
     properties
         tabPiece matlab.ui.container.Tab

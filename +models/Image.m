@@ -1,13 +1,13 @@
 classdef Image < handle
-    % Image  Model class to store and manage an input image.
-    %
-    %   Properties (private):
-    %       - fileName: Name of the image file (without path).
-    %       - fullPath: Full path to the image file (directory + fileName).
-    %       - matrix: Pixel data of the image stored as a matrix. Always converted
-    %           to grayscale upon loading for consistency.
-    %       - bBoxes: Collection of BBox objects associated with this image,
-    %           representing cropped regions for analysis.
+% Image  Model class to store and manage an input image.
+%
+%   Properties (private):
+%       - fileName: Name of the image file (without path).
+%       - fullPath: Full path to the image file (directory + fileName).
+%       - matrix: Pixel data of the image stored as a matrix. Always converted
+%           to grayscale upon loading for consistency.
+%       - bBoxes: Collection of BBox objects associated with this image,
+%           representing cropped regions for analysis.
     
     properties (Access = private)
         isDisplayed logical = false;

@@ -1,16 +1,8 @@
 classdef StageViewer < handle
-    % StageViewer  Manages a sequential list of filtering stages (images).
-    %
-    %   Allows adding, navigating and retrieving images representing
-    %   processing stages. Designed to be attached to a BBox object.
-    %
-    %   Example:
-    %       viewer = StageViewer();
-    %       viewer.addStage(img1);
-    %       viewer.addStage(img2);
-    %       current = viewer.getCurrent();  % returns img1
-    %       nextImg = viewer.next();        % returns img2
-    %       prevImg = viewer.prev();        % returns img1
+% StageViewer  Manages a sequential list of filtering stages (images).
+%
+%   Allows adding, navigating and retrieving images representing
+%   processing stages. Designed to be attached to a BBox object.
 
     properties (Access = private)
         stages cell = {};
