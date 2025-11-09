@@ -1,14 +1,7 @@
 classdef BBox < handle
-% BBox  Bounding box model with drawing and analysis support.
+% BBox  Bounding box model save all the analysis of croppedImage by him.
 %
-%   This class represents a bounding box associated with a detected piece
-%   in the image. It manages both its geometric and visual properties,
-%   including its position, cropped image data, detected edges, and the
-%   intermediate processing results generated during the analysis.
-%
-%   -----------------------------------------------------------------------
-%   Properties (private)
-%   -----------------------------------------------------------------------
+%   Properties (private):
 %
 %   id                     : Unique identifier for the bounding box,
 %                            automatically generated upon creation.
