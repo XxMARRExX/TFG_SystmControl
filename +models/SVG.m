@@ -1,7 +1,7 @@
 classdef SVG < handle
 % SVG  Model class to store and manage an imported SVG file.
 %
-%   Properties (private):
+%   Properties:
 %       - fileName: The name of the SVG file (without path). 
 %       - fullPath: The full path to the SVG file, including file name.
 %       - contours: A cell array where each element represents a path extracted
@@ -197,7 +197,7 @@ classdef SVG < handle
             ymin = min(allPoints(:,2));
             ymax = max(allPoints(:,2));
         
-            % Añadir margen del 5%
+            % Add margin of 5%
             padding = 0.05;
             dx = xmax - xmin;
             dy = ymax - ymin;
@@ -205,14 +205,12 @@ classdef SVG < handle
             xlim(ax, [xmin - padding*dx, xmax + padding*dx]);
             ylim(ax, [ymin - padding*dy, ymax + padding*dy]);
 
-            % 🔁 Invertir eje Y para coincidir con SVG
+            % ?Invert Y axis
             set(ax, 'YDir', 'reverse');
         
-            % Exportar imagen (mayor precisión que getframe)
             tempFile = [tempname, '.png'];
             exportgraphics(ax, tempFile, 'BackgroundColor','white', 'Resolution', 96);
         
-            % Leer imagen
             img = imread(tempFile);
             delete(tempFile);
             close(fig);
