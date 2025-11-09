@@ -3,14 +3,16 @@ classdef Image < handle
 %
 %   Properties (private):
 %       - fileName: Name of the image file (without path).
+%
 %       - fullPath: Full path to the image file (directory + fileName).
+%
 %       - matrix: Pixel data of the image stored as a matrix. Always converted
 %           to grayscale upon loading for consistency.
+%
 %       - bBoxes: Collection of BBox objects associated with this image,
 %           representing cropped regions for analysis.
     
     properties (Access = private)
-        isDisplayed logical = false;
         fileName string;
         fullPath string;
         matrix uint8 = uint8([]);
@@ -109,15 +111,12 @@ classdef Image < handle
 
         function clearBBoxes(self)
         % clearBBoxes() Removes all BBoxes and their ROIs from the image model.
-        %
-        %   This method is called when a new image is loaded to ensure that
-        %   no invalid or outdated ROI handles remain linked to the previous image.
 
             if isempty(self.bBoxes)
                 return;
             end
     
-            % Intentar eliminar ROIs válidos (por limpieza completa)
+            % clean valid ROIs
             for i = 1:numel(self.bBoxes)
                 bbox = self.bBoxes(i);
                 if ismethod(bbox, "getRoi")
@@ -128,7 +127,7 @@ classdef Image < handle
                 end
             end
     
-            % Vaciar colección
+            % Clean colection
             self.bBoxes = models.BBox.empty();
         end
 
