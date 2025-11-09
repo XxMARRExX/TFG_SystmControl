@@ -208,7 +208,7 @@ classdef SVG < handle
             xlim(ax, [xmin - padding*dx, xmax + padding*dx]);
             ylim(ax, [ymin - padding*dy, ymax + padding*dy]);
 
-            % ?Invert Y axis
+            % Invert Y axis
             set(ax, 'YDir', 'reverse');
         
             tempFile = [tempname, '.png'];
