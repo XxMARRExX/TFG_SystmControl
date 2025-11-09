@@ -403,6 +403,18 @@ classdef Canvas < handle
 
     methods(Access = private)
         function txt = customTooltip(event_obj, h)
+        % customTooltip() Generates a custom tooltip for data cursor display.
+        %
+        %   Inputs:
+        %       - event_obj: handle to the event object provided by the data cursor,
+        %           containing information about the selected data point.
+        %
+        %       - h: handle to the plotted data object, which stores additional
+        %           information (e.g., error values) in its UserData property.
+        %
+        %   Output:
+        %       - txt: cell array of character vectors containing the formatted
+        %           tooltip text lines to display.
             
             pos = get(event_obj, 'Position');
             idx = get(event_obj, 'DataIndex');
