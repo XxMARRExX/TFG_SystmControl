@@ -6,7 +6,6 @@ classdef FilterPipeController
 %       1. Crop images from BoundingBoxes 
 %       2. Detect Edges with subpixel edgeDetector from croppedImages
 %       3. Filter Edges for a more precission
-%       4. Calculate the error produced
 %
 %   Properties (private):
 %       - stateApp: Global application state instance.
@@ -46,6 +45,12 @@ classdef FilterPipeController
 
 
         function filterPipeline(self, configParams)
+        % filterPipeline()  Executes the main filtering and analysis pipeline for all defined BBoxes.
+        %
+        %   Inputs:
+        %       - configParams: structure containing configuration parameters
+        %           used for edge detection and filtering.
+
             fb = self.feedbackManager;
 
             if ~self.stateApp.getStatusState('imageUploaded')
@@ -115,12 +120,10 @@ classdef FilterPipeController
             fb = self.feedbackManager;
             img = bbox.getCroppedImage();
             filterStageViewer = bbox.getFilterStageViewer();
-        
-            % --- Parámetros internos ---
+
             maxMeanDist = 20;
             refImgSize = [7000 9344];
         
-            % --- Inicialización de progreso ---
             totalSteps = 12;
             step = 0;
             
@@ -148,7 +151,7 @@ classdef FilterPipeController
                 return;
             end
             
-            % --- Comprobación de detección ---
+            % --- Check detection ---
             if isempty(edges) || isempty(edges.x)
                 fb.showWarning("No se detectaron bordes en la imagen reescalada. " + ...
                     "Verifique el umbral de subpíxel o la calidad de la imagen.");
@@ -211,7 +214,7 @@ classdef FilterPipeController
                 return; 
             end
             
-            % --- Comprobación de detección ---
+            % --- Check detection ---
             if isempty(edges) || isempty(edges.x)
                 fb.showWarning("No se detectaron bordes en la imagen recortada. " + ...
                     "Verifique el umbral o la nitidez de la imagen.");
@@ -260,7 +263,7 @@ classdef FilterPipeController
                 return;
             end
             
-            % Intentar agrupación segura
+            % try controlled match
             try
                 step = step + 1;
                 [clusters, ~] = filterPipeline.imageProcessing.analyzeSubstructuresWithDBSCAN( ...
@@ -276,7 +279,7 @@ classdef FilterPipeController
                 return;
             end
             
-            % Validar resultado
+            % Validate result
             if isempty(clusters)
                 fb.showWarning("DBSCAN no detectó ningún clúster. " + ...
                     "Revise los parámetros epsilon y minPoints.");
@@ -287,7 +290,7 @@ classdef FilterPipeController
                 return;
             end
             
-            % Etapa correcta
+            % Correct Stage
             stage7 = models.Stage( ...
                 filterPipeline.imageProcessing.showClusters( ...
                     cropImage, clusters), ...
@@ -302,7 +305,6 @@ classdef FilterPipeController
                 [pieceClusters, pieceEdges, numPieces, remainingClusters] = ...
                     filterPipeline.piece.analyze.findPieceClusters(clusters);
             
-                % Validación mínima de resultado
                 if isempty(pieceClusters) || numPieces == 0
                     fb.showWarning("No se encontró ningún contorno principal de pieza. " + ...
                         "Es posible que los parámetros de DBSCAN no sean adecuados o " + ...
@@ -314,7 +316,7 @@ classdef FilterPipeController
                     return;
                 end
             
-                % Etapa correcta
+                % Correct Stage
                 stage8 = models.Stage( ...
                     filterPipeline.imageProcessing.showClusters(cropImage, pieceClusters), ...
                     sprintf("Etapa %d: Búsqueda del contorno principal de la pieza.", step), ...
@@ -399,7 +401,6 @@ classdef FilterPipeController
         %
         %   If a results console wrapper is available, the cropped images are also
         %   rendered in the console for preview.
-
             
             if isempty(image)
                 return;
@@ -409,7 +410,7 @@ classdef FilterPipeController
                 return;
             end
         
-            % Construir esquinas 2x4 a partir del ROI [x y w h]
+            % Build corners 2x4
             pos = bbox.getRoi().Position;
             x = pos(1); y = pos(2); w = pos(3); h = pos(4);
             corners = [x,   x+w, x+w, x; 
@@ -426,6 +427,8 @@ classdef FilterPipeController
 
 
         function wireActionsOnShowImageButtons(self)
+        % wireActionsOnShowImageButtons()  Connects the "Show Image" 
+        %       button actions for all result tabs.
 
             tg = self.resultsConsoleWrapper.getTabGroup();
 
@@ -445,6 +448,7 @@ classdef FilterPipeController
 
 
         function wireTabSelectionChanged(self)
+        % wireTabSelectionChanged()  Connects the event handler for tab selection changes.
             tg = self.resultsConsoleWrapper.getTabGroup();
         
             tg.SelectionChangedFcn = @(src, evt) ...
@@ -453,10 +457,10 @@ classdef FilterPipeController
 
 
         function onTabChanged(self, tabPiece)
-            % onTabChanged() Updates the active BBox and displays its cropped image.
-            %
-            %   Inputs:
-            %       - tabPiece: instance of viewWrapper.results.TabPiece
+        % onTabChanged() Updates the active BBox and displays its cropped image.
+        %
+        %   Inputs:
+        %       - tabPiece: instance of viewWrapper.results.TabPiece
         
             if isempty(tabPiece)
                 return;
@@ -497,7 +501,8 @@ classdef FilterPipeController
 
 
         function wireActionsOnShowDetectedEdges(self)
-
+        % wireActionsOnShowDetectedEdges()  Connects the "Show Detected Edges"
+        %       button actions for all result tabs.
             tg = self.resultsConsoleWrapper.getTabGroup();
             tabs = tg.Children;
             
@@ -519,6 +524,8 @@ classdef FilterPipeController
 
 
         function wireActionsOnShowFilteredEdges(self)
+        % wireActionsOnShowFilteredEdges()  Connects the "Show Filtered Edges" 
+        %       button actions for all result tabs.
 
             tg = self.resultsConsoleWrapper.getTabGroup();
             tabs = tg.Children;
@@ -541,6 +548,8 @@ classdef FilterPipeController
 
 
         function wireActionsOnShowFilterStages(self)
+        % wireActionsOnShowFilterStages()  Connects the "Show Filter Stages" 
+        %       button actions for all result tabs.
 
             tg = self.resultsConsoleWrapper.getTabGroup();
             tabs = tg.Children;
@@ -563,7 +572,8 @@ classdef FilterPipeController
 
 
         function wireActionsOnShowPreviousFilterStage(self)
-
+        % wireActionsOnShowPreviousFilterStage()  Connects the "Previous Filter Stage" 
+        %       button actions for all result tabs.
             tg = self.resultsConsoleWrapper.getTabGroup();
             tabs = tg.Children;
             
@@ -585,6 +595,8 @@ classdef FilterPipeController
 
 
         function wireActionsOnShowNextFilterStage(self)
+        % wireActionsOnShowNextFilterStage()  Connects the "Next Filter Stage" 
+        %       button actions for all result tabs.
 
             tg = self.resultsConsoleWrapper.getTabGroup();
             tabs = tg.Children;
@@ -625,7 +637,7 @@ classdef FilterPipeController
             for k = 1:numel(bboxes)
                 bbox = bboxes(k);
         
-                % Obtener la posición del bbox (guardada previamente)
+                % Take the position from de Bbox
                 if ismethod(bbox, 'getPosition')
                     pos = bbox.getPosition();
                 elseif ismethod(bbox, 'getRoi') && ~isempty(bbox.getRoi())
@@ -634,30 +646,30 @@ classdef FilterPipeController
                     continue;
                 end
         
-                % Validar posición
+                % Validate position
                 if isempty(pos) || numel(pos) ~= 4
                     continue;
                 end
         
-                % Crear un ROI asociado al eje actual (sin mostrarlo como editable)
+                % Create Roi
                 newRoi = drawrectangle(ax, ...
                     'Position', pos, ...
-                    'Color', 'k', ...        % color válido (no importa cuál)
-                    'EdgeAlpha', 0, ...      % borde invisible
-                    'FaceAlpha', 0, ...      % sin relleno
-                    'Visible', 'off');  % No se muestra al usuario
+                    'Color', 'k', ...        
+                    'EdgeAlpha', 0, ...      
+                    'FaceAlpha', 0, ...      
+                    'Visible', 'off');
         
-                % Desactivar interacciones completamente
                 newRoi.InteractionsAllowed = 'none';
                 newRoi.Deletable = false;
         
-                % Asociar el ROI al objeto BBox
                 bbox.setRoi(newRoi);
             end
         end
 
 
         function resetProcessingState(self)
+        % resetProcessingState()  Clears all previous 
+        %       processing results and resets the system state.
             tg = self.resultsConsoleWrapper.getTabGroup();
             if ~isempty(tg.Children)
                 delete(tg.Children);
@@ -675,14 +687,26 @@ classdef FilterPipeController
             end
         end
         
+
         function showCroopedImage(self, image)
+        % showCroopedImage()  Displays the cropped image defined by the user’s BBox.
+        %
+        %   Inputs:
+        %       - image: image matrix corresponding to the region cropped
+        %           according to the user-defined bounding box (BBox).
+
             self.canvasWrapper.showImage(image, 'Imagen recortada según el BBox definido por el usuario');
             self.stateApp.setActiveState('croppedImageByUserDisplayed');
         end
 
 
         function showDetectedEdges(self, bboxId)
-            
+        % showDetectedEdges()  Displays the detected edges for a given BBox.
+        %
+        %   Inputs:
+        %       - bboxId: unique identifier of the bounding box (BBox)
+        %           whose detected edges are to be displayed.
+
             bbox = self.imageModel.getBBoxById(bboxId);
             if isempty(bbox)
                 return;
@@ -697,6 +721,11 @@ classdef FilterPipeController
 
 
         function showFilteredEdges(self, bboxId)
+        % showFilteredEdges()  Displays the filtered edges for a given BBox.
+        %
+        %   Inputs:
+        %       - bboxId: unique identifier of the bounding box (BBox)
+        %           whose filtered edges are to be displayed.
             
             bbox = self.imageModel.getBBoxById(bboxId);
             if isempty(bbox)
@@ -713,6 +742,12 @@ classdef FilterPipeController
 
 
         function showFilterStages(self, bboxId)
+        % showFilterStages()  Displays the first stage of the filtering process for a given BBox.
+        %
+        %   Inputs:
+        %       - bboxId: unique identifier of the bounding box (BBox)
+        %           whose filtering stages are to be displayed.
+
             bbox = self.imageModel.getBBoxById(bboxId);
             if isempty(bbox)
                 return;
@@ -728,6 +763,12 @@ classdef FilterPipeController
 
 
         function showPreviousFilteredStage(self, bboxId)
+        % showPreviousFilteredStage()  Displays the previous stage of the 
+        %       filtering process for a given BBox.
+        %
+        %   Inputs:
+        %       - bboxId: unique identifier of the bounding box (BBox)
+        %           whose previous filtering stage is to be displayed.
             bbox = self.imageModel.getBBoxById(bboxId);
             if isempty(bbox)
                 return;
@@ -749,6 +790,11 @@ classdef FilterPipeController
 
 
         function showNextFilteredStage(self, bboxId)
+        % showNextFilteredStage()  Displays the next stage of the filtering process for a given BBox.
+        %
+        %   Inputs:
+        %       - bboxId: unique identifier of the bounding box (BBox)
+        %           whose next filtering stage is to be displayed.
             bbox = self.imageModel.getBBoxById(bboxId);
             if isempty(bbox)
                 return;

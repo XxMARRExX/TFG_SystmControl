@@ -1,20 +1,14 @@
 classdef TabPiece < handle
 % TabPiece  UI container for displaying and interacting with a single piece.
 %
-%   This class defines the structure and interactive controls of a tab
-%   associated with a specific piece (bounding box) in the application.
-%   Each tab contains the visual preview of the piece, relevant metadata,
-%   and action buttons to trigger various analysis stages, such as
-%   subpixel detection, filtering, and error computation.
-%
-%   -----------------------------------------------------------------------
-%   Properties
-%   -----------------------------------------------------------------------
+%   Properties (private):
 %
 %   tabPiece            : UITab object representing this piece's tab.
 %
 %   gridLayoutTab       : Main grid layout container of the tab.
+%
 %   gridLayoutPieceInfo : Grid layout for displaying piece metadata and info.
+%
 %   gridLayoutButtons   : Grid layout for arranging interactive buttons.
 %
 %   scrollPanel         : uix.ScrollingPanel that enables vertical scrolling
@@ -160,6 +154,10 @@ classdef TabPiece < handle
     methods (Access = private)
         
         function buildLayoutTab(self, image)
+        % buildLayoutTab()  Builds the layout structure of a piece analysis tab.
+        %
+        %   Inputs:
+        %       - image: image matrix to be displayed as the piece preview.
             % TabLayout
             self.gridLayoutTab = uigridlayout(self.tabPiece, [1, 2]);
             self.gridLayoutTab.RowHeight = {'1x'};
@@ -192,9 +190,13 @@ classdef TabPiece < handle
 
 
         function buildFirstRow(self)
+        % buildFirstRow()  Creates the first horizontal row of control buttons.
+            
+            % --- Horizontal layout container ---
             hbox1 = uix.HBox('Parent', self.vbox, ...
                 'Spacing', 8, 'BackgroundColor', [1 1 1]);
-
+            
+            % --- Button: Show Image ---
             self.showImageButton = uibutton(hbox1, 'push', ...
                 'Text', 'Mostrar imagen', ...
                 'FontName', 'Segoe UI', ...
@@ -205,6 +207,7 @@ classdef TabPiece < handle
                 'FontWeight', 'bold', ...
                 'WordWrap', 'on');
             
+            % --- Button: Show Detected Edges ---
             self.detectedEdgesButton = uibutton(hbox1, 'push', ...
                 'Text', 'Mostrar bordes detectados', ...
                 'FontName', 'Segoe UI', ...
@@ -215,14 +218,19 @@ classdef TabPiece < handle
                 'FontWeight', 'bold', ...
                 'WordWrap', 'on');
             
+            % --- Equal width distribution ---
             set(hbox1, 'Widths', [-1 -1]); 
         end
 
 
         function buildSecondRow(self)
+        % buildSecondRow()  Creates the second horizontal row of control buttons.
+
+            % --- Horizontal layout container ---
             hbox2 = uix.HBox('Parent', self.vbox, 'Spacing', ...
                 8, 'BackgroundColor', [1 1 1]);
-
+            
+            % --- Button: Show Filtered Edges ---
             self.filterButton = uibutton(hbox2, 'push', ...
                 'Text', 'Mostrar bordes filtrados', ...
                 'FontName', 'Segoe UI', ...
@@ -232,7 +240,8 @@ classdef TabPiece < handle
                 'Tooltip', 'Muestra los bordes filtrados', ...
                 'FontWeight', 'bold', ...
                 'WordWrap', 'on');
-        
+            
+            % --- Button: Show Computed Error ---
             self.errorButton = uibutton(hbox2, 'push', ...
                 'Text', 'Mostrar error producido', ...
                 'FontName', 'Segoe UI', ...
@@ -242,15 +251,20 @@ classdef TabPiece < handle
                 'Tooltip', 'Muestra la comparación con el modelo SVG y el error calculado', ...
                 'FontWeight', 'bold', ...
                 'WordWrap', 'on');
-
+            
+            % --- Equal width distribution ---
             set(hbox2, 'Widths', [-1 -1]);
         end
 
 
         function buildThirdRow(self)
+        % buildThirdRow()  Creates the third horizontal row of stage navigation controls.
+
+            % --- Horizontal layout container ---
             hbox3 = uix.HBox('Parent', self.vbox, ...
                 'Spacing', 8, 'BackgroundColor', [1 1 1]);
-
+            
+            % --- Button: Previous Filtering Stage ---
             self.prevFilterStage = uibutton(hbox3, 'push', ...
                 'Text', 'Etapa previa', ...
                 'FontName', 'Segoe UI', ...
@@ -260,7 +274,8 @@ classdef TabPiece < handle
                 'FontColor', [0.25 0.25 0.25], ...
                 'Tooltip', 'Muestra la etapa de filtrado anterior', ...
                 'WordWrap', 'on');
-
+            
+            % --- Button: Show All Filtering Stages ---
             self.showFilterStages = uibutton(hbox3, 'push', ...
                 'Text', 'Mostrar etapas de filtrado', ...
                 'FontName', 'Segoe UI', ...
@@ -270,7 +285,8 @@ classdef TabPiece < handle
                 'FontColor', [0.25 0.25 0.25], ...
                 'Tooltip', 'Visualiza todas las etapas del proceso de filtrado', ...
                 'WordWrap', 'on');
-
+            
+            % --- Button: Next Filtering Stage ---
             self.nextFilterStage = uibutton(hbox3, 'push', ...
                 'Text', 'Etapa posterior', ...
                 'FontName', 'Segoe UI', ...
@@ -280,15 +296,20 @@ classdef TabPiece < handle
                 'FontColor', [0.25 0.25 0.25], ...
                 'Tooltip', 'Avanza a la siguiente etapa de filtrado', ...
                 'WordWrap', 'on');
-
+            
+            % --- Equal width distribution ---
             set(hbox3, 'Widths', [-1 -1 -1]);
         end
 
 
         function buildFourthRow(self)
+        % buildFourthRow()  Creates the fourth horizontal row of error stage navigation controls.
+
+            % --- Horizontal layout container ---
             hbox4 = uix.HBox('Parent', self.vbox, ...
                 'Spacing', 8, 'BackgroundColor', [1 1 1]);
-
+            
+            % --- Button: Previous Error Stage ---
             self.prevErrorStage = uibutton(hbox4, 'push', ...
                 'Text', 'Etapa previa', ...
                 'FontName', 'Segoe UI', ...
@@ -299,6 +320,7 @@ classdef TabPiece < handle
                 'Tooltip', 'Muestra la etapa de error anterior', ...
                 'WordWrap', 'on');
             
+            % --- Button: Show All Error Stages ---
             self.showErrorStages = uibutton(hbox4, 'push', ...
                 'Text', 'Mostrar etapas de error', ...
                 'FontName', 'Segoe UI', ...
@@ -309,6 +331,7 @@ classdef TabPiece < handle
                 'Tooltip', 'Visualiza todas las etapas intermedias del cálculo de error', ...
                 'WordWrap', 'on');
             
+            % --- Button: Next Error Stage ---
             self.nextErrorStage = uibutton(hbox4, 'push', ...
                 'Text', 'Etapa posterior', ...
                 'FontName', 'Segoe UI', ...
@@ -318,7 +341,8 @@ classdef TabPiece < handle
                 'FontColor', [0.25 0.25 0.25], ...
                 'Tooltip', 'Avanza a la siguiente etapa del análisis de error', ...
                 'WordWrap', 'on');
-
+            
+            % --- Equal width distribution ---
             set(hbox4, 'Widths', [-1 -1 -1]);
         end
 

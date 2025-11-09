@@ -1,15 +1,7 @@
 classdef AppState < handle
 % AppState  Centralized application state manager.
 %
-%   This class is responsible for maintaining and controlling the global
-%   state of the application. It tracks the current operational mode,
-%   active tools, and contextual identifiers (e.g., the currently selected
-%   bounding box). Its purpose is to provide a single, consistent source
-%   of truth for state-related logic throughout the GUI.
-%
-%   -----------------------------------------------------------------------
-%   Properties (private)
-%   -----------------------------------------------------------------------
+%   Properties (private):
 %
 %   states            : containers.Map object storing all logical states
 %                       of the application as key–value pairs, where keys
@@ -141,6 +133,7 @@ classdef AppState < handle
     methods(Access = private)
         
         function initializeAppStates(self)
+        % initializeAppStates() Initializes all logical application states.
             self.states('initialized') = true;
             self.states('imageUploaded') = false;
             self.states('imageDisplayed') = false;

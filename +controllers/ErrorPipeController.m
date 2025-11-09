@@ -1,5 +1,15 @@
 classdef ErrorPipeController
-    
+% ErrorPipeController  Manages the error calculation and visualization pipeline.
+%
+%   Properties:
+%       - stateApp: application state manager controlling logic and UI states.
+%       - imageModel: model containing image data, bounding boxes, and edge results.
+%       - svgModel: model holding SVG contour data and metadata.
+%       - canvasWrapper: graphical wrapper for rendering images and analysis results.
+%       - resultsConsoleWrapper: manages tabbed views for each processed piece.
+%       - feedbackManager: user feedback handler for progress updates, warnings, and messages.
+%
+
     properties
         stateApp;
         imageModel;
@@ -25,6 +35,12 @@ classdef ErrorPipeController
 
 
         function errorPipeline(self, configParams)
+        % errorPipeline()  Executes the complete error analysis pipeline for all detected pieces.
+        %
+        %   Inputs:
+        %       - configParams: structure containing configuration parameters,
+        %           including pixel-to-millimeter conversion and error tolerance.
+
             if ~self.stateApp.getStatusState('svgUploaded')
                 self.feedbackManager.showWarning("Para calcular el error " + ...
                     "se debe haber cargado el archivo .svg de la " + ...
@@ -80,6 +96,14 @@ classdef ErrorPipeController
 
         function processErrorSinglePiece(self, configParams, bbox, ...
                 svgPaths, cornersSVG)
+        % processErrorSinglePiece()  Executes the full error computation pipeline for a single piece (BBox).
+        %
+        %   Inputs:
+        %       - configParams: structure containing configuration parameters,
+        %           including pixel-to-millimeter ratio and error tolerance.
+        %       - bbox: BBox object representing the current detected piece.
+        %       - svgPaths: cell array containing SVG contour paths of the reference model.
+        %       - cornersSVG: 4x2 matrix representing the SVG model bounding box corners.
             
             fb = self.feedbackManager;
 
@@ -180,6 +204,7 @@ classdef ErrorPipeController
 
     methods(Access = private)
         function resetProcessingState(self)
+        % resetProcessingState()  Clears all stored error analysis stages for each BBox.
             bboxes = self.imageModel.getbBoxes();
             for i = 1:numel(bboxes)
                 bbox = bboxes(i);
@@ -211,6 +236,8 @@ classdef ErrorPipeController
 
 
         function wireActionsOnShowCalculatedError(self, tolerance)
+        % wireActionsOnShowCalculatedError()  Connects the "Show 
+        %       Calculated Error" button actions for all result tabs.
             
             tg = self.resultsConsoleWrapper.getTabGroup();
             tabs = tg.Children;
@@ -233,6 +260,8 @@ classdef ErrorPipeController
 
 
         function wireActionsOnShowErrorStages(self)
+        % wireActionsOnShowErrorStages()  Connects the "Show 
+        %       Error Stages" button actions for all result tabs.
             
             tg = self.resultsConsoleWrapper.getTabGroup();
             tabs = tg.Children;
@@ -255,6 +284,8 @@ classdef ErrorPipeController
 
 
         function wireActionsOnShowPreviousErrorStage(self)
+        % wireActionsOnShowPreviousErrorStage()  Connects the "Previous 
+        %       Error Stage" button actions for all result tabs.
 
             tg = self.resultsConsoleWrapper.getTabGroup();
             tabs = tg.Children;
@@ -277,6 +308,12 @@ classdef ErrorPipeController
 
 
         function wireActionsOnShowNextErrorStage(self)
+        % wireActionsOnShowNextErrorStage()  Connects the "Next Error Stage" button actions for all result tabs.
+        %
+        %   This function iterates through all result tabs and assigns the
+        %   corresponding callback to each tab’s "Next Error Stage" button.
+        %   The assigned callback allows users to navigate to the next stage
+        %   of the error analysis process for a given bounding box (BBox).
 
             tg = self.resultsConsoleWrapper.getTabGroup();
             tabs = tg.Children;
@@ -300,6 +337,17 @@ classdef ErrorPipeController
 
         function showErrorOnRefinedCropImage( ...
                 self, refinedCropImage, svgPaths, edgesWithError, tolerance)
+        % showErrorOnRefinedCropImage()  Displays the calculated geometric 
+        %       error on the refined cropped image.
+        %
+        %   Inputs:
+        %       - refinedCropImage: image matrix representing the cropped region
+        %           of the piece after geometric refinement.
+        %       - svgPaths: cell array containing the reference SVG contour paths.
+        %       - edgesWithError: structure containing edge points with their
+        %           associated error values relative to the SVG model.
+        %       - tolerance: numeric value defining the acceptable geometric
+        %           deviation (in millimeters) used to highlight errors.
 
             self.canvasWrapper.showErrorOnOriginalImage( ...
                 refinedCropImage, svgPaths, edgesWithError, tolerance);
@@ -309,6 +357,12 @@ classdef ErrorPipeController
 
 
         function showErrorStages(self, bboxId)
+        % showErrorStages()  Displays the first stage of the error 
+        %       analysis process for a given BBox.
+        %
+        %   Inputs:
+        %       - bboxId: unique identifier of the bounding box (BBox)
+        %           whose error analysis stages are to be displayed.
             bbox = self.imageModel.getBBoxById(bboxId);
             if isempty(bbox)
                 return;
@@ -324,6 +378,12 @@ classdef ErrorPipeController
 
 
         function showPreviousErrorStage(self, bboxId)
+        % showPreviousErrorStage()  Displays the previous stage of the error 
+        %       analysis process for a given BBox.
+        %
+        %   Inputs:
+        %       - bboxId: unique identifier of the bounding box (BBox)
+        %           whose previous error analysis stage is to be displayed.
             bbox = self.imageModel.getBBoxById(bboxId);
             if isempty(bbox)
                 return;
@@ -345,6 +405,13 @@ classdef ErrorPipeController
 
 
         function showNextErrorStage(self, bboxId)
+        % showNextErrorStage()  Displays the next stage of the error 
+        %       analysis process for a given BBox.
+        %
+        %   Inputs:
+        %       - bboxId: unique identifier of the bounding box (BBox)
+        %           whose next error analysis stage is to be displayed.
+
             bbox = self.imageModel.getBBoxById(bboxId);
             if isempty(bbox)
                 return;

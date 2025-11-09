@@ -2,18 +2,15 @@ classdef SVGController
 % SVGController Coordinates interaction between the SVG model, view wrappers,
 % and application state.
 %
-%   This class manages the workflow of loading, displaying, and previewing
-%   SVG files within the application. It communicates with the SVG model
-%   to parse and store contours, updates the preview wrapper to render a
-%   rasterized version of the SVG, and instructs the canvas wrapper to
-%   display vector paths. It also manages application state regarding
-%   whether an image or SVG is currently active.
-%
 %   Properties:
 %       - stateApp: application state manager
+%
 %       - svgModel: data model that stores SVG filename, path, and contours
+%
 %       - previewSVGWrapper: view wrapper for displaying SVG previews
+%
 %       - canvasWrapper: wrapper of the canvas
+%
 %       - feedbackManager  Centralized manager for user feedback (progress, 
 %           warnings, errors).
 
@@ -38,19 +35,19 @@ classdef SVGController
 
 
         function loadSVGFromDialog(self, path, file)
-        % loadSVGFromDialog() Loads an SVG file.
+        % loadSVGFromDialog()  Loads an SVG model and displays its preview.
         %
         %   Inputs:
-        %       - path: directory path where the SVG file is located
-        %       - file: name of the SVG file to be loaded
+        %       - path: directory path where the SVG file is located.
+        %       - file: name of the SVG file to be loaded.
             
             fb = self.feedbackManager;
 
             try
-                % --- Iniciar progreso ---
+                % --- Start progress indicator ---
                 fb.startProgress('Cargando SVG', 'Leyendo el archivo y generando vista previa...');
         
-                % --- Cargar datos del modelo SVG ---
+                % --- Load SVG model data ---
                 self.svgModel.setFileName(file);
                 self.svgModel.setFullPath(path, file);
         
@@ -65,7 +62,7 @@ classdef SVGController
                 fb.updateProgress(0.85, 'Mostrando modelo SVG en el lienzo...');
                 self.canvasWrapper.showSVG(contours);
         
-                % --- Actualizar estado global ---
+                % --- Update global state ---
                 self.stateApp.setActiveState('svgDisplayed');
                 self.stateApp.activateState('svgUploaded');
         
@@ -73,7 +70,7 @@ classdef SVGController
                 fb.closeProgress();
         
             catch ME
-                % --- Capturar errores y mostrarlos sin bloquear la app ---
+                % --- Handle errors without interrupting the application ---
                 fb.showWarning("Error al cargar el archivo SVG: " + ME.message);
                 fb.closeProgress();
             end

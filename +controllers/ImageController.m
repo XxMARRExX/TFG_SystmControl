@@ -2,18 +2,19 @@ classdef ImageController
 % ImageController Coordinates interaction between image model, view wrappers,
 % and application state.
 %
-%   This class manages the workflow of loading, displaying, and updating
-%   images within the application. It communicates with the image model to
-%   access data, updates the canvas wrapper to render images and overlays,
-%   and handles the preview and results console wrappers. It also manages
-%   the state of the application related to image display.
-%
 %   Properties:
 %       - stateApp: application state manager (flags)
+%
 %       - imageModel: data model storing image matrix and metadata
+%
 %       - wrapperPreviewImage: wrapper for preview image display
+%
 %       - canvasWrapper: wrapper for UIAxes canvas handling
+%
 %       - resultsConsoleWrapper: wrapper for rendering results in console
+%
+%       - feedbackManager: Centralized manager for user feedback (progress, 
+%           warnings, errors).
 
     properties (Access = private)
         stateApp;
@@ -44,34 +45,33 @@ classdef ImageController
         
 
         function loadImageFromDialog(self, path, file)
-        % loadImageFromDialog() Opens a file dialog to load an image and 
-        % displays it on a canvas.
+        % loadImageFromDialog()  Loads an image file and displays it on the canvas.
         %
         %   Inputs:
-        %       - path: 
-        %       - file: 
-            
+        %       - path: directory path where the image file is located.
+        %       - file: name of the image file to be loaded.
+
             fb = self.feedbackManager;
 
             try
-                % --- Iniciar progreso ---
+                % --- Start progress indicator ---
                 fb.startProgress('Cargando imagen', 'Leyendo archivo desde el disco...');
         
-                % --- Modelo: establecer metadatos ---
+                % --- Model: set metadata ---
                 self.imageModel.setFileName(file);
                 self.imageModel.setFullPath(file, path);
         
                 fb.updateProgress(0.3, 'Leyendo datos de imagen...');
                 self.imageModel.readImage(self.imageModel.getFullPath());
         
-                % --- Vista previa ---
+                % --- Model: set metadata ---
                 fb.updateProgress(0.6, 'Generando vista previa...');
                 self.wrapperPreviewImage.setPreviewFile(self.imageModel.getFullPath());
         
                 fb.updateProgress(0.85, 'Mostrando imagen en el lienzo...');
                 self.canvasWrapper.showImage(self.imageModel.getImage(), 'Imagen cargada');
         
-                % --- Actualizar estado global ---
+                % --- Update global state ---
                 self.stateApp.setActiveState('imageDisplayed');
                 self.stateApp.activateState('imageUploaded');
         
@@ -79,7 +79,7 @@ classdef ImageController
                 fb.closeProgress();
         
             catch ME
-                % --- Manejo seguro de errores ---
+                % --- Safe error handling ---
                 fb.showWarning("Error al cargar la imagen: " + ME.message);
                 fb.closeProgress();
             end
