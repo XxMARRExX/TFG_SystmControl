@@ -3,10 +3,13 @@ classdef SVG < handle
 %
 %   Properties:
 %       - fileName: The name of the SVG file (without path). 
+%
 %       - fullPath: The full path to the SVG file, including file name.
+%
 %       - contours: A cell array where each element represents a path extracted
 %           from the SVG. Each path is stored as an Nx2 numeric array
 %           of [x, y] coordinates.
+%
 %       - previewImage: A rasterized grayscale or RGB image of the SVG contours,
 %           used for quick visualization in the application preview.
 

@@ -1,20 +1,13 @@
 classdef TabParams < handle
 % TabParams  Configuration tab for processing parameters in the GUI.
 %
-%   This class builds and manages the "Parameters" tab of the application's
-%   graphical interface. It provides grouped interactive controls that
-%   allow the user to configure the main parameters used throughout the
-%   image analysis and error computation pipeline.
-%
 %   The tab is composed of four collapsible parameter panels:
 %       1. Subpixel Phase 1 parameters
 %       2. Subpixel Phase 2 parameters
 %       3. DBSCAN clustering parameters
 %       4. Error calculation parameters
 %
-%   -----------------------------------------------------------------------
-%   Properties
-%   -----------------------------------------------------------------------
+%   Properties (private):
 %
 %   feedbackManager   : Instance of the feedback system used to show
 %                       warnings and validation messages to the user.
@@ -332,7 +325,6 @@ classdef TabParams < handle
         %   Creates the "DBSCAN" parameter panel containing the numeric fields:
         %       - Epsilon (neighborhood radius)
         %       - Minimum number of points
-
     
             % First pane
             self.dbscanPanel = uipanel('Parent', vbox, ...
@@ -381,26 +373,23 @@ classdef TabParams < handle
 
 
         function buildErrorParams(self, vbox)
-        % buildErrorParams()  Crea el panel de parámetros de Error.
+        % buildErrorParams()  Creates the "Error" parameters panel.
         %
         %   Inputs:
-        %       - vbox: contenedor vertical (uix.VBox) donde se añadirá el panel.
-        %
-        %   Crea el panel "Error" con los campos "px a mm" y "Tolerancia".
-        %
+        %       - vbox: vertical container (uix.VBox) where the panel will be added.
     
-            % --- Panel principal ---
+            % --- Main panel ---
             self.errorPanel = uipanel('Parent', vbox, ...
                 'Title', 'Error', ...
                 'BackgroundColor', [0.7804 0.3882 0.2314], ...
                 'FontWeight', 'bold', ...
                 'ForegroundColor', [1 1 1]); 
         
-            % --- Layout interno del panel ---
+            % --- Internal layout ---
             errorLayout = uigridlayout(self.errorPanel, ...
                 'BackgroundColor', [0.95 0.95 0.95]);
         
-            % --- Etiqueta: px a mm ---
+            % --- Px to mm ---
             pxammLabel = uilabel(errorLayout, ...
                 'Text', 'Px a mm', ...
                 'HorizontalAlignment', 'center', ...
@@ -408,7 +397,7 @@ classdef TabParams < handle
             pxammLabel.Layout.Row = 1;
             pxammLabel.Layout.Column = 1;
         
-            % --- Campo: pixelTomm ---
+            % --- Px to mm ---
             self.pixelTomm = uieditfield(errorLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
                 'Value', 15, ...
@@ -416,7 +405,7 @@ classdef TabParams < handle
             self.pixelTomm.Layout.Row = 1;
             self.pixelTomm.Layout.Column = 2;
         
-            % --- Etiqueta: Tolerancia ---
+            % --- Tolerance ---
             tolLabel = uilabel(errorLayout, ...
                 'Text', 'Tolerancia', ...
                 'HorizontalAlignment', 'center', ...
@@ -424,7 +413,7 @@ classdef TabParams < handle
             tolLabel.Layout.Row = 2;
             tolLabel.Layout.Column = 1;
         
-            % --- Campo: tolerance ---
+            % --- Tolerance ---
             self.tolerance = uieditfield(errorLayout, 'numeric', ...
                 'HorizontalAlignment', 'center', ...
                 'Value', 0.3, ...
