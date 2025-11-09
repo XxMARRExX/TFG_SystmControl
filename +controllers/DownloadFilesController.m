@@ -1,5 +1,11 @@
 classdef DownloadFilesController
-    
+% DownloadFilesController  Manages data export operations for analyzed pieces.
+%
+%   Properties:
+%       - stateApp: application state manager that tracks logical workflow states.
+%       - resultsConsoleWrapper: manages the result tab views for each analyzed piece.
+%       - modelImage: stores image data, bounding boxes, and computed results.
+%       - feedbackManager: handles user feedback, progress indicators, and warnings.
     properties
         stateApp;
         resultsConsoleWrapper;
@@ -18,16 +24,18 @@ classdef DownloadFilesController
 
 
         function downloadXLSXPointsOverImage(self)
+        % downloadXLSXPointsOverImage()  Exports point-wise error data 
+        %       (in image coordinates) to an Excel file.
             fb = self.feedbackManager;
         
             try
-                % --- 1. Verificar estado ---
+                % --- 1. Verify processing state ---
                 if ~self.stateApp.getStatusState('errorOnPieceCalculated')
                     fb.showWarning("Se debe calcular el error sobre las piezas antes de exportar el archivo.");
                     return;
                 end
         
-                % --- 2. Obtener Bounding Boxes ---
+                % --- 2. Retrieve BBoxes ---
                 bboxes = self.modelImage.getbBoxes();
                 numPieces = numel(bboxes);
         
@@ -36,7 +44,7 @@ classdef DownloadFilesController
                     return;
                 end
         
-                % --- 3. Seleccionar ruta destino ---
+                % --- 3. Select destination file ---
                 [file, path] = uiputfile('*.xlsx', 'Guardar puntos con error como...');
                 if isequal(file, 0)
                     fb.showWarning("Exportación cancelada por el usuario.");
@@ -45,21 +53,19 @@ classdef DownloadFilesController
         
                 fullPath = fullfile(path, file);
         
-                % --- 4. Inicialización del progreso ---
+                % --- 4. Initialize progress ---
                 fb.startProgress("Exportando datos", "Preparando exportación a Excel...");
                 totalSteps = numPieces;
                 step = 0;
         
-                % --- 5. Recorrer todas las piezas ---
+                % --- 5. Process each piece ---
                 for i = 1:numPieces
                     step = step + 1;
                     currentBBox = bboxes(i);
         
-                    % Actualizar barra de progreso
                     progressMsg = sprintf("Exportando pieza %d de %d...", i, numPieces);
                     fb.updateProgress(step/totalSteps, progressMsg);
         
-                    % Obtener los bordes con error (ya calculados)
                     edgesWithError = currentBBox.getEdgesWithError();
         
                     if isempty(edgesWithError)
@@ -67,12 +73,10 @@ classdef DownloadFilesController
                         continue;
                     end
         
-                    % --- Unificar puntos exteriores + interiores ---
                     allX = [];
                     allY = [];
                     allE = [];
-        
-                    % Contorno exterior
+
                     if isfield(edgesWithError, 'exterior')
                         ex = edgesWithError.exterior;
                         allX = [allX; ex.x(:)];
@@ -80,7 +84,6 @@ classdef DownloadFilesController
                         allE = [allE; ex.e(:)];
                     end
         
-                    % Contornos interiores
                     if isfield(edgesWithError, 'innerContours') && ~isempty(edgesWithError.innerContours)
                         for j = 1:numel(edgesWithError.innerContours)
                             inC = edgesWithError.innerContours{j};
@@ -90,14 +93,12 @@ classdef DownloadFilesController
                         end
                     end
         
-                    % --- Crear tabla y escribir hoja ---
                     T = table(allX, allY, allE, 'VariableNames', {'x', 'y', 'e'});
                     sheetName = currentBBox.getLabel();
         
                     writetable(T, fullPath, 'Sheet', sheetName);
                 end
         
-                % --- 6. Finalización ---
                 fb.updateProgress(1, "Exportación completada.");
                 fb.showWarning(sprintf("Se exportaron %d piezas correctamente a:\n%s", numPieces, fullPath));
                 fb.closeProgress();
@@ -110,16 +111,18 @@ classdef DownloadFilesController
 
 
         function downloadXLSXPointsOverSVG(self)
+        % downloadXLSXPointsOverSVG()  Exports point-wise error data 
+        %       (in SVG coordinates) to an Excel file.
             fb = self.feedbackManager;
         
             try
-                % --- 1. Verificar estado ---
+                % --- 1. Verify processing state ---
                 if ~self.stateApp.getStatusState('errorOnPieceCalculated')
                     fb.showWarning("Se debe calcular el error sobre las piezas antes de exportar el archivo.");
                     return;
                 end
         
-                % --- 2. Obtener Bounding Boxes ---
+                % --- 2. Retrieve BBoxes ---
                 bboxes = self.modelImage.getbBoxes();
                 numPieces = numel(bboxes);
         
@@ -128,7 +131,7 @@ classdef DownloadFilesController
                     return;
                 end
         
-                % --- 3. Seleccionar ruta destino ---
+                % --- 3. Select destination file ---
                 [file, path] = uiputfile('*.xlsx', 'Guardar puntos con error como...');
                 if isequal(file, 0)
                     fb.showWarning("Exportación cancelada por el usuario.");
@@ -137,42 +140,37 @@ classdef DownloadFilesController
         
                 fullPath = fullfile(path, file);
         
-                % --- 4. Inicialización del progreso ---
+                % --- 4. Initialize progress ---
                 fb.startProgress("Exportando datos", "Preparando exportación a Excel...");
                 totalSteps = numPieces;
                 step = 0;
         
-                % --- 5. Recorrer todas las piezas ---
+                % --- 5. Process each piece ---
                 for i = 1:numPieces
                     step = step + 1;
                     currentBBox = bboxes(i);
-        
-                    % Actualizar barra de progreso
+
                     progressMsg = sprintf("Exportando pieza %d de %d...", i, numPieces);
                     fb.updateProgress(step/totalSteps, progressMsg);
-        
-                    % Obtener los bordes con error (ya calculados)
+
                     edgesWithError = currentBBox.getEdgesWithErrorOverSVG();
         
                     if isempty(edgesWithError)
                         fb.showWarning(sprintf("La pieza %d no tiene datos de error.", i));
                         continue;
                     end
-        
-                    % --- Unificar puntos exteriores + interiores ---
+
                     allX = [];
                     allY = [];
                     allE = [];
-        
-                    % Contorno exterior
+
                     if isfield(edgesWithError, 'exterior')
                         ex = edgesWithError.exterior;
                         allX = [allX; ex.x(:)];
                         allY = [allY; ex.y(:)];
                         allE = [allE; ex.e(:)];
                     end
-        
-                    % Contornos interiores
+
                     if isfield(edgesWithError, 'innerContours') && ~isempty(edgesWithError.innerContours)
                         for j = 1:numel(edgesWithError.innerContours)
                             inC = edgesWithError.innerContours{j};
@@ -181,15 +179,13 @@ classdef DownloadFilesController
                             allE = [allE; inC.e(:)];
                         end
                     end
-        
-                    % --- Crear tabla y escribir hoja ---
+
                     T = table(allX, allY, allE, 'VariableNames', {'x', 'y', 'e'});
                     sheetName = currentBBox.getLabel();
         
                     writetable(T, fullPath, 'Sheet', sheetName);
                 end
-        
-                % --- 6. Finalización ---
+
                 fb.updateProgress(1, "Exportación completada.");
                 fb.showWarning(sprintf("Se exportaron %d piezas correctamente a:\n%s", numPieces, fullPath));
                 fb.closeProgress();

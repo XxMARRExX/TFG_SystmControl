@@ -1,10 +1,6 @@
 classdef ToolsController < handle
 % ToolsController Centralizes tool-state logic and canvas interactions.
 %
-%   This class manages the logic related to tool activation and user
-%   interactions with the canvas. It coordinates the state of the
-%   application (active tool).
-%
 %   Properties:
 %       - stateApp: application state (active tool, app flags)
 %       - imageModel: model that stores and manages the loaded image
@@ -75,14 +71,21 @@ classdef ToolsController < handle
 
 
         function deleteOutliersEvents(self, canvas)
-        
+        % deleteOutliersEvents()  Configures mouse events for outlier deletion mode.
+        %
+        %   Inputs:
+        %       - canvas: UIAxes or Canvas wrapper where the user interaction
+        %           will take place.
             canvas.Interactions = [];
             canvas.ButtonDownFcn = @(src,evt) self.deleteOutliers(canvas);
         end
 
 
         function deleteOutliers(self, canvas)
-        
+        % deleteOutliers()  Enables manual deletion of outlier points using a rectangular ROI.
+        %
+        %   Inputs:
+        %       - canvas: UIAxes or Canvas wrapper where the ROI selection will be drawn.
             if ~strcmp(self.stateApp.getActiveState(), 'filteredEdgesDisplayed')
                 self.feedbackManager.showWarning("Esta herramienta requiere " + ...
                     "que la imagen con los puntos filtrados esté cargada.")
@@ -110,6 +113,11 @@ classdef ToolsController < handle
 
     methods (Access = private)
         function handleDeleteOutliers(self, roi)
+        % handleDeleteOutliers()  Handles manual deletion of outlier points within a selected ROI.
+        %
+        %   Inputs:
+        %       - roi: handle to the rectangular region of interest (ROI) drawn
+        %           by the user to define the area where points should be deleted.
 
             pos = roi.Position;
             xMin = pos(1);
@@ -141,7 +149,7 @@ classdef ToolsController < handle
             for i = 1:numel(filteredEdges)
                 edgeStruct = filteredEdges{i};
             
-                % --- 1. Contorno exterior ---
+                % 1. Exterior contour
                 if isfield(edgeStruct, 'edges') && isfield(edgeStruct.edges, 'exterior')
                     x = edgeStruct.edges.exterior.x;
                     y = edgeStruct.edges.exterior.y;
@@ -151,7 +159,7 @@ classdef ToolsController < handle
                     edgeStruct.edges.exterior.y(inside) = [];
                 end
             
-                % --- 2. Contornos interiores ---
+                % 2. Inner contours
                 if isfield(edgeStruct.edges, 'innerContours') && ...
                    ~isempty(edgeStruct.edges.innerContours)
             
@@ -166,7 +174,7 @@ classdef ToolsController < handle
                     end
                 end
             
-                % --- Actualizar el elemento ---
+                % --- Update modified structure ---
                 filteredEdges{i} = edgeStruct;
             end
 
