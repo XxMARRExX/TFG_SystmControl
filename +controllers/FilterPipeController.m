@@ -663,6 +663,7 @@ classdef FilterPipeController
                 newRoi.Deletable = false;
         
                 bbox.setRoi(newRoi);
+                bbox.setLabel(sprintf("Pieza %d", k));
             end
         end
 
