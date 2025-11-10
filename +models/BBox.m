@@ -93,6 +93,7 @@ classdef BBox < handle
             if ~isempty(roi) && isvalid(roi)
                 self.position = roi.Position;
                 addlistener(roi, 'DeletingROI', @(src,evt) self.onRoiDeleted());
+                addlistener(roi, 'ROIMoved', @(src, evt) self.onRoiMoved(src));
             end
         end
 
@@ -102,6 +103,11 @@ classdef BBox < handle
             if ~isempty(self.onDeleteFcn)
                 self.onDeleteFcn(self);
             end
+        end
+
+
+        function onRoiMoved(self, roi)
+            self.position = roi.Position;
         end
 
 
