@@ -66,7 +66,7 @@ classdef TabParams < handle
             self.feedbackManager = feedbackManager;
             
             % --- Create new tab (single column with scroll) ---
-            self.tab = uitab(tabGroup, 'Title', 'Configuration Parameters');
+            self.tab = uitab(tabGroup, 'Title', 'Configuración de parámetros');
             self.tab.BackgroundColor = [1 1 1];
         
             % --- Base 1x1 grid container ---
