@@ -189,3 +189,25 @@ src/
 
 <img width="1919" height="1028" alt="image" src="https://github.com/user-attachments/assets/4be2d68c-fa72-4919-9cb7-3827ae950cb0" />
 
+## Uso de la aplicación
+*(Se requiere Git y MATLAB IDE versión R2024b)*
+
+---
+
+### 1. Clonar el repositorio
+
+El repositorio debe clonarse desde un terminal del sistema operativo desde la carpeta deseada
+
+```bash
+git clone https://github.com/XxMARREXx/TFG_SystmControl
+```
+
+### 2. Ir a la carpeta destino definida
+```bash
+cd carpeta/destino
+```
+
+### 3. Desde la línea de comandos de Matlab ejecutar
+```bash
+pieceAnalyzer
+```
